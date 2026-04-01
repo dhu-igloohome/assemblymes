@@ -11,5 +11,41 @@
     "language": "Language",
     "language_en": "English",
     "language_zh": "中文"
+  },
+  "Items": {
+    "title": "Item Master",
+    "add_item": "Add Item",
+    "item_code": "Item Code",
+    "item_name": "Item Name",
+    "item_type": "Type",
+    "unit": "Unit",
+    "description": "Description",
+    "type_product": "Product",
+    "type_assembly": "Assembly",
+    "type_material": "Material",
+    "search_placeholder": "Search by Item Code or Name..."
+  },
+  "Boms": {
+    "title": "BOM Management",
+    "select_parent": "Select Parent Item",
+    "version": "Version",
+    "add_component": "Add Component",
+    "component_code": "Component Code",
+    "quantity": "Quantity",
+    "scrap_rate": "Scrap Rate (%)",
+    "save": "Save BOM",
+    "no_bom": "No BOM found for this item. Create one?"
+  },
+  "Routings": {
+    "title": "Routing Management",
+    "select_item": "Select Item",
+    "version": "Version",
+    "add_operation": "Add Operation",
+    "sequence": "Sequence",
+    "operation_name": "Operation Name",
+    "workstation": "Workstation",
+    "standard_time": "Standard Time (s)",
+    "save": "Save Routing",
+    "no_routing": "No Routing found for this item. Create one?"
   }
 }

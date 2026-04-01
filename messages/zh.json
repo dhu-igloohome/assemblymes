@@ -11,5 +11,41 @@
     "language": "语言切换",
     "language_en": "English",
     "language_zh": "中文"
+  },
+  "Items": {
+    "title": "物料字典",
+    "add_item": "新增物料",
+    "item_code": "物料编码",
+    "item_name": "物料名称",
+    "item_type": "物料类型",
+    "unit": "单位",
+    "description": "描述",
+    "type_product": "成品",
+    "type_assembly": "半成品",
+    "type_material": "原材料",
+    "search_placeholder": "按编码或名称搜索..."
+  },
+  "Boms": {
+    "title": "BOM 维护",
+    "select_parent": "选择父级物料",
+    "version": "版本号",
+    "add_component": "添加子件",
+    "component_code": "子件编码",
+    "quantity": "用量",
+    "scrap_rate": "损耗率 (%)",
+    "save": "保存 BOM",
+    "no_bom": "该物料尚未配置 BOM，是否创建？"
+  },
+  "Routings": {
+    "title": "工艺路线编制",
+    "select_item": "选择物料",
+    "version": "版本号",
+    "add_operation": "添加工序",
+    "sequence": "工序序号",
+    "operation_name": "工序名称",
+    "workstation": "工作中心/工位",
+    "standard_time": "标准工时(秒)",
+    "save": "保存工艺路线",
+    "no_routing": "该物料尚未配置工艺路线，是否创建？"
   }
 }
