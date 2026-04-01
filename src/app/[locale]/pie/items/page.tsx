@@ -89,7 +89,7 @@ export default function ItemsPage() {
         setSubmitMessage(t('submit_success'));
         fetchItemsDirect();
       } else {
-        setSubmitError(result?.error ?? result?.details ?? t('submit_failed'));
+        setSubmitError(result?.details ?? result?.error ?? t('submit_failed'));
       }
     } catch (error) {
       console.error('Failed to create item', error);

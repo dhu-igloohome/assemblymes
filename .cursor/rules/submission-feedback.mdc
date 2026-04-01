@@ -1,0 +1,21 @@
+---
+description: Require visible feedback for every submit action
+alwaysApply: true
+---
+
+# Submission Feedback Rule
+
+In `assemblymes`, every submit action must provide visible user feedback. Silent submission is not allowed.
+
+Minimum requirements for any submit button or save action:
+
+1. Show a submitting state immediately after click.
+2. Disable repeated submission while the request is in progress.
+3. Show a success message when the action succeeds.
+4. Show a clear error message when the action fails.
+
+Additional requirements:
+
+- Do not rely on `console.error` alone for user-facing failures.
+- Convert backend or validation failures into understandable UI messages.
+- This rule applies to all submit actions, including login, create, update, save, delete, publish, and version actions.

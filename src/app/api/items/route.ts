@@ -55,6 +55,53 @@ function validateItemPayload(
   };
 }
 
+function getItemApiErrorMessage(error: unknown) {
+  if (error && typeof error === 'object' && 'code' in error) {
+    const code = String((error as { code?: unknown }).code ?? '');
+
+    if (code === 'P2002') {
+      return { error: 'Item code already exists.' };
+    }
+
+    if (code === 'P2021') {
+      return {
+        error: 'Database schema is not initialized.',
+        details: 'The items table is missing. Please redeploy so the schema sync can run.',
+      };
+    }
+  }
+
+  if (error instanceof Error) {
+    if (error.message.includes('fetch failed')) {
+      return {
+        error: 'Database connection failed.',
+        details: 'The application could not reach the database service.',
+      };
+    }
+
+    if (
+      error.message.includes('does not exist') ||
+      error.message.includes('relation') ||
+      error.message.includes('table')
+    ) {
+      return {
+        error: 'Database schema is not initialized.',
+        details: error.message,
+      };
+    }
+
+    return {
+      error: 'Failed to create item',
+      details: error.message,
+    };
+  }
+
+  return {
+    error: 'Failed to create item',
+    details: String(error),
+  };
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -112,11 +159,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json(newItem, { status: 201 });
   } catch (error: unknown) {
+    const apiError = getItemApiErrorMessage(error);
     return NextResponse.json(
-      {
-        error: 'Failed to create item',
-        details: error instanceof Error ? error.message : String(error),
-      },
+      apiError,
       { status: 500 }
     );
   }
