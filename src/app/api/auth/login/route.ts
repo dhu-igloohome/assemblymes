@@ -6,6 +6,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const username = typeof body.username === 'string' ? body.username.trim() : '';
     const password = typeof body.password === 'string' ? body.password : '';
+    const locale = body.locale === 'en' ? 'en' : 'zh';
 
     if (!username || !password) {
       return NextResponse.json(
@@ -24,7 +25,7 @@ export async function POST(request: Request) {
     const response = NextResponse.json({
       success: true,
       role: SUPER_ADMIN.role,
-      redirectTo: '/zh/pie/items',
+      redirectTo: `/${locale}/pie/items`,
     });
 
     response.cookies.set({

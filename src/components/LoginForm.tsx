@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
-import { useRouter } from '@/i18n/routing';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -18,7 +17,6 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
 export default function LoginForm() {
   const t = useTranslations('Login');
   const locale = useLocale();
-  const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
@@ -43,8 +41,7 @@ export default function LoginForm() {
         return;
       }
 
-      router.push(`/${locale}/pie/items`);
-      router.refresh();
+      window.location.assign(result.redirectTo ?? `/${locale}/pie/items`);
     } catch {
       setErrorMessage(t('request_failed'));
     } finally {
