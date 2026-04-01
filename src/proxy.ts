@@ -41,7 +41,7 @@ export default function proxy(request: NextRequest) {
 
   if (isProtectedPage(pathname) && !isLoggedIn) {
     const locale = getLocaleFromPath(pathname);
-    const loginUrl = new URL(`/${locale}/login`, request.url);
+    const loginUrl = new URL(`/${locale}`, request.url);
     return NextResponse.redirect(loginUrl);
   }
 
