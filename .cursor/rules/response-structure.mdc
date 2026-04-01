@@ -1,0 +1,22 @@
+---
+description: Enforce the assemblymes response structure for analysis and delivery
+alwaysApply: true
+---
+
+# Response Structure
+
+For substantial work, debugging, implementation, or delivery in `assemblymes`, structure responses in this order:
+
+1. Logic
+2. Solution
+3. Code/Steps
+4. Verification
+5. Notes
+
+Requirements:
+
+- Do not give perfunctory answers or skip important reasoning.
+- Analyze errors line by line when debugging and identify the root cause.
+- Avoid unnecessary questions when the answer can be verified independently.
+- If a question must be asked, include the relevant logs, environment details, research findings, and attempted steps.
+- When there are meaningful choices, provide at least two feasible solutions with pros and cons before selecting one.

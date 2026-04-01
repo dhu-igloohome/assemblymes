@@ -23,6 +23,9 @@ export default function ItemsPage() {
   const t = useTranslations('Items');
   const [items, setItems] = useState<Item[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState('');
+  const [submitError, setSubmitError] = useState('');
   const [formData, setFormData] = useState({
     itemCode: '',
     itemName: '',
@@ -62,19 +65,37 @@ export default function ItemsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError('');
+    setSubmitMessage('');
+
+    if (!/^\d{6}$/.test(formData.itemCode)) {
+      setSubmitError(t('code_rule_hint'));
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
       const res = await fetch('/api/items', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
+
+      const result = await res.json().catch(() => null);
+
       if (res.ok) {
         setIsDialogOpen(false);
         setFormData({ itemCode: '', itemName: '', itemType: '', unit: '', description: '' });
+        setSubmitMessage(t('submit_success'));
         fetchItemsDirect();
+      } else {
+        setSubmitError(result?.error ?? result?.details ?? t('submit_failed'));
       }
     } catch (error) {
       console.error('Failed to create item', error);
+      setSubmitError(t('submit_failed'));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -98,6 +119,7 @@ export default function ItemsPage() {
                 required
                 maxLength={6}
               />
+              <p className="text-xs text-gray-500">{t('code_rule_hint')}</p>
               <Input
                 placeholder={t('item_name')}
                 value={formData.itemName}
@@ -129,11 +151,20 @@ export default function ItemsPage() {
                 value={formData.description}
                 onChange={(e) => setFormData({...formData, description: e.target.value})}
               />
-              <Button type="submit" className="w-full">{t('add_item')}</Button>
+              {submitError ? (
+                <p className="text-sm text-red-600">{submitError}</p>
+              ) : null}
+              <Button type="submit" className="w-full" disabled={isSubmitting}>
+                {isSubmitting ? t('submitting') : t('add_item')}
+              </Button>
             </form>
           </DialogContent>
         </Dialog>
       </div>
+
+      {submitMessage ? (
+        <p className="text-sm text-green-600">{submitMessage}</p>
+      ) : null}
 
       <div className="flex items-center space-x-2 mb-4">
         <Input placeholder={t('search_placeholder')} className="max-w-sm" />
@@ -163,7 +194,7 @@ export default function ItemsPage() {
             {items.length === 0 && (
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-6 text-gray-500">
-                  No items found
+                  {t('empty_state')}
                 </TableCell>
               </TableRow>
             )}

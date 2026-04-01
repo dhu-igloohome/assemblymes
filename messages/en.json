@@ -18,6 +18,11 @@
   "Items": {
     "title": "Item Master",
     "add_item": "Add Item",
+    "submitting": "Submitting...",
+    "submit_failed": "Failed to create item",
+    "submit_success": "Item created successfully",
+    "code_rule_hint": "Item code must be exactly 6 digits",
+    "empty_state": "No items found",
     "item_code": "Item Code",
     "item_name": "Item Name",
     "item_type": "Type",

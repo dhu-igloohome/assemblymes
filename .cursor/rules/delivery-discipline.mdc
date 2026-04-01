@@ -1,0 +1,20 @@
+---
+description: Enforce self-check, build, and verification before every delivery
+alwaysApply: true
+---
+
+# Delivery Discipline
+
+Before every user-facing delivery in `assemblymes`, always follow this order:
+
+1. Self-check first.
+2. Run a production-oriented build check before delivery whenever code changed.
+3. Verify the affected flow or behavior before delivery.
+4. Only then deliver the result to the user.
+
+Non-negotiable requirements:
+
+- Never skip self-check, build, or verification before handing off code changes.
+- Treat this as a highest-priority project rule regardless of which underlying model is active.
+- If a build or verification fails, fix the issue first or clearly report the blocking failure with logs and root cause.
+- Do not present work as complete until the above discipline has been followed.

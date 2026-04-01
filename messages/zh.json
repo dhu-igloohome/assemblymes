@@ -18,6 +18,11 @@
   "Items": {
     "title": "物料字典",
     "add_item": "新增物料",
+    "submitting": "提交中...",
+    "submit_failed": "新增物料失败",
+    "submit_success": "物料新增成功",
+    "code_rule_hint": "物料编码必须为 6 位数字",
+    "empty_state": "暂无物料数据",
     "item_code": "物料编码",
     "item_name": "物料名称",
     "item_type": "物料类型",
