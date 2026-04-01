@@ -1,4 +1,8 @@
-import { useTranslations } from 'next-intl';
+'use client';
+
+import { useState } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
+import { useRouter } from '@/i18n/routing';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -6,6 +10,40 @@ import LanguageSwitcher from '@/components/LanguageSwitcher';
 
 export default function LoginPage() {
   const t = useTranslations('Login');
+  const locale = useLocale();
+  const router = useRouter();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setErrorMessage('');
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password, locale }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        setErrorMessage(result.error ?? t('invalid_credentials'));
+        return;
+      }
+
+      router.push(`/${locale}/pie/items`);
+      router.refresh();
+    } catch {
+      setErrorMessage(t('request_failed'));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-4">
@@ -20,27 +58,44 @@ export default function LoginPage() {
               {t('title')}
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Input 
-                id="username" 
-                type="text" 
-                placeholder={t('username_placeholder')} 
-                className="h-12 text-base"
-              />
-            </div>
-            <div className="space-y-2">
-              <Input 
-                id="password" 
-                type="password" 
-                placeholder={t('password_placeholder')} 
-                className="h-12 text-base"
-              />
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button className="w-full h-12 text-base font-semibold">{t('submit_button')}</Button>
-          </CardFooter>
+          <form onSubmit={handleSubmit}>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Input
+                  id="username"
+                  type="text"
+                  placeholder={t('username_placeholder')}
+                  className="h-12 text-base"
+                  value={username}
+                  onChange={(event) => setUsername(event.target.value)}
+                  autoComplete="username"
+                />
+              </div>
+              <div className="space-y-2">
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder={t('password_placeholder')}
+                  className="h-12 text-base"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  autoComplete="current-password"
+                />
+              </div>
+              {errorMessage ? (
+                <p className="text-sm text-red-600">{errorMessage}</p>
+              ) : null}
+            </CardContent>
+            <CardFooter>
+              <Button
+                type="submit"
+                className="w-full h-12 text-base font-semibold"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? t('submitting') : t('submit_button')}
+              </Button>
+            </CardFooter>
+          </form>
         </Card>
       </div>
     </div>

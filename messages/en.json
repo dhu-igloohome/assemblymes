@@ -8,6 +8,9 @@
     "username_placeholder": "Username",
     "password_placeholder": "Password",
     "submit_button": "Login",
+    "submitting": "Signing in...",
+    "invalid_credentials": "Invalid username or password",
+    "request_failed": "Sign-in request failed. Please try again.",
     "language": "Language",
     "language_en": "English",
     "language_zh": "中文"
