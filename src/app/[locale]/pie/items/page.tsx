@@ -19,6 +19,29 @@ interface Item {
   description: string;
 }
 
+async function parseApiError(response: Response, fallbackMessage: string) {
+  const responseText = await response.text();
+
+  if (!responseText) {
+    return `${fallbackMessage} (HTTP ${response.status})`;
+  }
+
+  try {
+    const parsed = JSON.parse(responseText) as {
+      error?: string;
+      details?: string;
+    };
+
+    return (
+      parsed.details ??
+      parsed.error ??
+      `${fallbackMessage} (HTTP ${response.status})`
+    );
+  } catch {
+    return `${fallbackMessage} (HTTP ${response.status}): ${responseText.slice(0, 300)}`;
+  }
+}
+
 export default function ItemsPage() {
   const t = useTranslations('Items');
   const [items, setItems] = useState<Item[]>([]);
@@ -38,28 +61,44 @@ export default function ItemsPage() {
     let active = true;
     const fetchItems = async () => {
       try {
-        const res = await fetch('/api/items');
+        const res = await fetch('/api/items', { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
           if (active) setItems(data);
+        } else if (active) {
+          setSubmitError(await parseApiError(res, t('submit_failed')));
         }
       } catch (error) {
         console.error('Failed to load items', error);
+        if (active) {
+          setSubmitError(
+            error instanceof Error
+              ? `${t('submit_failed')}: ${error.message}`
+              : t('submit_failed')
+          );
+        }
       }
     };
     fetchItems();
     return () => { active = false; };
-  }, []);
+  }, [t]);
 
   const fetchItemsDirect = async () => {
     try {
-      const res = await fetch('/api/items');
+      const res = await fetch('/api/items', { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
         setItems(data);
+      } else {
+        setSubmitError(await parseApiError(res, t('submit_failed')));
       }
     } catch (error) {
       console.error('Failed to load items', error);
+      setSubmitError(
+        error instanceof Error
+          ? `${t('submit_failed')}: ${error.message}`
+          : t('submit_failed')
+      );
     }
   };
 
@@ -81,19 +120,21 @@ export default function ItemsPage() {
         body: JSON.stringify(formData)
       });
 
-      const result = await res.json().catch(() => null);
-
       if (res.ok) {
         setIsDialogOpen(false);
         setFormData({ itemCode: '', itemName: '', itemType: '', unit: '', description: '' });
         setSubmitMessage(t('submit_success'));
         fetchItemsDirect();
       } else {
-        setSubmitError(result?.details ?? result?.error ?? t('submit_failed'));
+        setSubmitError(await parseApiError(res, t('submit_failed')));
       }
     } catch (error) {
       console.error('Failed to create item', error);
-      setSubmitError(t('submit_failed'));
+      setSubmitError(
+        error instanceof Error
+          ? `${t('submit_failed')}: ${error.message}`
+          : t('submit_failed')
+      );
     } finally {
       setIsSubmitting(false);
     }
