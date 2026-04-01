@@ -32,7 +32,8 @@ export default function BomsPage() {
       .catch(console.error);
   }, []);
 
-  const loadBom = async (code: string) => {
+  const loadBom = async (code: string | null) => {
+    if (!code) return;
     setParentItemCode(code);
     try {
       const res = await fetch(`/api/boms?parentItemCode=${code}`);
@@ -85,7 +86,7 @@ export default function BomsPage() {
 
       <div className="flex space-x-4 mb-8">
         <div className="w-1/3">
-          <Select onValueChange={loadBom} value={parentItemCode}>
+          <Select onValueChange={(v) => loadBom(v ? String(v) : '')} value={parentItemCode}>
             <SelectTrigger>
               <SelectValue placeholder={t('select_parent')} />
             </SelectTrigger>
@@ -127,7 +128,7 @@ export default function BomsPage() {
                   <TableCell>
                     <Select 
                       value={line.componentItemCode} 
-                      onValueChange={(val) => updateLine(idx, 'componentItemCode', val)}
+                      onValueChange={(val) => updateLine(idx, 'componentItemCode', val ? String(val) : '')}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder={t('component_code')} />

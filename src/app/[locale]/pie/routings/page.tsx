@@ -33,7 +33,8 @@ export default function RoutingsPage() {
       .catch(console.error);
   }, []);
 
-  const loadRouting = async (code: string) => {
+  const loadRouting = async (code: string | null) => {
+    if (!code) return;
     setItemCode(code);
     try {
       const res = await fetch(`/api/routings?itemCode=${code}`);
@@ -90,7 +91,7 @@ export default function RoutingsPage() {
 
       <div className="flex space-x-4 mb-8">
         <div className="w-1/3">
-          <Select onValueChange={loadRouting} value={itemCode}>
+          <Select onValueChange={(v) => loadRouting(v ? String(v) : '')} value={itemCode}>
             <SelectTrigger>
               <SelectValue placeholder={t('select_item')} />
             </SelectTrigger>

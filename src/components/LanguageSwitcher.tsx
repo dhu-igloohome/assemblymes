@@ -18,7 +18,8 @@ export default function LanguageSwitcher() {
   const pathname = usePathname();
   const [isPending, startTransition] = useTransition();
 
-  function onSelectChange(nextLocale: string) {
+  function onSelectChange(nextLocale: string | null) {
+    if (!nextLocale) return;
     startTransition(() => {
       router.replace(pathname, { locale: nextLocale as "en" | "zh" });
     });
@@ -26,7 +27,7 @@ export default function LanguageSwitcher() {
 
   return (
     <div className="flex justify-end mb-4">
-      <Select defaultValue={locale} onValueChange={onSelectChange} disabled={isPending}>
+      <Select defaultValue={locale} onValueChange={(v) => onSelectChange(v ? String(v) : null)} disabled={isPending}>
         <SelectTrigger className="w-[120px]">
           <SelectValue placeholder={t('language')} />
         </SelectTrigger>

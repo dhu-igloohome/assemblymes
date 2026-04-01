@@ -83,7 +83,7 @@ export default function ItemsPage() {
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
+          <DialogTrigger>
             <Button>{t('add_item')}</Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
@@ -104,7 +104,7 @@ export default function ItemsPage() {
                 onChange={(e) => setFormData({...formData, itemName: e.target.value})}
                 required
               />
-              <Select onValueChange={(v) => setFormData({...formData, itemType: v})} required>
+              <Select onValueChange={(v) => setFormData({...formData, itemType: v ? String(v) : ''})} required>
                 <SelectTrigger>
                   <SelectValue placeholder={t('item_type')} />
                 </SelectTrigger>
@@ -114,7 +114,7 @@ export default function ItemsPage() {
                   <SelectItem value="MATERIAL">{t('type_material')}</SelectItem>
                 </SelectContent>
               </Select>
-              <Select onValueChange={(v) => setFormData({...formData, unit: v})} required>
+              <Select onValueChange={(v) => setFormData({...formData, unit: v ? String(v) : ''})} required>
                 <SelectTrigger>
                   <SelectValue placeholder={t('unit')} />
                 </SelectTrigger>
