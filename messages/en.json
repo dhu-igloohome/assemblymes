@@ -1,0 +1,15 @@
+{
+  "Index": {
+    "title": "Welcome to AssemblyMES",
+    "description": "AssemblyMES initialized successfully!"
+  },
+  "Login": {
+    "title": "Sign In",
+    "username_placeholder": "Username",
+    "password_placeholder": "Password",
+    "submit_button": "Login",
+    "language": "Language",
+    "language_en": "English",
+    "language_zh": "中文"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "Index": {
+    "title": "欢迎来到 AssemblyMES",
+    "description": "AssemblyMES 初始化成功！"
+  },
+  "Login": {
+    "title": "系统登录",
+    "username_placeholder": "请输入用户名",
+    "password_placeholder": "请输入密码",
+    "submit_button": "登录",
+    "language": "语言切换",
+    "language_en": "English",
+    "language_zh": "中文"
+  }
+}

@@ -1,0 +1,105 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------
+// 物料与产品基础数据 (Item Master Data)
+// ---------------------------------------------------------
+
+enum ItemType {
+  PRODUCT   // 成品
+  ASSEMBLY  // 半成品/组件
+  MATERIAL  // 原材料
+}
+
+model Item {
+  id          String   @id @default(uuid())
+  itemCode    String   @unique @map("item_code") @db.VarChar(6)
+  itemName    String   @map("item_name")
+  itemType    ItemType @map("item_type")
+  unit        String
+  description String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  bomsAsParent    BomHeader[] @relation("BomParentItem")
+  bomsAsComponent BomLine[]   @relation("BomComponentItem")
+  routings        RoutingHeader[]
+
+  @@map("items")
+}
+
+// ---------------------------------------------------------
+// 物料清单 (BOM)
+// ---------------------------------------------------------
+
+model BomHeader {
+  id             String   @id @default(uuid())
+  parentItemCode String   @map("parent_item_code") @db.VarChar(6)
+  version        String
+  isActive       Boolean  @default(true) @map("is_active")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  parentItem Item      @relation("BomParentItem", fields: [parentItemCode], references: [itemCode], onDelete: Cascade)
+  lines      BomLine[]
+
+  @@unique([parentItemCode, version])
+  @@map("bom_headers")
+}
+
+model BomLine {
+  id                String  @id @default(uuid())
+  bomHeaderId       String  @map("bom_header_id")
+  componentItemCode String  @map("component_item_code") @db.VarChar(6)
+  quantity          Decimal @db.Decimal(10, 4)
+  scrapRate         Decimal @default(0) @map("scrap_rate") @db.Decimal(5, 4) // 损耗率，例如0.05表示5%
+
+  // Relations
+  bomHeader     BomHeader @relation(fields: [bomHeaderId], references: [id], onDelete: Cascade)
+  componentItem Item      @relation("BomComponentItem", fields: [componentItemCode], references: [itemCode], onDelete: Restrict)
+
+  @@unique([bomHeaderId, componentItemCode])
+  @@map("bom_lines")
+}
+
+// ---------------------------------------------------------
+// 工艺路线 (Routing)
+// ---------------------------------------------------------
+
+model RoutingHeader {
+  id        String   @id @default(uuid())
+  itemCode  String   @map("item_code") @db.VarChar(6)
+  version   String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  item       Item               @relation(fields: [itemCode], references: [itemCode], onDelete: Cascade)
+  operations RoutingOperation[]
+
+  @@unique([itemCode, version])
+  @@map("routing_headers")
+}
+
+model RoutingOperation {
+  id                String @id @default(uuid())
+  routingHeaderId   String @map("routing_header_id")
+  sequence          Int
+  operationName     String @map("operation_name")
+  workstation       String
+  standardTimeSec   Int    @map("standard_time_sec") // 标准工时(秒)
+
+  // Relations
+  routingHeader RoutingHeader @relation(fields: [routingHeaderId], references: [id], onDelete: Cascade)
+
+  @@unique([routingHeaderId, sequence])
+  @@map("routing_operations")
+}
