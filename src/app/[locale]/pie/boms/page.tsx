@@ -13,7 +13,7 @@ interface Item {
 }
 
 interface BomLine {
-  componentItemCode: string;
+  componentItemCode: string | null;
   quantity: number;
   scrapRate: number;
 }
@@ -21,7 +21,7 @@ interface BomLine {
 export default function BomsPage() {
   const t = useTranslations('Boms');
   const [items, setItems] = useState<Item[]>([]);
-  const [parentItemCode, setParentItemCode] = useState('');
+  const [parentItemCode, setParentItemCode] = useState<string | null>(null);
   const [version, setVersion] = useState('V1.0');
   const [lines, setLines] = useState<BomLine[]>([]);
   
@@ -55,10 +55,10 @@ export default function BomsPage() {
   };
 
   const handleAddLine = () => {
-    setLines([...lines, { componentItemCode: '', quantity: 1, scrapRate: 0 }]);
+    setLines([...lines, { componentItemCode: null, quantity: 1, scrapRate: 0 }]);
   };
 
-  const updateLine = (index: number, field: keyof BomLine, value: string | number) => {
+  const updateLine = (index: number, field: keyof BomLine, value: string | number | null) => {
     const newLines = [...lines];
     newLines[index] = { ...newLines[index], [field]: value };
     setLines(newLines);
@@ -86,7 +86,7 @@ export default function BomsPage() {
 
       <div className="flex space-x-4 mb-8">
         <div className="w-1/3">
-          <Select onValueChange={(v) => loadBom(v ? String(v) : '')} value={parentItemCode}>
+          <Select onValueChange={(v) => loadBom(v ? String(v) : null)} value={parentItemCode}>
             <SelectTrigger>
               <SelectValue placeholder={t('select_parent')} />
             </SelectTrigger>
@@ -128,7 +128,7 @@ export default function BomsPage() {
                   <TableCell>
                     <Select 
                       value={line.componentItemCode} 
-                      onValueChange={(val) => updateLine(idx, 'componentItemCode', val ? String(val) : '')}
+                      onValueChange={(val) => updateLine(idx, 'componentItemCode', val ? String(val) : null)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder={t('component_code')} />

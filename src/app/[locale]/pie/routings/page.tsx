@@ -22,7 +22,7 @@ interface OperationLine {
 export default function RoutingsPage() {
   const t = useTranslations('Routings');
   const [items, setItems] = useState<Item[]>([]);
-  const [itemCode, setItemCode] = useState('');
+  const [itemCode, setItemCode] = useState<string | null>(null);
   const [version, setVersion] = useState('V1.0');
   const [operations, setOperations] = useState<OperationLine[]>([]);
   
@@ -91,7 +91,7 @@ export default function RoutingsPage() {
 
       <div className="flex space-x-4 mb-8">
         <div className="w-1/3">
-          <Select onValueChange={(v) => loadRouting(v ? String(v) : '')} value={itemCode}>
+          <Select onValueChange={(v) => loadRouting(v ? String(v) : null)} value={itemCode}>
             <SelectTrigger>
               <SelectValue placeholder={t('select_item')} />
             </SelectTrigger>

@@ -27,7 +27,7 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json(bomHeader);
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to fetch BOM' }, { status: 500 });
   }
 }
