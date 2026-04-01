@@ -55,5 +55,18 @@
     "standard_time": "标准工时(秒)",
     "save": "保存工艺路线",
     "no_routing": "该物料尚未配置工艺路线，是否创建？"
+  },
+  "Pie": {
+    "module_title": "PIE 管理",
+    "module_description": "产品与工业工程主界面",
+    "overview": "PIE 总览",
+    "items": "物料主数据",
+    "boms": "BOM 管理",
+    "routings": "工艺路线",
+    "welcome_title": "欢迎进入 PIE Management",
+    "welcome_description": "登录后默认进入 PIE 管理主界面。左侧 3 个板块统一归属于 PIE Management，用于维护物料主数据、产品 BOM 结构与工艺路线。",
+    "items_description": "统一维护成品、半成品与原材料的主数据，并以 6 位物料编码作为业务主键。",
+    "boms_description": "按父件展开多层 BOM 结构，维护子件、用量与损耗率等核心装配数据。",
+    "routings_description": "按物料编制工艺路线，管理工序顺序、工作中心与标准工时。"
   }
 }

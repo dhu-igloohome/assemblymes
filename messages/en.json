@@ -55,5 +55,18 @@
     "standard_time": "Standard Time (s)",
     "save": "Save Routing",
     "no_routing": "No Routing found for this item. Create one?"
+  },
+  "Pie": {
+    "module_title": "PIE Management",
+    "module_description": "Product and Industrial Engineering workspace",
+    "overview": "PIE Overview",
+    "items": "Material Master",
+    "boms": "BOM Management",
+    "routings": "Routing Management",
+    "welcome_title": "Welcome to PIE Management",
+    "welcome_description": "After sign-in, users land on the PIE Management home. The three business areas on the left all belong to PIE Management and cover material master data, BOM structures, and routing design.",
+    "items_description": "Maintain product, assembly, and material master data with the 6-digit item code as the business key.",
+    "boms_description": "Manage multi-level BOM structures by parent item, including component usage and scrap rate.",
+    "routings_description": "Define routing steps by item, including operation sequence, workstation, and standard cycle time."
   }
 }

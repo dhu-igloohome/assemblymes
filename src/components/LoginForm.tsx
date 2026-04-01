@@ -41,7 +41,7 @@ export default function LoginForm() {
         return;
       }
 
-      window.location.assign(result.redirectTo ?? `/${locale}/pie/items`);
+      window.location.assign(result.redirectTo ?? `/${locale}/pie`);
     } catch {
       setErrorMessage(t('request_failed'));
     } finally {

@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     const response = NextResponse.json({
       success: true,
       role: SUPER_ADMIN.role,
-      redirectTo: `/${locale}/pie/items`,
+      redirectTo: `/${locale}/pie`,
     });
 
     response.cookies.set({
