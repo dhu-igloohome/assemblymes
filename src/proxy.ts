@@ -39,6 +39,10 @@ export default function proxy(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  if (pathname.startsWith('/api/')) {
+    return NextResponse.next();
+  }
+
   if (isProtectedPage(pathname) && !isLoggedIn) {
     const locale = getLocaleFromPath(pathname);
     const loginUrl = new URL(`/${locale}`, request.url);
