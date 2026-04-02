@@ -215,14 +215,30 @@ export default function WorkCentersPage() {
               </DialogTitle>
             </DialogHeader>
             <div className="mt-4 space-y-4">
+              <datalist id="work-center-code-options">
+                {rows.map((row) => (
+                  <option key={row.id} value={row.workCenterCode} />
+                ))}
+              </datalist>
+              <datalist id="work-center-name-options">
+                {rows.map((row) => (
+                  <option key={row.id} value={row.name} />
+                ))}
+              </datalist>
               <Input
                 placeholder={t('code')}
+                list="work-center-code-options"
                 value={code}
                 disabled={dialogMode === 'edit'}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
                 maxLength={16}
               />
-              <Input placeholder={t('name')} value={name} onChange={(e) => setName(e.target.value)} />
+              <Input
+                placeholder={t('name')}
+                list="work-center-name-options"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
               <Select
                 value={wcType}
                 onValueChange={(v) => setWcType((v ?? 'FLOW_LINE') as WorkCenterType)}
