@@ -43,6 +43,14 @@ interface WorkOrderRow {
   planEndDate: string | null;
   createdBy: string | null;
   notes: string | null;
+  dispatches: Array<{
+    id: string;
+    workstation: string;
+    assignee: string | null;
+    status: 'ASSIGNED' | 'STARTED' | 'PAUSED' | 'COMPLETED';
+    pauseReason: string | null;
+    completedQty: number;
+  }>;
 }
 
 interface ItemOption {
@@ -62,6 +70,13 @@ export default function WorkOrdersPage() {
   const [listError, setListError] = useState('');
   const [dialogError, setDialogError] = useState('');
   const [itemOptions, setItemOptions] = useState<ItemOption[]>([]);
+  const [workstationOptions, setWorkstationOptions] = useState<string[]>([]);
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [assigningRow, setAssigningRow] = useState<WorkOrderRow | null>(null);
+  const [dispatchWorkstation, setDispatchWorkstation] = useState('');
+  const [dispatchAssignee, setDispatchAssignee] = useState('');
+  const [pauseReason, setPauseReason] = useState('');
+  const [completeQty, setCompleteQty] = useState('');
 
   const [workOrderNo, setWorkOrderNo] = useState('');
   const [skuItemCode, setSkuItemCode] = useState('');
@@ -113,10 +128,23 @@ export default function WorkOrdersPage() {
     }
   }, []);
 
+  const loadWorkstationOptions = useCallback(async () => {
+    try {
+      const res = await fetch('/api/work-centers', { cache: 'no-store' });
+      if (!res.ok) return;
+      const data = (await res.json()) as Array<{ name: string; workCenterCode: string }>;
+      const options = data.flatMap((v) => [v.name, v.workCenterCode]).filter(Boolean);
+      setWorkstationOptions(Array.from(new Set(options)).sort());
+    } catch {
+      setWorkstationOptions([]);
+    }
+  }, []);
+
   useEffect(() => {
     void loadRows();
     void loadItemOptions();
-  }, [loadRows, loadItemOptions]);
+    void loadWorkstationOptions();
+  }, [loadRows, loadItemOptions, loadWorkstationOptions]);
 
   const resetForm = () => {
     setWorkOrderNo('');
@@ -150,6 +178,12 @@ export default function WorkOrdersPage() {
       WORK_ORDER_STATUS_INVALID: 'status_invalid',
       PLAN_DATE_INVALID: 'plan_date_invalid',
       WORK_ORDER_NOT_FOUND: 'work_order_not_found',
+      DISPATCH_ACTION_INVALID: 'dispatch_action_invalid',
+      WORKSTATION_REQUIRED: 'workstation_required',
+      DISPATCH_NOT_FOUND: 'dispatch_not_found',
+      PAUSE_REASON_REQUIRED: 'pause_reason_required',
+      COMPLETED_QTY_INVALID: 'completed_qty_invalid',
+      COMPLETED_QTY_EXCEEDS_PLANNED: 'completed_qty_exceeds_planned',
     };
     return m[code] ? t(m[code]) : t('save_failed');
   };
@@ -217,6 +251,50 @@ export default function WorkOrdersPage() {
     }
   };
 
+  const dispatchAction = async (
+    row: WorkOrderRow,
+    action: 'ASSIGN' | 'START' | 'PAUSE' | 'COMPLETE'
+  ) => {
+    setListError('');
+    setListMessage('');
+    setIsUpdatingStatus(true);
+    try {
+      const body: Record<string, unknown> = { action };
+      if (action === 'ASSIGN') {
+        body.workstation = dispatchWorkstation.trim();
+        body.assignee = dispatchAssignee.trim();
+      }
+      if (action === 'PAUSE') {
+        body.pauseReason = pauseReason.trim();
+      }
+      if (action === 'COMPLETE') {
+        body.completedQty = Number.parseInt(completeQty, 10);
+      }
+      const res = await fetch(`/api/work-orders/${row.id}/dispatch`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const payload = (await res.json().catch(() => null)) as { error?: string } | null;
+      if (!res.ok) {
+        setListError(mapError(payload?.error ?? ''));
+        return;
+      }
+      if (action === 'ASSIGN') {
+        setAssignDialogOpen(false);
+        setAssigningRow(null);
+      }
+      setPauseReason('');
+      setCompleteQty('');
+      setListMessage(t('dispatch_success'));
+      await loadRows();
+    } catch {
+      setListError(t('save_failed'));
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
   const statusLabel = (value: WorkOrderStatus) =>
     t(`status_${value.toLowerCase()}` as Parameters<typeof t>[0]);
 
@@ -227,6 +305,9 @@ export default function WorkOrdersPage() {
     if (value === 'DONE') return 'bg-green-100 text-green-700';
     return 'bg-red-100 text-red-700';
   };
+
+  const dispatchStatusLabel = (value: 'ASSIGNED' | 'STARTED' | 'PAUSED' | 'COMPLETED') =>
+    t(`dispatch_status_${value.toLowerCase()}` as Parameters<typeof t>[0]);
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-8">
@@ -340,6 +421,39 @@ export default function WorkOrdersPage() {
           </div>
         </DialogContent>
       </Dialog>
+      <Dialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t('dispatch_dialog_title')}</DialogTitle>
+          </DialogHeader>
+          <div className="mt-4 space-y-4">
+            <Input
+              placeholder={t('workstation')}
+              list="work-order-workstation-options"
+              value={dispatchWorkstation}
+              onChange={(e) => setDispatchWorkstation(e.target.value)}
+            />
+            <datalist id="work-order-workstation-options">
+              {workstationOptions.map((value) => (
+                <option key={value} value={value} />
+              ))}
+            </datalist>
+            <Input
+              placeholder={t('dispatch_assignee')}
+              value={dispatchAssignee}
+              onChange={(e) => setDispatchAssignee(e.target.value)}
+            />
+            <Button
+              type="button"
+              className="w-full"
+              disabled={isUpdatingStatus || !assigningRow}
+              onClick={() => assigningRow && void dispatchAction(assigningRow, 'ASSIGN')}
+            >
+              {isUpdatingStatus ? t('submitting') : t('dispatch_submit')}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {listMessage ? <p className="text-sm text-green-600">{listMessage}</p> : null}
       {listError ? <p className="text-sm text-red-600">{listError}</p> : null}
@@ -357,6 +471,7 @@ export default function WorkOrdersPage() {
                 <TableHead>{t('planned_qty')}</TableHead>
                 <TableHead>{t('target_version')}</TableHead>
                 <TableHead>{t('status')}</TableHead>
+                <TableHead>{t('dispatch_status')}</TableHead>
                 <TableHead className="w-52">{t('actions')}</TableHead>
               </TableRow>
             </TableHeader>
@@ -379,7 +494,35 @@ export default function WorkOrdersPage() {
                     </span>
                   </TableCell>
                   <TableCell>
+                    {row.dispatches[0] ? (
+                      <div className="space-y-1 text-xs">
+                        <span className="rounded-full bg-blue-50 px-2 py-0.5 text-blue-700">
+                          {dispatchStatusLabel(row.dispatches[0].status)}
+                        </span>
+                        <p>{row.dispatches[0].workstation}</p>
+                        {row.dispatches[0].pauseReason ? (
+                          <p className="text-red-600">{row.dispatches[0].pauseReason}</p>
+                        ) : null}
+                      </div>
+                    ) : (
+                      <span className="text-gray-400">—</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
                     <div className="flex flex-wrap gap-2">
+                      <Button
+                        size="xs"
+                        variant="outline"
+                        disabled={isUpdatingStatus}
+                        onClick={() => {
+                          setAssigningRow(row);
+                          setDispatchWorkstation(row.dispatches[0]?.workstation ?? '');
+                          setDispatchAssignee(row.dispatches[0]?.assignee ?? '');
+                          setAssignDialogOpen(true);
+                        }}
+                      >
+                        {t('action_dispatch')}
+                      </Button>
                       <Button
                         size="xs"
                         variant="outline"
@@ -390,18 +533,34 @@ export default function WorkOrdersPage() {
                       </Button>
                       <Button
                         size="xs"
-                        disabled={isUpdatingStatus || row.status === 'IN_PROGRESS'}
-                        onClick={() => void updateStatus(row, 'IN_PROGRESS')}
+                        disabled={isUpdatingStatus}
+                        onClick={() => void dispatchAction(row, 'START')}
                       >
-                        {t('action_start')}
+                        {t('dispatch_start')}
                       </Button>
                       <Button
                         size="xs"
                         variant="secondary"
-                        disabled={isUpdatingStatus || row.status === 'DONE'}
-                        onClick={() => void updateStatus(row, 'DONE')}
+                        disabled={isUpdatingStatus}
+                        onClick={() => {
+                          const value = window.prompt(t('pause_reason_prompt')) ?? '';
+                          setPauseReason(value);
+                          void dispatchAction(row, 'PAUSE');
+                        }}
                       >
-                        {t('action_finish')}
+                        {t('dispatch_pause')}
+                      </Button>
+                      <Button
+                        size="xs"
+                        variant="secondary"
+                        disabled={isUpdatingStatus}
+                        onClick={() => {
+                          const value = window.prompt(t('completed_qty_prompt'), String(row.plannedQty)) ?? '';
+                          setCompleteQty(value);
+                          void dispatchAction(row, 'COMPLETE');
+                        }}
+                      >
+                        {t('dispatch_complete')}
                       </Button>
                     </div>
                   </TableCell>
@@ -409,7 +568,7 @@ export default function WorkOrdersPage() {
               ))}
               {rows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="py-8 text-center text-gray-500">
+                  <TableCell colSpan={8} className="py-8 text-center text-gray-500">
                     {t('empty')}
                   </TableCell>
                 </TableRow>

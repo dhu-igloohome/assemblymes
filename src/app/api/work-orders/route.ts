@@ -28,6 +28,12 @@ function parseOptionalDate(value: unknown): Date | null | undefined {
 export async function GET() {
   try {
     const rows = await prisma.workOrder.findMany({
+      include: {
+        dispatches: {
+          orderBy: [{ createdAt: 'desc' }],
+          take: 1,
+        },
+      },
       orderBy: [{ createdAt: 'desc' }],
       take: 200,
     });

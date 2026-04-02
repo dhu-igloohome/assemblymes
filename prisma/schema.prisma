@@ -274,8 +274,35 @@ model WorkOrder {
   notes         String?         @db.Text
   createdAt     DateTime        @default(now()) @map("created_at")
   updatedAt     DateTime        @updatedAt @map("updated_at")
+  dispatches    WorkOrderDispatch[]
 
   @@index([skuItemCode, status])
   @@index([batchNo])
   @@map("work_orders")
+}
+
+enum WorkOrderDispatchStatus {
+  ASSIGNED
+  STARTED
+  PAUSED
+  COMPLETED
+}
+
+model WorkOrderDispatch {
+  id             String                  @id @default(uuid())
+  workOrderId    String                  @map("work_order_id")
+  workstation    String                  @db.VarChar(64)
+  assignee       String?                 @db.VarChar(64)
+  status         WorkOrderDispatchStatus @default(ASSIGNED)
+  pauseReason    String?                 @map("pause_reason") @db.Text
+  completedQty   Int                     @default(0) @map("completed_qty")
+  startedAt      DateTime?               @map("started_at")
+  completedAt    DateTime?               @map("completed_at")
+  createdAt      DateTime                @default(now()) @map("created_at")
+  updatedAt      DateTime                @updatedAt @map("updated_at")
+  workOrder      WorkOrder               @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+
+  @@index([workOrderId, status])
+  @@index([workstation, status])
+  @@map("work_order_dispatches")
 }
