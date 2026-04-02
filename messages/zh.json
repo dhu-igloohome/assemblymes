@@ -64,6 +64,8 @@
     "reference_details": "引用明细",
     "safety_stock": "安全库存",
     "image_url": "图片链接",
+    "drawing_2d_url": "2D图纸链接",
+    "drawing_3d_url": "3D图纸链接",
     "description": "描述",
     "remarks": "备注",
     "type_product": "成品",

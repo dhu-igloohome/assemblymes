@@ -56,6 +56,8 @@ interface Item {
   requiresDfu: boolean;
   safetyStock: string;
   imageUrl: string | null;
+  drawing2dUrl: string | null;
+  drawing3dUrl: string | null;
   description: string | null;
   remarks: string | null;
   usage: {
@@ -163,6 +165,8 @@ function createItemSchema(t: ReturnType<typeof useTranslations<'Items'>>) {
         message: t('safety_stock_invalid'),
       }),
     imageUrl: z.string().optional(),
+    drawing2dUrl: z.string().optional(),
+    drawing3dUrl: z.string().optional(),
     description: z.string().optional(),
     remarks: z.string().optional(),
   });
@@ -219,6 +223,8 @@ export default function ItemsPage() {
       requiresDfu: false,
       safetyStock: '0',
       imageUrl: '',
+      drawing2dUrl: '',
+      drawing3dUrl: '',
       description: '',
       remarks: '',
     },
@@ -394,6 +400,8 @@ export default function ItemsPage() {
       requiresDfu: itemType === 'PRODUCT',
       safetyStock: '0',
       imageUrl: '',
+      drawing2dUrl: '',
+      drawing3dUrl: '',
       description: '',
       remarks: '',
     });
@@ -428,6 +436,8 @@ export default function ItemsPage() {
       requiresDfu: item.requiresDfu,
       safetyStock: item.safetyStock ?? '0',
       imageUrl: item.imageUrl ?? '',
+      drawing2dUrl: item.drawing2dUrl ?? '',
+      drawing3dUrl: item.drawing3dUrl ?? '',
       description: item.description ?? '',
       remarks: item.remarks ?? '',
     });
@@ -456,6 +466,8 @@ export default function ItemsPage() {
       requiresDfu: item.requiresDfu,
       safetyStock: item.safetyStock ?? '0',
       imageUrl: item.imageUrl ?? '',
+      drawing2dUrl: item.drawing2dUrl ?? '',
+      drawing3dUrl: item.drawing3dUrl ?? '',
       description: item.description ?? '',
       remarks: item.remarks ?? '',
     });
@@ -556,6 +568,8 @@ export default function ItemsPage() {
             requiresDfu: values.requiresDfu,
             safetyStock: values.safetyStock,
             imageUrl: values.imageUrl,
+            drawing2dUrl: values.drawing2dUrl,
+            drawing3dUrl: values.drawing3dUrl,
             description: '',
             remarks: values.remarks,
           });
@@ -877,6 +891,8 @@ export default function ItemsPage() {
                   ) : null}
                 </div>
                 <Input placeholder={t('image_url')} {...register('imageUrl')} />
+                <Input placeholder={t('drawing_2d_url')} {...register('drawing2dUrl')} />
+                <Input placeholder={t('drawing_3d_url')} {...register('drawing3dUrl')} />
                 <Input placeholder={t('description')} {...register('description')} />
                 <datalist id="item-master-remarks-options">
                   {items

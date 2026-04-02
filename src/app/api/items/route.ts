@@ -26,6 +26,8 @@ type ValidItemPayload = {
   requiresDfu: boolean;
   safetyStock: Prisma.Decimal;
   imageUrl: string;
+  drawing2dUrl: string;
+  drawing3dUrl: string;
   description: string;
   remarks: string;
 };
@@ -75,6 +77,8 @@ function validateItemPayload(
   const requiresTraceability = payload.requiresTraceability;
   const requiresDfu = payload.requiresDfu;
   const imageUrl = typeof payload.imageUrl === 'string' ? payload.imageUrl.trim() : '';
+  const drawing2dUrl = typeof payload.drawing2dUrl === 'string' ? payload.drawing2dUrl.trim() : '';
+  const drawing3dUrl = typeof payload.drawing3dUrl === 'string' ? payload.drawing3dUrl.trim() : '';
   const description =
     typeof payload.description === 'string' ? payload.description.trim() : '';
   const remarks = typeof payload.remarks === 'string' ? payload.remarks.trim() : '';
@@ -146,6 +150,8 @@ function validateItemPayload(
       requiresDfu,
       safetyStock: new Prisma.Decimal(parsedSafetyStock),
       imageUrl,
+      drawing2dUrl,
+      drawing3dUrl,
       description,
       remarks,
     },
@@ -295,6 +301,8 @@ export async function POST(request: Request) {
       requiresDfu,
       safetyStock,
       imageUrl,
+      drawing2dUrl,
+      drawing3dUrl,
       description,
       remarks,
     } =
@@ -328,6 +336,8 @@ export async function POST(request: Request) {
         requiresDfu,
         safetyStock,
         imageUrl: imageUrl || null,
+        drawing2dUrl: drawing2dUrl || null,
+        drawing3dUrl: drawing3dUrl || null,
         description,
         remarks: remarks || null,
       },
@@ -367,6 +377,8 @@ export async function PUT(request: Request) {
       requiresDfu,
       safetyStock,
       imageUrl,
+      drawing2dUrl,
+      drawing3dUrl,
       description,
       remarks,
     } = validationResult.data;
@@ -410,6 +422,8 @@ export async function PUT(request: Request) {
         requiresDfu,
         safetyStock,
         imageUrl: imageUrl || null,
+        drawing2dUrl: drawing2dUrl || null,
+        drawing3dUrl: drawing3dUrl || null,
         description,
         remarks: remarks || null,
       },

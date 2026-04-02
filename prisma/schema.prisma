@@ -45,6 +45,8 @@ model Item {
   requiresDfu Boolean          @default(false) @map("requires_dfu")
   safetyStock   Decimal?       @default(0) @map("safety_stock") @db.Decimal(10, 2)
   imageUrl      String?        @map("image_url") @db.Text
+  drawing2dUrl  String?        @map("drawing_2d_url") @db.Text
+  drawing3dUrl  String?        @map("drawing_3d_url") @db.Text
   description   String?        @db.Text
   remarks       String?        @db.Text
   createdAt     DateTime       @default(now()) @map("created_at")
