@@ -23,7 +23,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   try {
     const { id } = await context.params;
     if (!id) {
-      return NextResponse.json({ error: 'id is required.' }, { status: 400 });
+      return NextResponse.json({ error: 'ID_REQUIRED' }, { status: 400 });
     }
 
     const body = (await request.json()) as Record<string, unknown>;
@@ -33,7 +33,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
 
     const existing = await prisma.workCenter.findUnique({ where: { id } });
     if (!existing) {
-      return NextResponse.json({ error: 'Work center not found.' }, { status: 404 });
+      return NextResponse.json({ error: 'WORK_CENTER_NOT_FOUND' }, { status: 404 });
     }
 
     const data: {
@@ -44,13 +44,13 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
 
     if (name !== undefined) {
       if (!name) {
-        return NextResponse.json({ error: 'Name cannot be empty.' }, { status: 400 });
+        return NextResponse.json({ error: 'WORK_CENTER_NAME_REQUIRED' }, { status: 400 });
       }
       data.name = name;
     }
     if (type !== undefined) {
       if (!isWorkCenterType(type)) {
-        return NextResponse.json({ error: 'Invalid work center type.' }, { status: 400 });
+        return NextResponse.json({ error: 'INVALID_WORK_CENTER_TYPE' }, { status: 400 });
       }
       data.type = type;
     }
@@ -68,11 +68,10 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     });
 
     return NextResponse.json(updated);
-  } catch (error: unknown) {
+  } catch {
     return NextResponse.json(
       {
-        error: 'Failed to update work center.',
-        details: error instanceof Error ? error.message : String(error),
+        error: 'WORK_CENTER_UPDATE_FAILED',
       },
       { status: 400 }
     );
@@ -83,21 +82,20 @@ export async function DELETE(_request: Request, context: { params: Promise<{ id:
   try {
     const { id } = await context.params;
     if (!id) {
-      return NextResponse.json({ error: 'id is required.' }, { status: 400 });
+      return NextResponse.json({ error: 'ID_REQUIRED' }, { status: 400 });
     }
 
     const existing = await prisma.workCenter.findUnique({ where: { id } });
     if (!existing) {
-      return NextResponse.json({ error: 'Work center not found.' }, { status: 404 });
+      return NextResponse.json({ error: 'WORK_CENTER_NOT_FOUND' }, { status: 404 });
     }
 
     await prisma.workCenter.delete({ where: { id } });
     return NextResponse.json({ success: true });
-  } catch (error: unknown) {
+  } catch {
     return NextResponse.json(
       {
-        error: 'Failed to delete work center.',
-        details: error instanceof Error ? error.message : String(error),
+        error: 'WORK_CENTER_DELETE_FAILED',
       },
       { status: 400 }
     );

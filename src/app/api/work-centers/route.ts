@@ -48,7 +48,7 @@ export async function POST(request: Request) {
     if (rawCap !== undefined && rawCap !== null && rawCap !== '') {
       const parsed = parseOptionalInt(rawCap);
       if (parsed === undefined || parsed === null) {
-        return NextResponse.json({ error: 'Invalid daily capacity value.' }, { status: 400 });
+        return NextResponse.json({ error: 'INVALID_DAILY_CAPACITY' }, { status: 400 });
       }
       dailyCapacity = parsed;
     }
@@ -56,17 +56,16 @@ export async function POST(request: Request) {
     if (!/^[A-Z0-9_-]{1,16}$/.test(workCenterCode)) {
       return NextResponse.json(
         {
-          error: 'Invalid work center code.',
-          details: 'Use 1–16 characters: letters, digits, underscore, or hyphen.',
+          error: 'INVALID_WORK_CENTER_CODE',
         },
         { status: 400 }
       );
     }
     if (!name) {
-      return NextResponse.json({ error: 'Name is required.' }, { status: 400 });
+      return NextResponse.json({ error: 'WORK_CENTER_NAME_REQUIRED' }, { status: 400 });
     }
     if (!isWorkCenterType(type)) {
-      return NextResponse.json({ error: 'Invalid work center type.' }, { status: 400 });
+      return NextResponse.json({ error: 'INVALID_WORK_CENTER_TYPE' }, { status: 400 });
     }
 
     const created = await prisma.workCenter.create({
@@ -82,8 +81,11 @@ export async function POST(request: Request) {
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : String(error);
     if (message.includes('Unique constraint')) {
-      return NextResponse.json({ error: 'Work center code already exists.' }, { status: 409 });
+      return NextResponse.json({ error: 'WORK_CENTER_CODE_DUPLICATE' }, { status: 409 });
     }
-    return NextResponse.json({ error: 'Failed to create work center.', details: message }, { status: 400 });
+    return NextResponse.json(
+      { error: 'WORK_CENTER_CREATE_FAILED' },
+      { status: 400 }
+    );
   }
 }

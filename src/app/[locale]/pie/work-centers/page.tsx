@@ -108,7 +108,15 @@ export default function WorkCentersPage() {
         });
         const payload = (await res.json().catch(() => null)) as { error?: string; details?: string } | null;
         if (!res.ok) {
-          setDialogError(payload?.details ?? payload?.error ?? t('save_failed'));
+          const err = payload?.error;
+          const errorKeyByCode: Record<string, string> = {
+            INVALID_WORK_CENTER_CODE: 'invalid_work_center_code',
+            WORK_CENTER_NAME_REQUIRED: 'work_center_name_required',
+            INVALID_WORK_CENTER_TYPE: 'invalid_work_center_type',
+            INVALID_DAILY_CAPACITY: 'invalid_daily_capacity_value',
+            WORK_CENTER_CODE_DUPLICATE: 'work_center_code_already_exists',
+          };
+          setDialogError(err && errorKeyByCode[err] ? t(errorKeyByCode[err]) : t('save_failed'));
           return;
         }
         setListMessage(t('create_success'));
@@ -137,7 +145,15 @@ export default function WorkCentersPage() {
       });
       const payload = (await res.json().catch(() => null)) as { error?: string; details?: string } | null;
       if (!res.ok) {
-        setDialogError(payload?.details ?? payload?.error ?? t('save_failed'));
+        const err = payload?.error;
+        const errorKeyByCode: Record<string, string> = {
+          INVALID_WORK_CENTER_CODE: 'invalid_work_center_code',
+          WORK_CENTER_NAME_REQUIRED: 'work_center_name_required',
+          INVALID_WORK_CENTER_TYPE: 'invalid_work_center_type',
+          INVALID_DAILY_CAPACITY: 'invalid_daily_capacity_value',
+          WORK_CENTER_CODE_DUPLICATE: 'work_center_code_already_exists',
+        };
+        setDialogError(err && errorKeyByCode[err] ? t(errorKeyByCode[err]) : t('save_failed'));
         return;
       }
       setListMessage(t('update_success'));

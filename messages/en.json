@@ -193,7 +193,12 @@
     "delete_failed": "Delete failed.",
     "delete_confirm": "Delete this work center?",
     "dialog_create": "New Work Center",
-    "dialog_edit": "Edit Work Center"
+    "dialog_edit": "Edit Work Center",
+    "invalid_work_center_code": "Work center code must be 1–16 characters: letters, digits, underscore (_), or hyphen (-).",
+    "work_center_name_required": "Name is required.",
+    "invalid_work_center_type": "Invalid work center type.",
+    "invalid_daily_capacity_value": "Daily capacity must be a number.",
+    "work_center_code_already_exists": "Work center code already exists."
   },
   "Pie": {
     "module_title": "PIE Management",
