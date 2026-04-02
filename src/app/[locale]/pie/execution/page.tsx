@@ -52,8 +52,10 @@ export default function ExecutionPage() {
   const [dialogError, setDialogError] = useState('');
   const [skuItemCode, setSkuItemCode] = useState('');
   const [batchNo, setBatchNo] = useState('');
-  const [serialNo, setSerialNo] = useState('');
-  const [bluetoothId, setBluetoothId] = useState('');
+  const [serialStart, setSerialStart] = useState('');
+  const [serialEnd, setSerialEnd] = useState('');
+  const [bluetoothStart, setBluetoothStart] = useState('');
+  const [bluetoothEnd, setBluetoothEnd] = useState('');
   const [assignee, setAssignee] = useState('');
   const [taskType, setTaskType] = useState<ExecutionTaskType>('DFU');
   const [stage, setStage] = useState<ExecutionStage>('ASSEMBLY_EOL');
@@ -118,8 +120,10 @@ export default function ExecutionPage() {
   const resetCreateForm = () => {
     setSkuItemCode('');
     setBatchNo('');
-    setSerialNo('');
-    setBluetoothId('');
+    setSerialStart('');
+    setSerialEnd('');
+    setBluetoothStart('');
+    setBluetoothEnd('');
     setAssignee('');
     setTaskType('DFU');
     setStage('ASSEMBLY_EOL');
@@ -159,8 +163,10 @@ export default function ExecutionPage() {
         body: JSON.stringify({
           skuItemCode: skuItemCode.trim(),
           batchNo: batchNo.trim(),
-          serialNo: serialNo.trim().toUpperCase(),
-          bluetoothId: bluetoothId.trim().toUpperCase(),
+          serialStart: serialStart.trim(),
+          serialEnd: serialEnd.trim(),
+          bluetoothStart: bluetoothStart.trim(),
+          bluetoothEnd: bluetoothEnd.trim(),
           assignee: assignee.trim(),
           taskType,
           stage,
@@ -168,7 +174,11 @@ export default function ExecutionPage() {
         }),
       });
 
-      const payload = (await res.json().catch(() => null)) as { error?: string } | null;
+      const payload = (await res.json().catch(() => null)) as {
+        error?: string;
+        created?: number;
+        batch?: boolean;
+      } | null;
       if (!res.ok) {
         const map: Record<string, string> = {
           SKU_ITEM_CODE_INVALID: 'sku_item_code_invalid',
@@ -180,6 +190,13 @@ export default function ExecutionPage() {
           STATUS_INVALID: 'status_invalid',
           SERIAL_NO_DUPLICATE: 'serial_no_duplicate',
           BLUETOOTH_ID_DUPLICATE: 'bluetooth_id_duplicate',
+          RANGE_INCOMPLETE: 'range_incomplete',
+          RANGE_REQUIRED: 'range_required',
+          RANGE_PARSE_FAILED: 'range_parse_failed',
+          RANGE_PREFIX_MISMATCH: 'range_prefix_mismatch',
+          RANGE_ORDER_INVALID: 'range_order_invalid',
+          RANGE_LENGTH_MISMATCH: 'range_length_mismatch',
+          RANGE_TOO_LARGE: 'range_too_large',
         };
         const code = payload?.error ?? '';
         setDialogError(map[code] ? t(map[code]) : t('save_failed'));
@@ -188,7 +205,11 @@ export default function ExecutionPage() {
 
       setDialogOpen(false);
       resetCreateForm();
-      setListMessage(t('create_success'));
+      if (payload?.batch && typeof payload.created === 'number') {
+        setListMessage(t('create_success_batch', { count: payload.created }));
+      } else {
+        setListMessage(t('create_success'));
+      }
       await loadRows();
     } catch {
       setDialogError(t('save_failed'));
@@ -392,8 +413,28 @@ export default function ExecutionPage() {
           <div className="mt-4 space-y-4">
             <Input placeholder={t('sku_item_code')} value={skuItemCode} onChange={(e) => setSkuItemCode(e.target.value)} />
             <Input placeholder={t('batch_no')} value={batchNo} onChange={(e) => setBatchNo(e.target.value)} />
-            <Input placeholder={t('serial_no')} value={serialNo} onChange={(e) => setSerialNo(e.target.value.toUpperCase())} />
-            <Input placeholder={t('bluetooth_id')} value={bluetoothId} onChange={(e) => setBluetoothId(e.target.value.toUpperCase())} />
+            <p className="text-xs text-gray-500">{t('serial_range_hint')}</p>
+            <Input
+              placeholder={t('serial_range_start')}
+              value={serialStart}
+              onChange={(e) => setSerialStart(e.target.value)}
+            />
+            <Input
+              placeholder={t('serial_range_end')}
+              value={serialEnd}
+              onChange={(e) => setSerialEnd(e.target.value)}
+            />
+            <p className="text-xs text-gray-500">{t('bluetooth_range_hint')}</p>
+            <Input
+              placeholder={t('bluetooth_range_start')}
+              value={bluetoothStart}
+              onChange={(e) => setBluetoothStart(e.target.value)}
+            />
+            <Input
+              placeholder={t('bluetooth_range_end')}
+              value={bluetoothEnd}
+              onChange={(e) => setBluetoothEnd(e.target.value)}
+            />
             <Input placeholder={t('assignee')} value={assignee} onChange={(e) => setAssignee(e.target.value)} />
             <Select value={taskType} onValueChange={(v) => setTaskType((v ?? 'DFU') as ExecutionTaskType)}>
               <SelectTrigger className="w-full">
