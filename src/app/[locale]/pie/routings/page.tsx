@@ -35,6 +35,11 @@ interface ExistingRoutingRecord {
   };
 }
 
+interface RoutingSuggestions {
+  operationNames: string[];
+  workstations: string[];
+}
+
 export default function RoutingsPage() {
   const t = useTranslations('Routings');
   const searchParams = useSearchParams();
@@ -43,6 +48,10 @@ export default function RoutingsPage() {
   const [version, setVersion] = useState('V1.0');
   const [operations, setOperations] = useState<OperationLine[]>([]);
   const [existingRoutings, setExistingRoutings] = useState<ExistingRoutingRecord[]>([]);
+  const [suggestions, setSuggestions] = useState<RoutingSuggestions>({
+    operationNames: [],
+    workstations: [],
+  });
   const [isLoadingExistingList, setIsLoadingExistingList] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
@@ -63,6 +72,23 @@ export default function RoutingsPage() {
       setExistingRoutings([]);
     } finally {
       setIsLoadingExistingList(false);
+    }
+  }, []);
+
+  const loadSuggestions = useCallback(async () => {
+    try {
+      const res = await fetch('/api/routings?mode=suggestions', { cache: 'no-store' });
+      if (!res.ok) {
+        setSuggestions({ operationNames: [], workstations: [] });
+        return;
+      }
+      const data = (await res.json()) as RoutingSuggestions;
+      setSuggestions({
+        operationNames: Array.from(new Set(data.operationNames.map((v) => v.trim()).filter(Boolean))),
+        workstations: Array.from(new Set(data.workstations.map((v) => v.trim()).filter(Boolean))),
+      });
+    } catch {
+      setSuggestions({ operationNames: [], workstations: [] });
     }
   }, []);
 
@@ -105,6 +131,10 @@ export default function RoutingsPage() {
   useEffect(() => {
     void loadExistingRoutings();
   }, [loadExistingRoutings]);
+
+  useEffect(() => {
+    void loadSuggestions();
+  }, [loadSuggestions]);
 
   useEffect(() => {
     fetch('/api/items')
@@ -171,6 +201,7 @@ export default function RoutingsPage() {
       }
       setSubmitMessage(t('save_success'));
       await loadExistingRoutings();
+      await loadSuggestions();
     } catch (error) {
       console.error(error);
       setSubmitError(error instanceof Error ? `${t('save_failed')} ${error.message}` : t('save_failed'));
@@ -257,6 +288,16 @@ export default function RoutingsPage() {
             <Button variant="outline" onClick={handleAddOperation}>{t('add_operation')}</Button>
           </div>
           <div className="overflow-x-auto">
+            <datalist id="routing-operation-name-options">
+              {suggestions.operationNames.map((name) => (
+                <option key={name} value={name} />
+              ))}
+            </datalist>
+            <datalist id="routing-workstation-options">
+              {suggestions.workstations.map((station) => (
+                <option key={station} value={station} />
+              ))}
+            </datalist>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -283,6 +324,7 @@ export default function RoutingsPage() {
                       <Input
                         placeholder={t('operation_name')}
                         value={op.operationName}
+                        list="routing-operation-name-options"
                         onChange={(e) => updateOperation(idx, 'operationName', e.target.value)}
                       />
                     </TableCell>
@@ -290,6 +332,7 @@ export default function RoutingsPage() {
                       <Input
                         placeholder={t('workstation')}
                         value={op.workstation}
+                        list="routing-workstation-options"
                         onChange={(e) => updateOperation(idx, 'workstation', e.target.value)}
                       />
                     </TableCell>

@@ -8,6 +8,46 @@ export async function GET(request: Request) {
     const mode = searchParams.get('mode');
 
     if (!itemCode) {
+      if (mode === 'suggestions') {
+        const [operationNames, workstations] = await Promise.all([
+          prisma.routingOperation.findMany({
+            where: {
+              operationName: {
+                not: '',
+              },
+            },
+            select: {
+              operationName: true,
+            },
+            distinct: ['operationName'],
+            orderBy: {
+              operationName: 'asc',
+            },
+            take: 200,
+          }),
+          prisma.routingOperation.findMany({
+            where: {
+              workstation: {
+                not: '',
+              },
+            },
+            select: {
+              workstation: true,
+            },
+            distinct: ['workstation'],
+            orderBy: {
+              workstation: 'asc',
+            },
+            take: 200,
+          }),
+        ]);
+
+        return NextResponse.json({
+          operationNames: operationNames.map((entry) => entry.operationName),
+          workstations: workstations.map((entry) => entry.workstation),
+        });
+      }
+
       if (mode === 'list') {
         const routings = await prisma.routingHeader.findMany({
           select: {
