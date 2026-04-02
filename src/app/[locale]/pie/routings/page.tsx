@@ -196,7 +196,14 @@ export default function RoutingsPage() {
       });
       if (!res.ok) {
         const payload = (await res.json().catch(() => null)) as { details?: string; error?: string } | null;
-        setSubmitError(payload?.details ?? payload?.error ?? t('save_failed'));
+        const code = payload?.error;
+        const codeToMessage: Record<string, string> = {
+          ITEM_CODE_INVALID: t('save_failed'),
+          VERSION_REQUIRED: t('save_failed'),
+          OPERATIONS_INVALID: t('save_failed'),
+          ROUTING_SAVE_FAILED: t('save_failed'),
+        };
+        setSubmitError(payload?.details ?? (code && codeToMessage[code]) ?? t('save_failed'));
         return;
       }
       setSubmitMessage(t('save_success'));

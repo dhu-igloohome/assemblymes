@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 
 export async function GET(request: Request) {
   try {
@@ -99,40 +100,112 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { itemCode, version, operations } = body;
 
-    const newRouting = await prisma.routingHeader.create({
-      data: {
-        itemCode,
-        version,
-        operations: {
-          create: operations.map(
-            (op: {
-              sequence: number;
-              operationName: string;
-              workstation: string;
-              standardTimeSec: number;
-              isInspectionPoint?: boolean;
-              inspectionStandard?: string | null;
-            }) => ({
+    if (typeof itemCode !== 'string' || !/^\d{6}$/.test(itemCode.trim())) {
+      return NextResponse.json({ error: 'ITEM_CODE_INVALID' }, { status: 400 });
+    }
+    if (typeof version !== 'string' || version.trim() === '') {
+      return NextResponse.json({ error: 'VERSION_REQUIRED' }, { status: 400 });
+    }
+    if (!Array.isArray(operations)) {
+      return NextResponse.json({ error: 'OPERATIONS_INVALID' }, { status: 400 });
+    }
+
+    const normalizedItemCode = itemCode.trim();
+    const normalizedVersion = version.trim();
+    const normalizedOps = operations.map((op: unknown) => {
+      const record = (op && typeof op === 'object' ? (op as Record<string, unknown>) : {}) as Record<
+        string,
+        unknown
+      >;
+
+      return {
+      sequence:
+        typeof record.sequence === 'number' || typeof record.sequence === 'string'
+          ? Number(record.sequence)
+          : 0,
+      operationName: typeof record.operationName === 'string' ? record.operationName.trim() : '',
+      workstation: typeof record.workstation === 'string' ? record.workstation.trim() : '',
+      standardTimeSec:
+        typeof record.standardTimeSec === 'number' || typeof record.standardTimeSec === 'string'
+          ? Number(record.standardTimeSec)
+          : 0,
+      isInspectionPoint: Boolean(record.isInspectionPoint),
+      inspectionStandard:
+        typeof record.inspectionStandard === 'string' && record.inspectionStandard.trim() !== ''
+          ? record.inspectionStandard.trim()
+          : null,
+      };
+    });
+
+    try {
+      const created = await prisma.routingHeader.create({
+        data: {
+          itemCode: normalizedItemCode,
+          version: normalizedVersion,
+          operations: {
+            create: normalizedOps,
+          },
+        },
+        include: { operations: true },
+      });
+      return NextResponse.json(created, { status: 201 });
+    } catch (error: unknown) {
+      // If the same itemCode+version already exists, treat POST as "overwrite this version".
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        const updated = await prisma.$transaction(async (tx) => {
+          const header = await tx.routingHeader.update({
+            where: {
+              itemCode_version: {
+                itemCode: normalizedItemCode,
+                version: normalizedVersion,
+              },
+            },
+            data: {},
+            select: { id: true },
+          });
+
+          await tx.routingOperation.deleteMany({
+            where: { routingHeaderId: header.id },
+          });
+
+          await tx.routingOperation.createMany({
+            data: normalizedOps.map((op) => ({
+              routingHeaderId: header.id,
               sequence: op.sequence,
               operationName: op.operationName,
               workstation: op.workstation,
               standardTimeSec: op.standardTimeSec,
-              isInspectionPoint: op.isInspectionPoint ?? false,
-              inspectionStandard:
-                typeof op.inspectionStandard === 'string' && op.inspectionStandard.trim() !== ''
-                  ? op.inspectionStandard.trim()
-                  : null,
-            })
-          ),
-        },
-      },
-      include: { operations: true },
-    });
+              isInspectionPoint: op.isInspectionPoint,
+              inspectionStandard: op.inspectionStandard,
+            })),
+          });
 
-    return NextResponse.json(newRouting, { status: 201 });
+          return tx.routingHeader.findUnique({
+            where: {
+              itemCode_version: {
+                itemCode: normalizedItemCode,
+                version: normalizedVersion,
+              },
+            },
+            include: {
+              operations: { orderBy: { sequence: 'asc' } },
+            },
+          });
+        });
+
+        return NextResponse.json(updated, { status: 200 });
+      }
+      throw error;
+    }
   } catch (error: unknown) {
     return NextResponse.json(
-      { error: 'Failed to create Routing', details: error instanceof Error ? error.message : String(error) },
+      {
+        error: 'ROUTING_SAVE_FAILED',
+        details: error instanceof Error ? error.message : String(error),
+      },
       { status: 400 }
     );
   }
