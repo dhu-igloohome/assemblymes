@@ -167,6 +167,7 @@
     "operations_panel": "Operations",
     "save_success": "Routing saved successfully.",
     "save_failed": "Failed to save routing.",
+    "workstation_not_found": "Workstation is not maintained in Work Center master data. Please create it first.",
     "submitting": "Saving…"
   },
   "WorkCenters": {

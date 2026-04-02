@@ -167,6 +167,7 @@
     "operations_panel": "工序明细",
     "save_success": "工艺路线已保存。",
     "save_failed": "保存工艺路线失败。",
+    "workstation_not_found": "工位/工作中心未在工作中心主数据中维护，请先到“工作中心”创建后再保存。",
     "submitting": "保存中…"
   },
   "WorkCenters": {

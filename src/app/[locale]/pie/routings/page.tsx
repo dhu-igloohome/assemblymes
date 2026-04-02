@@ -224,6 +224,7 @@ export default function RoutingsPage() {
           VERSION_REQUIRED: t('save_failed'),
           OPERATIONS_INVALID: t('save_failed'),
           ROUTING_SAVE_FAILED: t('save_failed'),
+          WORKSTATION_NOT_FOUND: t('workstation_not_found'),
         };
         setSubmitError(payload?.details ?? (code && codeToMessage[code]) ?? t('save_failed'));
         return;

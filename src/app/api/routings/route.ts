@@ -137,6 +137,34 @@ export async function POST(request: Request) {
       };
     });
 
+    const workstationCodes = Array.from(
+      new Set(
+        normalizedOps
+          .map((op) => op.workstation.trim())
+          .filter((value) => value.length > 0)
+      )
+    );
+
+    if (workstationCodes.length > 0) {
+      const matched = await prisma.workCenter.findMany({
+        where: {
+          workCenterCode: { in: workstationCodes },
+        },
+        select: { workCenterCode: true },
+      });
+      const matchedSet = new Set(matched.map((row) => row.workCenterCode));
+      const invalidCodes = workstationCodes.filter((code) => !matchedSet.has(code));
+      if (invalidCodes.length > 0) {
+        return NextResponse.json(
+          {
+            error: 'WORKSTATION_NOT_FOUND',
+            details: invalidCodes.join(','),
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     try {
       const created = await prisma.routingHeader.create({
         data: {
