@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import type { ItemSourceType, ItemStatus, ItemType } from '@prisma/client';
 import { useLocale, useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,6 +38,7 @@ import {
   ITEM_TYPE_OPTIONS,
   UNIT_OPTIONS,
 } from '@/lib/item-master';
+import type { ItemSourceType, ItemStatus, ItemType } from '@/lib/item-master';
 
 interface Item {
   id: string;

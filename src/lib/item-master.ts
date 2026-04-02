@@ -1,4 +1,8 @@
-import type { ItemSourceType, ItemStatus, ItemType } from '@prisma/client';
+// Local string-union types to avoid hard dependency on Prisma enum exports during builds.
+// This prevents failures when Vercel uses a cached/stale generated Prisma client.
+export type ItemType = 'PRODUCT' | 'ASSEMBLY' | 'MATERIAL';
+export type ItemStatus = 'ENABLED' | 'DISABLED';
+export type ItemSourceType = 'PURCHASED' | 'MANUFACTURED' | 'OUTSOURCED' | 'VIRTUAL';
 
 export const UNIT_OPTIONS = ['PCS', 'KG', 'M'] as const;
 export type ItemUnit = (typeof UNIT_OPTIONS)[number];

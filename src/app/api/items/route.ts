@@ -1,11 +1,14 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { Prisma, type ItemSourceType, type ItemStatus, type ItemType } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import {
   ITEM_GROUP_OPTIONS,
   ITEM_SOURCE_TYPE_OPTIONS,
   ITEM_STATUS_OPTIONS,
   ITEM_TYPE_OPTIONS,
+  type ItemSourceType,
+  type ItemStatus,
+  type ItemType,
 } from '@/lib/item-master';
 
 type ValidItemPayload = {
