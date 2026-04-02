@@ -24,7 +24,8 @@ function isProtectedApi(pathname: string) {
     pathname.startsWith('/api/boms') ||
     pathname.startsWith('/api/routings') ||
     pathname.startsWith('/api/work-centers') ||
-    pathname.startsWith('/api/employees')
+    pathname.startsWith('/api/employees') ||
+    pathname.startsWith('/api/assembly-execution')
   );
 }
 

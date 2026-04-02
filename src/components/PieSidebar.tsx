@@ -6,6 +6,7 @@ import {
   Boxes,
   ChevronDown,
   ClipboardList,
+  Cpu,
   Factory,
   GitBranchPlus,
   Package2,
@@ -39,6 +40,11 @@ const pieChildNavItems = [
     href: '/pie/employees',
     translationKey: 'employees',
     icon: Users,
+  },
+  {
+    href: '/pie/execution',
+    translationKey: 'execution',
+    icon: Cpu,
   },
 ] as const;
 

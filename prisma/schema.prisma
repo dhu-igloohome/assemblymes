@@ -171,3 +171,48 @@ model Employee {
   @@index([team])
   @@map("employees")
 }
+
+// ---------------------------------------------------------
+// 组装执行任务 (Assembly Execution)
+// ---------------------------------------------------------
+
+enum ExecutionTaskType {
+  DFU
+  FLASH_REWORK
+  BIND_VERIFY
+}
+
+enum ExecutionStage {
+  PCBA
+  ASSEMBLY_EOL
+  FINISHED_GOODS
+}
+
+enum ExecutionStatus {
+  READY
+  NEED_DFU
+  BLOCKED
+  IN_PROGRESS
+  DONE
+}
+
+model AssemblyExecutionTask {
+  id          String            @id @default(uuid())
+  skuItemCode String            @map("sku_item_code") @db.VarChar(6)
+  batchNo     String            @map("batch_no") @db.VarChar(32)
+  serialNo    String            @unique @map("serial_no") @db.VarChar(64)
+  bluetoothId String            @unique @map("bluetooth_id") @db.VarChar(64)
+  taskType    ExecutionTaskType @map("task_type")
+  stage       ExecutionStage
+  status      ExecutionStatus   @default(READY)
+  failReason  String?           @map("fail_reason") @db.Text
+  assignee    String?           @map("assignee") @db.VarChar(64)
+  startedAt   DateTime?         @map("started_at")
+  finishedAt  DateTime?         @map("finished_at")
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
+
+  @@index([batchNo, status])
+  @@index([skuItemCode, stage])
+  @@map("assembly_execution_tasks")
+}
