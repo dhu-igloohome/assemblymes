@@ -695,7 +695,11 @@ export default function ItemsPage() {
                   }
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder={t('status')} />
+                    <span className="truncate">
+                      {watchedStatus === 'ENABLED'
+                        ? `${t('status')}: ${t('status_enabled')}`
+                        : `${t('status')}: ${t('status_disabled')}`}
+                    </span>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="ENABLED">{t('status_enabled')}</SelectItem>
@@ -731,7 +735,11 @@ export default function ItemsPage() {
                   }
                 >
                   <SelectTrigger className="w-full">
-                    <SelectValue placeholder={t('is_purchasable')} />
+                    <span className="truncate">
+                      {watchedIsPurchasable
+                        ? `${t('is_purchasable')}: ${t('yes')}`
+                        : `${t('is_purchasable')}: ${t('no')}`}
+                    </span>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="true">{t('yes')}</SelectItem>
@@ -739,11 +747,17 @@ export default function ItemsPage() {
                   </SelectContent>
                 </Select>
                 <div className="space-y-2">
-                  <Input
-                    placeholder={t('safety_stock')}
-                    {...register('safetyStock')}
-                    inputMode="decimal"
-                  />
+                  <div className="relative">
+                    <span className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 text-xs text-gray-500">
+                      {t('safety_stock')}
+                    </span>
+                    <Input
+                      placeholder=""
+                      className="pl-28"
+                      {...register('safetyStock')}
+                      inputMode="decimal"
+                    />
+                  </div>
                   {errors.safetyStock?.message ? (
                     <p className="text-xs text-red-600">{errors.safetyStock.message}</p>
                   ) : null}
