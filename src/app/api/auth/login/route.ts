@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { AUTH_COOKIE_NAME, SUPER_ADMIN, isValidSuperAdmin } from '@/lib/auth';
+import { AUTH_COOKIE_NAME, SUPER_ADMIN_ROLE, isValidSuperAdmin } from '@/lib/auth';
 
 export async function POST(request: Request) {
   try {
@@ -24,13 +24,13 @@ export async function POST(request: Request) {
 
     const response = NextResponse.json({
       success: true,
-      role: SUPER_ADMIN.role,
+      role: SUPER_ADMIN_ROLE,
       redirectTo: `/${locale}/pie`,
     });
 
     response.cookies.set({
       name: AUTH_COOKIE_NAME,
-      value: SUPER_ADMIN.role,
+      value: SUPER_ADMIN_ROLE,
       httpOnly: true,
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
