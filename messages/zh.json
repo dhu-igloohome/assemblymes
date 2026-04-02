@@ -422,6 +422,9 @@
     "pause_reason_required": "暂停时必须填写原因。",
     "completed_qty_invalid": "完成数量必须是大于等于0的整数。",
     "completed_qty_exceeds_planned": "完成数量不能超过计划数量。",
+    "subscription_read_only": "订阅已到期，当前租户为只读模式。",
+    "subscription_active_banner": "订阅有效，剩余 {days} 天。",
+    "subscription_read_only_banner": "订阅已到期，工单写入已禁用，请续费后继续使用。",
     "plan_date_invalid": "计划日期无效。",
     "work_order_not_found": "工单不存在。"
   }

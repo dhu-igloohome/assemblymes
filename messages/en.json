@@ -422,6 +422,9 @@
     "pause_reason_required": "Pause reason is required.",
     "completed_qty_invalid": "Completed quantity must be zero or positive integer.",
     "completed_qty_exceeds_planned": "Completed quantity cannot exceed planned quantity.",
+    "subscription_read_only": "Subscription expired. This tenant is currently read-only.",
+    "subscription_active_banner": "Subscription active, {days} days left.",
+    "subscription_read_only_banner": "Subscription expired. Work order writes are disabled until renewal.",
     "plan_date_invalid": "Invalid plan date.",
     "work_order_not_found": "Work order not found."
   }

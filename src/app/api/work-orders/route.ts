@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getCurrentTenantSubscription } from '@/lib/tenant-subscription';
 
 const WORK_ORDER_STATUS_OPTIONS = [
   'PLANNED',
@@ -51,6 +52,11 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const sub = await getCurrentTenantSubscription();
+    if (sub?.readOnly) {
+      return NextResponse.json({ error: 'SUBSCRIPTION_READ_ONLY' }, { status: 403 });
+    }
+
     const body = (await request.json()) as Record<string, unknown>;
     const workOrderNo =
       typeof body.workOrderNo === 'string' ? body.workOrderNo.trim().toUpperCase() : '';

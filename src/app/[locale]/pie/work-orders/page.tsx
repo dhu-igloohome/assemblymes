@@ -59,6 +59,12 @@ interface ItemOption {
   itemType: 'PRODUCT' | 'ASSEMBLY' | 'MATERIAL';
 }
 
+interface SubscriptionInfo {
+  expiresAt: string;
+  daysLeft: number;
+  readOnly: boolean;
+}
+
 export default function WorkOrdersPage() {
   const t = useTranslations('WorkOrders');
   const [rows, setRows] = useState<WorkOrderRow[]>([]);
@@ -71,6 +77,7 @@ export default function WorkOrdersPage() {
   const [dialogError, setDialogError] = useState('');
   const [itemOptions, setItemOptions] = useState<ItemOption[]>([]);
   const [workstationOptions, setWorkstationOptions] = useState<string[]>([]);
+  const [subscription, setSubscription] = useState<SubscriptionInfo | null>(null);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [assigningRow, setAssigningRow] = useState<WorkOrderRow | null>(null);
   const [dispatchWorkstation, setDispatchWorkstation] = useState('');
@@ -140,11 +147,26 @@ export default function WorkOrdersPage() {
     }
   }, []);
 
+  const loadSubscription = useCallback(async () => {
+    try {
+      const res = await fetch('/api/subscription/me', { cache: 'no-store' });
+      if (!res.ok) {
+        setSubscription(null);
+        return;
+      }
+      const data = (await res.json()) as SubscriptionInfo;
+      setSubscription(data);
+    } catch {
+      setSubscription(null);
+    }
+  }, []);
+
   useEffect(() => {
     void loadRows();
     void loadItemOptions();
     void loadWorkstationOptions();
-  }, [loadRows, loadItemOptions, loadWorkstationOptions]);
+    void loadSubscription();
+  }, [loadRows, loadItemOptions, loadWorkstationOptions, loadSubscription]);
 
   const resetForm = () => {
     setWorkOrderNo('');
@@ -184,6 +206,7 @@ export default function WorkOrdersPage() {
       PAUSE_REASON_REQUIRED: 'pause_reason_required',
       COMPLETED_QTY_INVALID: 'completed_qty_invalid',
       COMPLETED_QTY_EXCEEDS_PLANNED: 'completed_qty_exceeds_planned',
+      SUBSCRIPTION_READ_ONLY: 'subscription_read_only',
     };
     return m[code] ? t(m[code]) : t('save_failed');
   };
@@ -315,6 +338,7 @@ export default function WorkOrdersPage() {
         <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
         <Button
           type="button"
+          disabled={Boolean(subscription?.readOnly)}
           onClick={() => {
             resetForm();
             setDialogOpen(true);
@@ -323,6 +347,20 @@ export default function WorkOrdersPage() {
           {t('add')}
         </Button>
       </div>
+      {subscription ? (
+        <div
+          className={[
+            'rounded-md border px-3 py-2 text-sm',
+            subscription.readOnly
+              ? 'border-red-200 bg-red-50 text-red-700'
+              : 'border-green-200 bg-green-50 text-green-700',
+          ].join(' ')}
+        >
+          {subscription.readOnly
+            ? t('subscription_read_only_banner')
+            : t('subscription_active_banner', { days: subscription.daysLeft })}
+        </div>
+      ) : null}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-xl">
