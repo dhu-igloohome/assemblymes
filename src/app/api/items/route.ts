@@ -21,6 +21,9 @@ type ValidItemPayload = {
   status: ItemStatus;
   sourceType: ItemSourceType;
   isPurchasable: boolean;
+  requiresFlashing: boolean;
+  requiresTraceability: boolean;
+  requiresDfu: boolean;
   safetyStock: Prisma.Decimal;
   imageUrl: string;
   description: string;
@@ -68,6 +71,9 @@ function validateItemPayload(
     typeof payload.sourceType === 'string' ? payload.sourceType.trim() : '';
   const isPurchasable = payload.isPurchasable;
   const safetyStockValue = payload.safetyStock;
+  const requiresFlashing = payload.requiresFlashing;
+  const requiresTraceability = payload.requiresTraceability;
+  const requiresDfu = payload.requiresDfu;
   const imageUrl = typeof payload.imageUrl === 'string' ? payload.imageUrl.trim() : '';
   const description =
     typeof payload.description === 'string' ? payload.description.trim() : '';
@@ -104,6 +110,15 @@ function validateItemPayload(
   if (!isBoolean(isPurchasable)) {
     return { valid: false, error: 'Purchasable flag is invalid.' };
   }
+  if (!isBoolean(requiresFlashing)) {
+    return { valid: false, error: 'Flashing policy is invalid.' };
+  }
+  if (!isBoolean(requiresTraceability)) {
+    return { valid: false, error: 'Traceability policy is invalid.' };
+  }
+  if (!isBoolean(requiresDfu)) {
+    return { valid: false, error: 'DFU policy is invalid.' };
+  }
 
   const parsedSafetyStock =
     typeof safetyStockValue === 'number' || typeof safetyStockValue === 'string'
@@ -126,6 +141,9 @@ function validateItemPayload(
       status: (status || 'ENABLED') as ItemStatus,
       sourceType: (sourceType || 'PURCHASED') as ItemSourceType,
       isPurchasable,
+      requiresFlashing,
+      requiresTraceability,
+      requiresDfu,
       safetyStock: new Prisma.Decimal(parsedSafetyStock),
       imageUrl,
       description,
@@ -272,6 +290,9 @@ export async function POST(request: Request) {
       status,
       sourceType,
       isPurchasable,
+      requiresFlashing,
+      requiresTraceability,
+      requiresDfu,
       safetyStock,
       imageUrl,
       description,
@@ -302,6 +323,9 @@ export async function POST(request: Request) {
         status,
         sourceType,
         isPurchasable,
+        requiresFlashing,
+        requiresTraceability,
+        requiresDfu,
         safetyStock,
         imageUrl: imageUrl || null,
         description,
@@ -338,6 +362,9 @@ export async function PUT(request: Request) {
       status,
       sourceType,
       isPurchasable,
+      requiresFlashing,
+      requiresTraceability,
+      requiresDfu,
       safetyStock,
       imageUrl,
       description,
@@ -378,6 +405,9 @@ export async function PUT(request: Request) {
         status,
         sourceType,
         isPurchasable,
+        requiresFlashing,
+        requiresTraceability,
+        requiresDfu,
         safetyStock,
         imageUrl: imageUrl || null,
         description,

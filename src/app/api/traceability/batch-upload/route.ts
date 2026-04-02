@@ -71,6 +71,16 @@ export async function POST(request: Request) {
     if (!/^\d{6}$/.test(skuItemCode)) {
       return NextResponse.json({ error: 'SKU_ITEM_CODE_INVALID' }, { status: 400 });
     }
+    const sku = await prisma.item.findUnique({
+      where: { itemCode: skuItemCode },
+      select: { itemCode: true, requiresTraceability: true },
+    });
+    if (!sku) {
+      return NextResponse.json({ error: 'SKU_NOT_FOUND' }, { status: 404 });
+    }
+    if (!sku.requiresTraceability) {
+      return NextResponse.json({ error: 'SKU_TRACEABILITY_DISABLED' }, { status: 409 });
+    }
     if (!/^https:\/\/drive\.google\.com\//i.test(driveFileUrl)) {
       return NextResponse.json({ error: 'DRIVE_URL_INVALID' }, { status: 400 });
     }

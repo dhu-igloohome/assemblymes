@@ -51,6 +51,9 @@ interface Item {
   status: ItemStatus;
   sourceType: ItemSourceType;
   isPurchasable: boolean;
+  requiresFlashing: boolean;
+  requiresTraceability: boolean;
+  requiresDfu: boolean;
   safetyStock: string;
   imageUrl: string | null;
   description: string | null;
@@ -151,6 +154,9 @@ function createItemSchema(t: ReturnType<typeof useTranslations<'Items'>>) {
     status: z.enum(ITEM_STATUS_OPTIONS),
     sourceType: z.enum(ITEM_SOURCE_TYPE_OPTIONS),
     isPurchasable: z.boolean(),
+    requiresFlashing: z.boolean(),
+    requiresTraceability: z.boolean(),
+    requiresDfu: z.boolean(),
     safetyStock: z
       .string()
       .refine((value) => value.trim() !== '' && !Number.isNaN(Number(value)) && Number(value) >= 0, {
@@ -208,6 +214,9 @@ export default function ItemsPage() {
       status: 'ENABLED',
       sourceType: 'PURCHASED',
       isPurchasable: true,
+      requiresFlashing: false,
+      requiresTraceability: false,
+      requiresDfu: false,
       safetyStock: '0',
       imageUrl: '',
       description: '',
@@ -221,6 +230,9 @@ export default function ItemsPage() {
   const watchedSourceType = watch('sourceType');
   const watchedItemGroup = watch('itemGroup');
   const watchedIsPurchasable = watch('isPurchasable');
+  const watchedRequiresFlashing = watch('requiresFlashing');
+  const watchedRequiresTraceability = watch('requiresTraceability');
+  const watchedRequiresDfu = watch('requiresDfu');
   const isEditing = dialogMode === 'edit';
   const hasCodeConflict =
     codeStatus === 'duplicate' &&
@@ -377,6 +389,9 @@ export default function ItemsPage() {
       status: 'ENABLED',
       sourceType: itemType === 'MATERIAL' ? 'PURCHASED' : 'MANUFACTURED',
       isPurchasable: itemType === 'MATERIAL',
+      requiresFlashing: itemType === 'ASSEMBLY' || itemType === 'PRODUCT',
+      requiresTraceability: itemType === 'PRODUCT',
+      requiresDfu: itemType === 'PRODUCT',
       safetyStock: '0',
       imageUrl: '',
       description: '',
@@ -408,6 +423,9 @@ export default function ItemsPage() {
       status: item.status,
       sourceType: item.sourceType,
       isPurchasable: item.isPurchasable,
+      requiresFlashing: item.requiresFlashing,
+      requiresTraceability: item.requiresTraceability,
+      requiresDfu: item.requiresDfu,
       safetyStock: item.safetyStock ?? '0',
       imageUrl: item.imageUrl ?? '',
       description: item.description ?? '',
@@ -433,6 +451,9 @@ export default function ItemsPage() {
       status: item.status,
       sourceType: item.sourceType,
       isPurchasable: item.isPurchasable,
+      requiresFlashing: item.requiresFlashing,
+      requiresTraceability: item.requiresTraceability,
+      requiresDfu: item.requiresDfu,
       safetyStock: item.safetyStock ?? '0',
       imageUrl: item.imageUrl ?? '',
       description: item.description ?? '',
@@ -530,6 +551,9 @@ export default function ItemsPage() {
             status: values.status,
             sourceType: values.sourceType,
             isPurchasable: values.isPurchasable,
+            requiresFlashing: values.requiresFlashing,
+            requiresTraceability: values.requiresTraceability,
+            requiresDfu: values.requiresDfu,
             safetyStock: values.safetyStock,
             imageUrl: values.imageUrl,
             description: '',
@@ -645,6 +669,15 @@ export default function ItemsPage() {
                     setValue('isPurchasable', nextType === 'MATERIAL', {
                       shouldValidate: true,
                     });
+                    setValue('requiresFlashing', nextType === 'ASSEMBLY' || nextType === 'PRODUCT', {
+                      shouldValidate: true,
+                    });
+                    setValue('requiresTraceability', nextType === 'PRODUCT', {
+                      shouldValidate: true,
+                    });
+                    setValue('requiresDfu', nextType === 'PRODUCT', {
+                      shouldValidate: true,
+                    });
                   }}
                 >
                   <SelectTrigger className="w-full">
@@ -757,6 +790,69 @@ export default function ItemsPage() {
                       {watchedIsPurchasable
                         ? `${t('is_purchasable')}: ${t('yes')}`
                         : `${t('is_purchasable')}: ${t('no')}`}
+                    </span>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="true">{t('yes')}</SelectItem>
+                    <SelectItem value="false">{t('no')}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={watchedRequiresFlashing ? 'true' : 'false'}
+                  onValueChange={(value) =>
+                    setValue('requiresFlashing', value === 'true', {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    })
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <span className="truncate">
+                      {watchedRequiresFlashing
+                        ? `${t('requires_flashing')}: ${t('yes')}`
+                        : `${t('requires_flashing')}: ${t('no')}`}
+                    </span>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="true">{t('yes')}</SelectItem>
+                    <SelectItem value="false">{t('no')}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={watchedRequiresTraceability ? 'true' : 'false'}
+                  onValueChange={(value) =>
+                    setValue('requiresTraceability', value === 'true', {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    })
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <span className="truncate">
+                      {watchedRequiresTraceability
+                        ? `${t('requires_traceability')}: ${t('yes')}`
+                        : `${t('requires_traceability')}: ${t('no')}`}
+                    </span>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="true">{t('yes')}</SelectItem>
+                    <SelectItem value="false">{t('no')}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={watchedRequiresDfu ? 'true' : 'false'}
+                  onValueChange={(value) =>
+                    setValue('requiresDfu', value === 'true', {
+                      shouldValidate: true,
+                      shouldDirty: true,
+                    })
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <span className="truncate">
+                      {watchedRequiresDfu
+                        ? `${t('requires_dfu')}: ${t('yes')}`
+                        : `${t('requires_dfu')}: ${t('no')}`}
                     </span>
                   </SelectTrigger>
                   <SelectContent>
@@ -1037,6 +1133,9 @@ export default function ItemsPage() {
               <TableHead>{t('unit')}</TableHead>
               <TableHead>{t('safety_stock')}</TableHead>
               <TableHead>{t('is_purchasable')}</TableHead>
+              <TableHead>{t('requires_flashing')}</TableHead>
+              <TableHead>{t('requires_traceability')}</TableHead>
+              <TableHead>{t('requires_dfu')}</TableHead>
               <TableHead>{t('specification')}</TableHead>
               <TableHead>{t('reference_status')}</TableHead>
               <TableHead>{t('actions')}</TableHead>
@@ -1058,6 +1157,9 @@ export default function ItemsPage() {
                 <TableCell>{item.unit}</TableCell>
                 <TableCell>{item.safetyStock}</TableCell>
                 <TableCell>{item.isPurchasable ? t('yes') : t('no')}</TableCell>
+                <TableCell>{item.requiresFlashing ? t('yes') : t('no')}</TableCell>
+                <TableCell>{item.requiresTraceability ? t('yes') : t('no')}</TableCell>
+                <TableCell>{item.requiresDfu ? t('yes') : t('no')}</TableCell>
                 <TableCell>{item.specification || '-'}</TableCell>
                 <TableCell>
                   {item.usage.totalReferences === 0 ? (
@@ -1095,7 +1197,7 @@ export default function ItemsPage() {
             ))}
             {items.length === 0 && (
               <TableRow>
-                <TableCell colSpan={12} className="py-6 text-center text-gray-500">
+                <TableCell colSpan={15} className="py-6 text-center text-gray-500">
                   {t('empty_state')}
                 </TableCell>
               </TableRow>

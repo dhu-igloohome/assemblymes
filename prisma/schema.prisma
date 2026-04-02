@@ -40,6 +40,9 @@ model Item {
   status        ItemStatus     @default(ENABLED)
   sourceType    ItemSourceType @default(PURCHASED) @map("source_type")
   isPurchasable Boolean        @default(true) @map("is_purchasable")
+  requiresFlashing Boolean     @default(false) @map("requires_flashing")
+  requiresTraceability Boolean @default(false) @map("requires_traceability")
+  requiresDfu Boolean          @default(false) @map("requires_dfu")
   safetyStock   Decimal?       @default(0) @map("safety_stock") @db.Decimal(10, 2)
   imageUrl      String?        @map("image_url") @db.Text
   description   String?        @db.Text

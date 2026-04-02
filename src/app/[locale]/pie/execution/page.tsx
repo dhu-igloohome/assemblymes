@@ -197,6 +197,10 @@ export default function ExecutionPage() {
           RANGE_ORDER_INVALID: 'range_order_invalid',
           RANGE_LENGTH_MISMATCH: 'range_length_mismatch',
           RANGE_TOO_LARGE: 'range_too_large',
+          SKU_NOT_FOUND: 'sku_not_found',
+          SKU_TRACEABILITY_DISABLED: 'sku_traceability_disabled',
+          SKU_DFU_DISABLED: 'sku_dfu_disabled',
+          SKU_FLASHING_DISABLED: 'sku_flashing_disabled',
         };
         const code = payload?.error ?? '';
         setDialogError(map[code] ? t(map[code]) : t('save_failed'));
@@ -359,6 +363,8 @@ export default function ExecutionPage() {
           SERIAL_NO_DUPLICATE: 'serial_no_duplicate',
           BLUETOOTH_ID_DUPLICATE: 'bluetooth_id_duplicate',
           RECORDS_INVALID: 'records_invalid',
+          SKU_NOT_FOUND: 'sku_not_found',
+          SKU_TRACEABILITY_DISABLED: 'sku_traceability_disabled',
         };
         const code = payload?.error ?? '';
         setUploadError(map[code] ? t(map[code]) : t('trace_upload_failed'));

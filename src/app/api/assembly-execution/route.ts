@@ -51,6 +51,18 @@ export async function POST(request: Request) {
     if (!/^\d{6}$/.test(skuItemCode)) {
       return NextResponse.json({ error: 'SKU_ITEM_CODE_INVALID' }, { status: 400 });
     }
+    const sku = await prisma.item.findUnique({
+      where: { itemCode: skuItemCode },
+      select: {
+        itemCode: true,
+        requiresFlashing: true,
+        requiresTraceability: true,
+        requiresDfu: true,
+      },
+    });
+    if (!sku) {
+      return NextResponse.json({ error: 'SKU_NOT_FOUND' }, { status: 404 });
+    }
     if (!batchNo) {
       return NextResponse.json({ error: 'BATCH_NO_REQUIRED' }, { status: 400 });
     }
@@ -62,6 +74,15 @@ export async function POST(request: Request) {
     }
     if (!INITIAL_STATUSES.includes(status)) {
       return NextResponse.json({ error: 'STATUS_INVALID' }, { status: 400 });
+    }
+    if (!sku.requiresTraceability) {
+      return NextResponse.json({ error: 'SKU_TRACEABILITY_DISABLED' }, { status: 409 });
+    }
+    if (taskType === 'DFU' && !sku.requiresDfu) {
+      return NextResponse.json({ error: 'SKU_DFU_DISABLED' }, { status: 409 });
+    }
+    if (taskType === 'FLASH_REWORK' && !sku.requiresFlashing) {
+      return NextResponse.json({ error: 'SKU_FLASHING_DISABLED' }, { status: 409 });
     }
 
     const anyRangeField =
