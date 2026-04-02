@@ -22,6 +22,16 @@ interface ExecutionTaskRow {
   assignee: string | null;
 }
 
+interface TraceUploadRow {
+  id: string;
+  batchNo: string;
+  skuItemCode: string;
+  driveFileUrl: string;
+  uploadedBy: string | null;
+  recordCount: number;
+  uploadedAt: string;
+}
+
 const TASK_TYPES: ExecutionTaskType[] = ['DFU', 'FLASH_REWORK', 'BIND_VERIFY'];
 const STAGES: ExecutionStage[] = ['PCBA', 'ASSEMBLY_EOL', 'FINISHED_GOODS'];
 const INITIAL_STATUSES: ExecutionStatus[] = ['READY', 'NEED_DFU', 'BLOCKED'];
@@ -46,6 +56,14 @@ export default function ExecutionPage() {
   const [failDialogTaskId, setFailDialogTaskId] = useState<string | null>(null);
   const [failReason, setFailReason] = useState('');
   const [isActionSubmitting, setIsActionSubmitting] = useState(false);
+  const [uploads, setUploads] = useState<TraceUploadRow[]>([]);
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
+  const [uploadDriveUrl, setUploadDriveUrl] = useState('');
+  const [uploadRecordsText, setUploadRecordsText] = useState('');
+  const [uploadBatchNo, setUploadBatchNo] = useState('');
+  const [uploadSkuItemCode, setUploadSkuItemCode] = useState('');
 
   const loadRows = useCallback(async () => {
     setIsLoading(true);
@@ -70,6 +88,23 @@ export default function ExecutionPage() {
   useEffect(() => {
     void loadRows();
   }, [loadRows]);
+
+  const loadUploads = useCallback(async () => {
+    try {
+      const res = await fetch('/api/traceability/batch-upload', { cache: 'no-store' });
+      if (!res.ok) {
+        return;
+      }
+      const data = (await res.json()) as TraceUploadRow[];
+      setUploads(data);
+    } catch {
+      setUploads([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadUploads();
+  }, [loadUploads]);
 
   const resetCreateForm = () => {
     setSkuItemCode('');
@@ -197,13 +232,66 @@ export default function ExecutionPage() {
     return { ready, needDfu, blocked };
   }, [rows]);
 
+  const uploadTraceFile = async () => {
+    setUploadError('');
+    setListMessage('');
+    setListError('');
+    setIsUploading(true);
+    try {
+      const res = await fetch('/api/traceability/batch-upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          batchNo: uploadBatchNo.trim(),
+          skuItemCode: uploadSkuItemCode.trim(),
+          driveFileUrl: uploadDriveUrl.trim(),
+          uploadedBy: assignee.trim(),
+          recordsText: uploadRecordsText,
+        }),
+      });
+      const payload = (await res.json().catch(() => null)) as { error?: string } | null;
+      if (!res.ok) {
+        const map: Record<string, string> = {
+          BATCH_NO_REQUIRED: 'batch_no_required',
+          SKU_ITEM_CODE_INVALID: 'sku_item_code_invalid',
+          DRIVE_URL_INVALID: 'drive_url_invalid',
+          TRACE_RECORDS_REQUIRED: 'trace_records_required',
+          TRACE_LINE_INVALID: 'trace_line_invalid',
+          SERIAL_NO_DUPLICATE_IN_FILE: 'serial_no_duplicate_in_file',
+          BLUETOOTH_ID_DUPLICATE_IN_FILE: 'bluetooth_id_duplicate_in_file',
+          SERIAL_NO_DUPLICATE: 'serial_no_duplicate',
+          BLUETOOTH_ID_DUPLICATE: 'bluetooth_id_duplicate',
+        };
+        const code = payload?.error ?? '';
+        setUploadError(map[code] ? t(map[code]) : t('trace_upload_failed'));
+        return;
+      }
+      setUploadDialogOpen(false);
+      setUploadBatchNo('');
+      setUploadSkuItemCode('');
+      setUploadDriveUrl('');
+      setUploadRecordsText('');
+      setListMessage(t('trace_upload_success'));
+      await Promise.all([loadRows(), loadUploads()]);
+    } catch {
+      setUploadError(t('trace_upload_failed'));
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-8">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
-        <Button type="button" onClick={() => setDialogOpen(true)}>
-          {t('add')}
-        </Button>
+        <div className="flex gap-2">
+          <Button type="button" variant="outline" onClick={() => setUploadDialogOpen(true)}>
+            {t('upload_trace')}
+          </Button>
+          <Button type="button" onClick={() => setDialogOpen(true)}>
+            {t('add')}
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
@@ -298,6 +386,46 @@ export default function ExecutionPage() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>{t('trace_upload_dialog_title')}</DialogTitle>
+          </DialogHeader>
+          <div className="mt-4 space-y-4">
+            <Input
+              placeholder={t('sku_item_code')}
+              value={uploadSkuItemCode}
+              onChange={(e) => setUploadSkuItemCode(e.target.value)}
+            />
+            <Input
+              placeholder={t('batch_no')}
+              value={uploadBatchNo}
+              onChange={(e) => setUploadBatchNo(e.target.value)}
+            />
+            <Input
+              placeholder={t('drive_file_url')}
+              value={uploadDriveUrl}
+              onChange={(e) => setUploadDriveUrl(e.target.value)}
+            />
+            <textarea
+              className="min-h-36 w-full rounded-md border px-3 py-2 text-sm outline-none focus:border-blue-500"
+              placeholder={t('trace_records_text')}
+              value={uploadRecordsText}
+              onChange={(e) => setUploadRecordsText(e.target.value)}
+            />
+            {uploadError ? <p className="text-sm text-red-600">{uploadError}</p> : null}
+            <Button
+              type="button"
+              className="w-full"
+              disabled={isUploading}
+              onClick={() => void uploadTraceFile()}
+            >
+              {isUploading ? t('submitting') : t('upload_trace')}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {listMessage ? <p className="text-sm text-green-600">{listMessage}</p> : null}
       {listError ? <p className="text-sm text-red-600">{listError}</p> : null}
 
@@ -375,6 +503,48 @@ export default function ExecutionPage() {
             </TableBody>
           </Table>
         )}
+      </div>
+
+      <div className="rounded-md border">
+        <div className="border-b bg-gray-50 px-4 py-3 text-sm font-medium text-gray-700">
+          {t('trace_upload_list')}
+        </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t('batch_no')}</TableHead>
+              <TableHead>{t('sku_item_code')}</TableHead>
+              <TableHead>{t('trace_record_count')}</TableHead>
+              <TableHead>{t('drive_file_url')}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {uploads.map((row) => (
+              <TableRow key={row.id}>
+                <TableCell>{row.batchNo}</TableCell>
+                <TableCell>{row.skuItemCode}</TableCell>
+                <TableCell>{row.recordCount}</TableCell>
+                <TableCell>
+                  <a
+                    href={row.driveFileUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-blue-600 underline"
+                  >
+                    {t('open_drive_file')}
+                  </a>
+                </TableCell>
+              </TableRow>
+            ))}
+            {uploads.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="py-6 text-center text-gray-500">
+                  {t('empty')}
+                </TableCell>
+              </TableRow>
+            ) : null}
+          </TableBody>
+        </Table>
       </div>
     </div>
   );

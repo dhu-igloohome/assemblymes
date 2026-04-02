@@ -216,3 +216,33 @@ model AssemblyExecutionTask {
   @@index([skuItemCode, stage])
   @@map("assembly_execution_tasks")
 }
+
+model BatchTraceUpload {
+  id              String   @id @default(uuid())
+  batchNo         String   @map("batch_no") @db.VarChar(32)
+  skuItemCode     String   @map("sku_item_code") @db.VarChar(6)
+  driveFileUrl    String   @map("drive_file_url") @db.Text
+  uploadedBy      String?  @map("uploaded_by") @db.VarChar(64)
+  recordCount     Int      @default(0) @map("record_count")
+  uploadedAt      DateTime @default(now()) @map("uploaded_at")
+
+  records BatchTraceRecord[]
+
+  @@index([batchNo, uploadedAt])
+  @@map("batch_trace_uploads")
+}
+
+model BatchTraceRecord {
+  id            String   @id @default(uuid())
+  uploadId      String   @map("upload_id")
+  batchNo       String   @map("batch_no") @db.VarChar(32)
+  skuItemCode   String   @map("sku_item_code") @db.VarChar(6)
+  serialNo      String   @unique @map("serial_no") @db.VarChar(64)
+  bluetoothId   String   @unique @map("bluetooth_id") @db.VarChar(64)
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  upload BatchTraceUpload @relation(fields: [uploadId], references: [id], onDelete: Cascade)
+
+  @@index([batchNo])
+  @@map("batch_trace_records")
+}
