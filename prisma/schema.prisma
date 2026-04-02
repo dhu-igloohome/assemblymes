@@ -17,21 +17,43 @@ enum ItemType {
   MATERIAL  // 原材料
 }
 
+enum ItemStatus {
+  ENABLED
+  DISABLED
+}
+
+enum ItemSourceType {
+  PURCHASED
+  MANUFACTURED
+  OUTSOURCED
+  VIRTUAL
+}
+
 model Item {
-  id          String   @id @default(uuid())
-  itemCode    String   @unique @map("item_code") @db.VarChar(6)
-  itemName    String   @map("item_name")
-  itemType    ItemType @map("item_type")
-  unit        String
-  description String?  @db.Text
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id            String         @id @default(uuid())
+  itemCode      String         @unique @map("item_code") @db.VarChar(6)
+  itemName      String         @map("item_name")
+  itemType      ItemType       @map("item_type")
+  unit          String
+  itemGroup     String?        @map("item_group")
+  specification String?        @db.Text
+  status        ItemStatus     @default(ENABLED)
+  sourceType    ItemSourceType @default(PURCHASED) @map("source_type")
+  isPurchasable Boolean        @default(true) @map("is_purchasable")
+  safetyStock   Decimal?       @default(0) @map("safety_stock") @db.Decimal(10, 2)
+  imageUrl      String?        @map("image_url") @db.Text
+  description   String?        @db.Text
+  remarks       String?        @db.Text
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
 
   // Relations
   bomsAsParent    BomHeader[] @relation("BomParentItem")
   bomsAsComponent BomLine[]   @relation("BomComponentItem")
   routings        RoutingHeader[]
 
+  @@index([itemType, status])
+  @@index([sourceType])
   @@map("items")
 }
 

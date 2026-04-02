@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
+import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -19,19 +20,42 @@ interface OperationLine {
   standardTimeSec: number;
 }
 
+interface ExistingRoutingRecord {
+  id: string;
+  itemCode: string;
+  version: string;
+  updatedAt: string;
+  item: {
+    itemName: string;
+  };
+  _count: {
+    operations: number;
+  };
+}
+
 export default function RoutingsPage() {
   const t = useTranslations('Routings');
+  const searchParams = useSearchParams();
   const [items, setItems] = useState<Item[]>([]);
   const [itemCode, setItemCode] = useState<string | null>(null);
   const [version, setVersion] = useState('V1.0');
   const [operations, setOperations] = useState<OperationLine[]>([]);
-  
-  useEffect(() => {
-    fetch('/api/items')
-      .then(res => res.json())
-      .then(data => setItems(data))
-      .catch(console.error);
-  }, []);
+  const [existingRoutings, setExistingRoutings] = useState<ExistingRoutingRecord[]>([]);
+
+  const loadExistingRoutings = async () => {
+    try {
+      const res = await fetch('/api/routings?mode=list', { cache: 'no-store' });
+      if (!res.ok) {
+        setExistingRoutings([]);
+        return;
+      }
+      const data = (await res.json()) as ExistingRoutingRecord[];
+      setExistingRoutings(data);
+    } catch (error) {
+      console.error(error);
+      setExistingRoutings([]);
+    }
+  };
 
   const loadRouting = async (code: string | null) => {
     if (!code) return;
@@ -56,6 +80,24 @@ export default function RoutingsPage() {
     }
   };
 
+  useEffect(() => {
+    fetch('/api/items')
+      .then(res => res.json())
+      .then((data: Item[]) => {
+        setItems(data);
+        void loadExistingRoutings();
+        const initialItemCode = searchParams.get('itemCode');
+        const exists = initialItemCode
+          ? data.some((item) => item.itemCode === initialItemCode)
+          : false;
+
+        if (exists && itemCode !== initialItemCode) {
+          void loadRouting(initialItemCode);
+        }
+      })
+      .catch(console.error);
+  }, [itemCode, searchParams]);
+
   const handleAddOperation = () => {
     setOperations([
       ...operations, 
@@ -76,6 +118,7 @@ export default function RoutingsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ itemCode, version, operations })
       });
+      await loadExistingRoutings();
       alert('Saved!');
     } catch (error) {
       console.error(error);
@@ -111,6 +154,41 @@ export default function RoutingsPage() {
             onChange={(e) => setVersion(e.target.value)} 
           />
         </div>
+      </div>
+
+      <div className="border rounded-md p-4 space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg font-semibold text-gray-700">{t('existing_routings')}</h2>
+        </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t('select_item')}</TableHead>
+              <TableHead>{t('version')}</TableHead>
+              <TableHead>{t('operation_count')}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {existingRoutings.map((record) => (
+              <TableRow
+                key={record.id}
+                className="cursor-pointer"
+                onClick={() => void loadRouting(record.itemCode)}
+              >
+                <TableCell>{`${record.itemCode} - ${record.item.itemName}`}</TableCell>
+                <TableCell>{record.version}</TableCell>
+                <TableCell>{record._count.operations}</TableCell>
+              </TableRow>
+            ))}
+            {existingRoutings.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={3} className="text-center py-6 text-gray-500">
+                  {t('no_existing_routings')}
+                </TableCell>
+              </TableRow>
+            ) : null}
+          </TableBody>
+        </Table>
       </div>
 
       {itemCode && (

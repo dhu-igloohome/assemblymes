@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -18,28 +19,164 @@ interface BomLine {
   scrapRate: number;
 }
 
+interface BomVersion {
+  id: string;
+  version: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface ExistingBomRecord {
+  id: string;
+  parentItemCode: string;
+  version: string;
+  isActive: boolean;
+  updatedAt: string;
+  parentItem: {
+    itemName: string;
+  };
+  _count: {
+    lines: number;
+  };
+}
+
+interface BomTreeNode {
+  id: string;
+  componentItemCode: string;
+  componentItemName: string;
+  quantity: number;
+  scrapRate: number;
+  children: BomTreeNode[];
+}
+
+interface BomDiffLine {
+  componentItemCode: string;
+  componentItemName: string;
+  changeType: 'added' | 'removed' | 'changed';
+  fromQuantity: number | null;
+  toQuantity: number | null;
+  fromScrapRate: number | null;
+  toScrapRate: number | null;
+}
+
+function BomTree({
+  nodes,
+  level = 0,
+}: {
+  nodes: BomTreeNode[];
+  level?: number;
+}) {
+  if (nodes.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="space-y-2">
+      {nodes.map((node) => (
+        <div key={node.id} className="space-y-2">
+          <div
+            className="rounded-md border bg-white p-3 text-sm text-gray-700"
+            style={{ marginLeft: `${level * 20}px` }}
+          >
+            <div className="font-medium">{`${node.componentItemCode} - ${node.componentItemName}`}</div>
+            <div className="text-xs text-gray-500">{`Qty: ${node.quantity} | Scrap: ${node.scrapRate}`}</div>
+          </div>
+          <BomTree nodes={node.children} level={level + 1} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function BomsPage() {
   const t = useTranslations('Boms');
+  const searchParams = useSearchParams();
   const [items, setItems] = useState<Item[]>([]);
   const [parentItemCode, setParentItemCode] = useState<string | null>(null);
   const [version, setVersion] = useState('V1.0');
   const [lines, setLines] = useState<BomLine[]>([]);
-  
-  useEffect(() => {
-    fetch('/api/items')
-      .then(res => res.json())
-      .then(data => setItems(data))
-      .catch(console.error);
+  const [existingBoms, setExistingBoms] = useState<ExistingBomRecord[]>([]);
+  const [versions, setVersions] = useState<BomVersion[]>([]);
+  const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
+  const [tree, setTree] = useState<BomTreeNode[]>([]);
+  const [compareVersion, setCompareVersion] = useState<string | null>(null);
+  const [diffLines, setDiffLines] = useState<BomDiffLine[]>([]);
+  const [submitMessage, setSubmitMessage] = useState('');
+  const [submitError, setSubmitError] = useState('');
+
+  const loadVersions = useCallback(async (code: string) => {
+    try {
+      const res = await fetch(`/api/boms?parentItemCode=${code}&mode=versions`, {
+        cache: 'no-store',
+      });
+      if (!res.ok) {
+        setVersions([]);
+        return;
+      }
+
+      const data = (await res.json()) as BomVersion[];
+      setVersions(data);
+      const activeVersion = data.find((entry) => entry.isActive);
+      const resolvedVersion = activeVersion?.version ?? data[0]?.version ?? null;
+      setSelectedVersion(resolvedVersion);
+      setCompareVersion((current) => current ?? data.find((entry) => entry.version !== resolvedVersion)?.version ?? null);
+      return resolvedVersion;
+    } catch (error) {
+      console.error(error);
+      setVersions([]);
+      return null;
+    }
   }, []);
 
-  const loadBom = async (code: string | null) => {
+  const loadExistingBoms = useCallback(async () => {
+    try {
+      const res = await fetch('/api/boms?mode=list', { cache: 'no-store' });
+      if (!res.ok) {
+        setExistingBoms([]);
+        return;
+      }
+      const data = (await res.json()) as ExistingBomRecord[];
+      setExistingBoms(data);
+    } catch (error) {
+      console.error(error);
+      setExistingBoms([]);
+    }
+  }, []);
+
+  const loadTree = useCallback(async (code: string) => {
+    try {
+      const res = await fetch(`/api/boms?parentItemCode=${code}&mode=tree`, {
+        cache: 'no-store',
+      });
+      if (!res.ok) {
+        setTree([]);
+        return;
+      }
+
+      const data = await res.json();
+      setTree(data.children ?? []);
+    } catch (error) {
+      console.error(error);
+      setTree([]);
+    }
+  }, []);
+
+  const loadBom = useCallback(async (code: string | null) => {
     if (!code) return;
     setParentItemCode(code);
     try {
-      const res = await fetch(`/api/boms?parentItemCode=${code}`);
+      const resolvedVersion = await loadVersions(code);
+      await loadTree(code);
+
+      const res = await fetch(
+        `/api/boms?parentItemCode=${code}${resolvedVersion ? `&version=${resolvedVersion}` : ''}`,
+        { cache: 'no-store' }
+      );
       if (res.ok) {
         const data = await res.json();
         setVersion(data.version);
+        setSelectedVersion(data.version);
         setLines(data.lines.map((l: { componentItemCode: string, quantity: string | number, scrapRate: string | number }) => ({
           componentItemCode: l.componentItemCode,
           quantity: Number(l.quantity),
@@ -52,10 +189,88 @@ export default function BomsPage() {
       console.error(error);
       setLines([]);
     }
-  };
+  }, [loadTree, loadVersions]);
+
+  useEffect(() => {
+    fetch('/api/items')
+      .then(res => res.json())
+      .then((data: Item[]) => {
+        setItems(data);
+        void loadExistingBoms();
+        const initialParentItemCode = searchParams.get('parentItemCode');
+        const exists = initialParentItemCode
+          ? data.some((item) => item.itemCode === initialParentItemCode)
+          : false;
+
+        if (exists && parentItemCode !== initialParentItemCode) {
+          void loadBom(initialParentItemCode);
+        }
+      })
+      .catch(console.error);
+  }, [loadBom, loadExistingBoms, parentItemCode, searchParams]);
+
+  useEffect(() => {
+    if (!parentItemCode || !selectedVersion) {
+      return;
+    }
+
+    fetch(`/api/boms?parentItemCode=${parentItemCode}&version=${selectedVersion}`, {
+      cache: 'no-store',
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!data) {
+          return;
+        }
+        setVersion(data.version);
+        setLines(
+          data.lines.map((line: { componentItemCode: string; quantity: string | number; scrapRate: string | number }) => ({
+            componentItemCode: line.componentItemCode,
+            quantity: Number(line.quantity),
+            scrapRate: Number(line.scrapRate),
+          }))
+        );
+      })
+      .catch(console.error);
+  }, [parentItemCode, selectedVersion]);
+
+  useEffect(() => {
+    if (!parentItemCode || !selectedVersion || !compareVersion || selectedVersion === compareVersion) {
+      return;
+    }
+
+    fetch(
+      `/api/boms?parentItemCode=${parentItemCode}&mode=diff&version=${selectedVersion}&compareVersion=${compareVersion}`,
+      { cache: 'no-store' }
+    )
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        setDiffLines(data?.diff ?? []);
+      })
+      .catch((error) => {
+        console.error(error);
+        setDiffLines([]);
+      });
+  }, [compareVersion, parentItemCode, selectedVersion]);
 
   const handleAddLine = () => {
     setLines([...lines, { componentItemCode: null, quantity: 1, scrapRate: 0 }]);
+  };
+
+  const moveLine = (index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= lines.length) {
+      return;
+    }
+
+    const newLines = [...lines];
+    const [currentLine] = newLines.splice(index, 1);
+    newLines.splice(targetIndex, 0, currentLine);
+    setLines(newLines);
+  };
+
+  const removeLine = (index: number) => {
+    setLines(lines.filter((_, currentIndex) => currentIndex !== index));
   };
 
   const updateLine = (index: number, field: keyof BomLine, value: string | number | null) => {
@@ -66,14 +281,63 @@ export default function BomsPage() {
 
   const handleSave = async () => {
     try {
-      await fetch('/api/boms', {
+      setSubmitError('');
+      setSubmitMessage('');
+      const res = await fetch('/api/boms', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ parentItemCode, version, lines })
       });
-      alert('Saved!');
+      if (!res.ok) {
+        const payload = await res.json().catch(() => null);
+        setSubmitError(payload?.details ?? payload?.error ?? t('save_failed'));
+        return;
+      }
+      setSubmitMessage(t('save_success'));
+      if (parentItemCode) {
+        await loadVersions(parentItemCode);
+        await loadTree(parentItemCode);
+      }
+      await loadExistingBoms();
     } catch (error) {
       console.error(error);
+      setSubmitError(error instanceof Error ? `${t('save_failed')}: ${error.message}` : t('save_failed'));
+    }
+  };
+
+  const handleActivateVersion = async (nextVersion: string | null) => {
+    if (!parentItemCode || !nextVersion) {
+      return;
+    }
+
+    try {
+      setSubmitError('');
+      setSubmitMessage('');
+      const res = await fetch('/api/boms', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          parentItemCode,
+          version: nextVersion,
+        }),
+      });
+
+      if (!res.ok) {
+        const payload = await res.json().catch(() => null);
+        setSubmitError(payload?.details ?? payload?.error ?? t('activate_failed'));
+        return;
+      }
+
+      setSelectedVersion(nextVersion);
+      setSubmitMessage(t('activate_success'));
+      await loadVersions(parentItemCode);
+      await loadTree(parentItemCode);
+      await loadExistingBoms();
+    } catch (error) {
+      console.error(error);
+      setSubmitError(
+        error instanceof Error ? `${t('activate_failed')}: ${error.message}` : t('activate_failed')
+      );
     }
   };
 
@@ -83,6 +347,13 @@ export default function BomsPage() {
         <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
         <Button onClick={handleSave} disabled={!parentItemCode}>{t('save')}</Button>
       </div>
+
+      {submitMessage ? (
+        <p className="text-sm text-green-600">{submitMessage}</p>
+      ) : null}
+      {submitError ? (
+        <p className="text-sm text-red-600">{submitError}</p>
+      ) : null}
 
       <div className="flex space-x-4 mb-8">
         <div className="w-1/3">
@@ -106,69 +377,266 @@ export default function BomsPage() {
             onChange={(e) => setVersion(e.target.value)} 
           />
         </div>
+        <div className="w-1/3">
+          <Select
+            value={selectedVersion}
+            onValueChange={(value) => {
+              const nextVersion = value ? String(value) : null;
+              setDiffLines([]);
+              setSelectedVersion(nextVersion);
+            }}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={t('select_version')} />
+            </SelectTrigger>
+            <SelectContent>
+              {versions.map((entry) => (
+                <SelectItem key={entry.id} value={entry.version}>
+                  {entry.isActive ? `${entry.version} (${t('current_version')})` : entry.version}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="border rounded-md p-4 space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg font-semibold text-gray-700">{t('existing_boms')}</h2>
+        </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>{t('select_parent')}</TableHead>
+              <TableHead>{t('version')}</TableHead>
+              <TableHead>{t('current_version')}</TableHead>
+              <TableHead>{t('line_count')}</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {existingBoms.map((record) => (
+              <TableRow
+                key={record.id}
+                className="cursor-pointer"
+                onClick={() => void loadBom(record.parentItemCode)}
+              >
+                <TableCell>{`${record.parentItemCode} - ${record.parentItem.itemName}`}</TableCell>
+                <TableCell>{record.version}</TableCell>
+                <TableCell>{record.isActive ? t('yes') : t('no')}</TableCell>
+                <TableCell>{record._count.lines}</TableCell>
+              </TableRow>
+            ))}
+            {existingBoms.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center py-6 text-gray-500">
+                  {t('no_existing_boms')}
+                </TableCell>
+              </TableRow>
+            ) : null}
+          </TableBody>
+        </Table>
       </div>
 
       {parentItemCode && (
-        <div className="border rounded-md p-4 space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-lg font-semibold text-gray-700">BOM Lines</h2>
-            <Button variant="outline" onClick={handleAddLine}>{t('add_component')}</Button>
-          </div>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('component_code')}</TableHead>
-                <TableHead>{t('quantity')}</TableHead>
-                <TableHead>{t('scrap_rate')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {lines.map((line, idx) => (
-                <TableRow key={idx}>
-                  <TableCell>
-                    <Select 
-                      value={line.componentItemCode} 
-                      onValueChange={(val) => updateLine(idx, 'componentItemCode', val ? String(val) : null)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('component_code')} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {items.filter(i => i.itemCode !== parentItemCode).map(item => (
-                          <SelectItem key={item.itemCode} value={item.itemCode}>
-                            {item.itemCode} - {item.itemName}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell>
-                    <Input 
-                      type="number" 
-                      placeholder={t('quantity')}
-                      value={line.quantity}
-                      onChange={(e) => updateLine(idx, 'quantity', Number(e.target.value))}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Input 
-                      type="number" 
-                      placeholder={t('scrap_rate')}
-                      value={line.scrapRate}
-                      onChange={(e) => updateLine(idx, 'scrapRate', Number(e.target.value))}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
-              {lines.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={3} className="text-center py-6 text-gray-500">
-                    {t('no_bom')}
-                  </TableCell>
-                </TableRow>
+        <div className="space-y-6">
+          <div className="border rounded-md p-4 space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-lg font-semibold text-gray-700">{t('version_panel')}</h2>
+              <Button
+                variant="outline"
+                onClick={() => handleActivateVersion(selectedVersion)}
+                disabled={!selectedVersion}
+              >
+                {t('set_current_version')}
+              </Button>
+            </div>
+            <div className="space-y-2 text-sm text-gray-600">
+              {versions.length === 0 ? (
+                <p>{t('no_versions')}</p>
+              ) : (
+                versions.map((entry) => (
+                  <div key={entry.id} className="flex items-center justify-between rounded border p-2">
+                    <span>{entry.version}</span>
+                    <span className={entry.isActive ? 'text-green-600' : 'text-gray-500'}>
+                      {entry.isActive ? t('current_version') : t('historical_version')}
+                    </span>
+                  </div>
+                ))
               )}
-            </TableBody>
-          </Table>
+            </div>
+          </div>
+
+          <div className="border rounded-md p-4 space-y-4">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <h2 className="text-lg font-semibold text-gray-700">{t('diff_panel')}</h2>
+              <div className="w-full sm:w-64">
+                <Select
+                  value={compareVersion}
+                  onValueChange={(value) => {
+                    setDiffLines([]);
+                    setCompareVersion(value ? String(value) : null);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={t('select_compare_version')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {versions
+                      .filter((entry) => entry.version !== selectedVersion)
+                      .map((entry) => (
+                        <SelectItem key={entry.id} value={entry.version}>
+                          {entry.version}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            {diffLines.length === 0 ? (
+              <p className="text-sm text-gray-500">{t('no_diff')}</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t('component_code')}</TableHead>
+                    <TableHead>{t('change_type')}</TableHead>
+                    <TableHead>{t('from_quantity')}</TableHead>
+                    <TableHead>{t('to_quantity')}</TableHead>
+                    <TableHead>{t('from_scrap_rate')}</TableHead>
+                    <TableHead>{t('to_scrap_rate')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {diffLines.map((line) => (
+                    <TableRow key={`${line.componentItemCode}-${line.changeType}`}>
+                      <TableCell>{`${line.componentItemCode} - ${line.componentItemName}`}</TableCell>
+                      <TableCell>
+                        <span
+                          className={
+                            line.changeType === 'added'
+                              ? 'text-green-600'
+                              : line.changeType === 'removed'
+                                ? 'text-red-600'
+                                : 'text-amber-600'
+                          }
+                        >
+                          {t(`change_${line.changeType}` as Parameters<typeof t>[0])}
+                        </span>
+                      </TableCell>
+                      <TableCell>{line.fromQuantity ?? '-'}</TableCell>
+                      <TableCell>{line.toQuantity ?? '-'}</TableCell>
+                      <TableCell>{line.fromScrapRate ?? '-'}</TableCell>
+                      <TableCell>{line.toScrapRate ?? '-'}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </div>
+
+          <div className="border rounded-md p-4 space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-lg font-semibold text-gray-700">{t('line_panel')}</h2>
+              <Button variant="outline" onClick={handleAddLine}>{t('add_component')}</Button>
+            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('line_order')}</TableHead>
+                  <TableHead>{t('component_code')}</TableHead>
+                  <TableHead>{t('quantity')}</TableHead>
+                  <TableHead>{t('scrap_rate')}</TableHead>
+                  <TableHead>{t('actions')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {lines.map((line, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell className="w-28">
+                      <div className="flex gap-2">
+                        <Button
+                          size="xs"
+                          variant="outline"
+                          onClick={() => moveLine(idx, 'up')}
+                          disabled={idx === 0}
+                        >
+                          {t('move_up')}
+                        </Button>
+                        <Button
+                          size="xs"
+                          variant="outline"
+                          onClick={() => moveLine(idx, 'down')}
+                          disabled={idx === lines.length - 1}
+                        >
+                          {t('move_down')}
+                        </Button>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Select 
+                        value={line.componentItemCode} 
+                        onValueChange={(val) => updateLine(idx, 'componentItemCode', val ? String(val) : null)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder={t('component_code')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {items.filter(i => i.itemCode !== parentItemCode).map(item => (
+                            <SelectItem key={item.itemCode} value={item.itemCode}>
+                              {item.itemCode} - {item.itemName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      <Input 
+                        type="number" 
+                        placeholder={t('quantity')}
+                        value={line.quantity}
+                        onChange={(e) => updateLine(idx, 'quantity', Number(e.target.value))}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Input 
+                        type="number" 
+                        placeholder={t('scrap_rate')}
+                        value={line.scrapRate}
+                        onChange={(e) => updateLine(idx, 'scrapRate', Number(e.target.value))}
+                      />
+                    </TableCell>
+                    <TableCell className="w-24">
+                      <Button
+                        size="xs"
+                        variant="destructive"
+                        onClick={() => removeLine(idx)}
+                      >
+                        {t('delete_line')}
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {lines.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center py-6 text-gray-500">
+                      {t('no_bom')}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          <div className="border rounded-md p-4 space-y-4">
+            <div className="flex justify-between items-center">
+              <h2 className="text-lg font-semibold text-gray-700">{t('tree_panel')}</h2>
+            </div>
+            {tree.length === 0 ? (
+              <p className="text-sm text-gray-500">{t('no_tree')}</p>
+            ) : (
+              <BomTree nodes={tree} />
+            )}
+          </div>
         </div>
       )}
     </div>

@@ -1,14 +1,47 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import type { ItemType } from '@prisma/client';
+import { Prisma, type ItemSourceType, type ItemStatus, type ItemType } from '@prisma/client';
+import {
+  ITEM_GROUP_OPTIONS,
+  ITEM_SOURCE_TYPE_OPTIONS,
+  ITEM_STATUS_OPTIONS,
+  ITEM_TYPE_OPTIONS,
+} from '@/lib/item-master';
 
 type ValidItemPayload = {
   itemCode: string;
   itemName: string;
   itemType: ItemType;
   unit: string;
+  itemGroup: string;
+  specification: string;
+  status: ItemStatus;
+  sourceType: ItemSourceType;
+  isPurchasable: boolean;
+  safetyStock: Prisma.Decimal;
+  imageUrl: string;
   description: string;
+  remarks: string;
 };
+
+type ItemUsageSummary = {
+  bomParentCount: number;
+  bomComponentCount: number;
+  routingCount: number;
+  totalReferences: number;
+  canDisable: boolean;
+  canDelete: boolean;
+};
+
+function isBoolean(value: unknown): value is boolean {
+  return typeof value === 'boolean';
+}
+
+function parseBoolean(value: string | null) {
+  if (value === 'true') return true;
+  if (value === 'false') return false;
+  return null;
+}
 
 function validateItemPayload(
   body: unknown
@@ -24,8 +57,18 @@ function validateItemPayload(
   const itemName = typeof payload.itemName === 'string' ? payload.itemName.trim() : '';
   const itemType = typeof payload.itemType === 'string' ? payload.itemType.trim() : '';
   const unit = typeof payload.unit === 'string' ? payload.unit.trim() : '';
+  const itemGroup = typeof payload.itemGroup === 'string' ? payload.itemGroup.trim() : '';
+  const specification =
+    typeof payload.specification === 'string' ? payload.specification.trim() : '';
+  const status = typeof payload.status === 'string' ? payload.status.trim() : '';
+  const sourceType =
+    typeof payload.sourceType === 'string' ? payload.sourceType.trim() : '';
+  const isPurchasable = payload.isPurchasable;
+  const safetyStockValue = payload.safetyStock;
+  const imageUrl = typeof payload.imageUrl === 'string' ? payload.imageUrl.trim() : '';
   const description =
     typeof payload.description === 'string' ? payload.description.trim() : '';
+  const remarks = typeof payload.remarks === 'string' ? payload.remarks.trim() : '';
 
   if (!/^\d{6}$/.test(itemCode)) {
     return { valid: false, error: 'Item code must be exactly 6 digits.' };
@@ -35,12 +78,37 @@ function validateItemPayload(
     return { valid: false, error: 'Item name is required.' };
   }
 
-  if (!['PRODUCT', 'ASSEMBLY', 'MATERIAL'].includes(itemType)) {
+  if (!ITEM_TYPE_OPTIONS.includes(itemType as ItemType)) {
     return { valid: false, error: 'Item type is invalid.' };
   }
 
   if (!unit) {
     return { valid: false, error: 'Unit is required.' };
+  }
+
+  if (itemGroup && !ITEM_GROUP_OPTIONS.includes(itemGroup as (typeof ITEM_GROUP_OPTIONS)[number])) {
+    return { valid: false, error: 'Item group is invalid.' };
+  }
+
+  if (status && !ITEM_STATUS_OPTIONS.includes(status as ItemStatus)) {
+    return { valid: false, error: 'Item status is invalid.' };
+  }
+
+  if (sourceType && !ITEM_SOURCE_TYPE_OPTIONS.includes(sourceType as ItemSourceType)) {
+    return { valid: false, error: 'Item source type is invalid.' };
+  }
+
+  if (!isBoolean(isPurchasable)) {
+    return { valid: false, error: 'Purchasable flag is invalid.' };
+  }
+
+  const parsedSafetyStock =
+    typeof safetyStockValue === 'number' || typeof safetyStockValue === 'string'
+      ? Number(safetyStockValue)
+      : Number.NaN;
+
+  if (!Number.isFinite(parsedSafetyStock) || parsedSafetyStock < 0) {
+    return { valid: false, error: 'Safety stock must be a non-negative number.' };
   }
 
   return {
@@ -50,7 +118,15 @@ function validateItemPayload(
       itemName,
       itemType: itemType as ItemType,
       unit,
+      itemGroup,
+      specification,
+      status: (status || 'ENABLED') as ItemStatus,
+      sourceType: (sourceType || 'PURCHASED') as ItemSourceType,
+      isPurchasable,
+      safetyStock: new Prisma.Decimal(parsedSafetyStock),
+      imageUrl,
       description,
+      remarks,
     },
   };
 }
@@ -102,22 +178,73 @@ function getItemApiErrorMessage(error: unknown) {
   };
 }
 
+async function getItemUsageSummary(itemCode: string): Promise<ItemUsageSummary> {
+  const [bomParentCount, bomComponentCount, routingCount] = await Promise.all([
+    prisma.bomHeader.count({ where: { parentItemCode: itemCode } }),
+    prisma.bomLine.count({ where: { componentItemCode: itemCode } }),
+    prisma.routingHeader.count({ where: { itemCode } }),
+  ]);
+
+  const totalReferences = bomParentCount + bomComponentCount + routingCount;
+
+  return {
+    bomParentCount,
+    bomComponentCount,
+    routingCount,
+    totalReferences,
+    canDisable: totalReferences === 0,
+    canDelete: totalReferences === 0,
+  };
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const itemCode = searchParams.get('itemCode');
+    const keyword = searchParams.get('keyword')?.trim();
     const itemType = searchParams.get('itemType');
+    const status = searchParams.get('status');
+    const sourceType = searchParams.get('sourceType');
+    const itemGroup = searchParams.get('itemGroup');
+    const isPurchasable = parseBoolean(searchParams.get('isPurchasable'));
 
-    const where: Record<string, unknown> = {};
-    if (itemCode) where.itemCode = { contains: itemCode };
-    if (itemType) where.itemType = itemType;
+    const where: Prisma.ItemWhereInput = {};
+
+    if (keyword) {
+      where.OR = [
+        { itemCode: { contains: keyword, mode: 'insensitive' } },
+        { itemName: { contains: keyword, mode: 'insensitive' } },
+        { specification: { contains: keyword, mode: 'insensitive' } },
+      ];
+    }
+    if (itemType && ITEM_TYPE_OPTIONS.includes(itemType as ItemType)) {
+      where.itemType = itemType as ItemType;
+    }
+    if (status && ITEM_STATUS_OPTIONS.includes(status as ItemStatus)) {
+      where.status = status as ItemStatus;
+    }
+    if (sourceType && ITEM_SOURCE_TYPE_OPTIONS.includes(sourceType as ItemSourceType)) {
+      where.sourceType = sourceType as ItemSourceType;
+    }
+    if (itemGroup && ITEM_GROUP_OPTIONS.includes(itemGroup as (typeof ITEM_GROUP_OPTIONS)[number])) {
+      where.itemGroup = itemGroup;
+    }
+    if (typeof isPurchasable === 'boolean') {
+      where.isPurchasable = isPurchasable;
+    }
 
     const items = await prisma.item.findMany({
       where,
       orderBy: { itemCode: 'asc' },
     });
 
-    return NextResponse.json(items);
+    const itemsWithUsage = await Promise.all(
+      items.map(async (item) => ({
+        ...item,
+        usage: await getItemUsageSummary(item.itemCode),
+      }))
+    );
+
+    return NextResponse.json(itemsWithUsage);
   } catch {
     return NextResponse.json({ error: 'Failed to fetch items' }, { status: 500 });
   }
@@ -132,7 +259,21 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: validationResult.error }, { status: 400 });
     }
 
-    const { itemCode, itemName, itemType, unit, description } =
+    const {
+      itemCode,
+      itemName,
+      itemType,
+      unit,
+      itemGroup,
+      specification,
+      status,
+      sourceType,
+      isPurchasable,
+      safetyStock,
+      imageUrl,
+      description,
+      remarks,
+    } =
       validationResult.data;
 
     const existingItem = await prisma.item.findUnique({
@@ -153,7 +294,15 @@ export async function POST(request: Request) {
         itemName,
         itemType,
         unit,
+        itemGroup: itemGroup || null,
+        specification: specification || null,
+        status,
+        sourceType,
+        isPurchasable,
+        safetyStock,
+        imageUrl: imageUrl || null,
         description,
+        remarks: remarks || null,
       },
     });
 
@@ -164,5 +313,125 @@ export async function POST(request: Request) {
       apiError,
       { status: 500 }
     );
+  }
+}
+
+export async function PUT(request: Request) {
+  try {
+    const body = await request.json();
+    const validationResult = validateItemPayload(body);
+
+    if (!validationResult.valid) {
+      return NextResponse.json({ error: validationResult.error }, { status: 400 });
+    }
+
+    const {
+      itemCode,
+      itemName,
+      itemType,
+      unit,
+      itemGroup,
+      specification,
+      status,
+      sourceType,
+      isPurchasable,
+      safetyStock,
+      imageUrl,
+      description,
+      remarks,
+    } = validationResult.data;
+
+    const existingItem = await prisma.item.findUnique({
+      where: { itemCode },
+      select: { id: true },
+    });
+
+    if (!existingItem) {
+      return NextResponse.json({ error: 'Item not found.' }, { status: 404 });
+    }
+
+    if (status === 'DISABLED') {
+      const usage = await getItemUsageSummary(itemCode);
+      if (!usage.canDisable) {
+        return NextResponse.json(
+          {
+            error: 'Item cannot be disabled.',
+            details: 'This item is already referenced by BOM or Routing records.',
+            usage,
+          },
+          { status: 409 }
+        );
+      }
+    }
+
+    const updatedItem = await prisma.item.update({
+      where: { itemCode },
+      data: {
+        itemName,
+        itemType,
+        unit,
+        itemGroup: itemGroup || null,
+        specification: specification || null,
+        status,
+        sourceType,
+        isPurchasable,
+        safetyStock,
+        imageUrl: imageUrl || null,
+        description,
+        remarks: remarks || null,
+      },
+    });
+
+    return NextResponse.json({
+      ...updatedItem,
+      usage: await getItemUsageSummary(itemCode),
+    });
+  } catch (error: unknown) {
+    const apiError = getItemApiErrorMessage(error);
+    return NextResponse.json(apiError, { status: 500 });
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const itemCode = searchParams.get('itemCode')?.trim() ?? '';
+
+    if (!/^\d{6}$/.test(itemCode)) {
+      return NextResponse.json(
+        { error: 'Item code must be exactly 6 digits.' },
+        { status: 400 }
+      );
+    }
+
+    const existingItem = await prisma.item.findUnique({
+      where: { itemCode },
+      select: { id: true },
+    });
+
+    if (!existingItem) {
+      return NextResponse.json({ error: 'Item not found.' }, { status: 404 });
+    }
+
+    const usage = await getItemUsageSummary(itemCode);
+    if (!usage.canDelete) {
+      return NextResponse.json(
+        {
+          error: 'Item cannot be deleted.',
+          details: 'This item is already referenced by BOM or Routing records.',
+          usage,
+        },
+        { status: 409 }
+      );
+    }
+
+    await prisma.item.delete({
+      where: { itemCode },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error: unknown) {
+    const apiError = getItemApiErrorMessage(error);
+    return NextResponse.json(apiError, { status: 500 });
   }
 }

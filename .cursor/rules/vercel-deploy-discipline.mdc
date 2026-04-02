@@ -1,0 +1,22 @@
+---
+description: Require immediate Vercel deployment after code changes
+alwaysApply: true
+---
+
+# Vercel Deployment Discipline
+
+For any code change in `assemblymes`, do not stop at local edits.
+
+Required order after code changes:
+
+1. Self-check the change.
+2. Run build and verification.
+3. Immediately move the change into a deployable state for Vercel.
+
+Non-negotiable requirements:
+
+- Treat deployment as part of completion, not an optional follow-up.
+- Do not present code changes as fully complete if they only exist locally.
+- After successful local verification, immediately prepare the Git state needed for Vercel deployment.
+- If deployment cannot happen yet because commit or push was not requested, explicitly state that Vercel is not yet updated and why.
+- If Vercel deployment is blocked by failing checks, fix the issue first or clearly report the blocker.

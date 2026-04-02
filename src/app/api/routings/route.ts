@@ -5,8 +5,33 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const itemCode = searchParams.get('itemCode');
+    const mode = searchParams.get('mode');
 
     if (!itemCode) {
+      if (mode === 'list') {
+        const routings = await prisma.routingHeader.findMany({
+          select: {
+            id: true,
+            itemCode: true,
+            version: true,
+            updatedAt: true,
+            item: {
+              select: {
+                itemName: true,
+              },
+            },
+            _count: {
+              select: {
+                operations: true,
+              },
+            },
+          },
+          orderBy: [{ updatedAt: 'desc' }],
+        });
+
+        return NextResponse.json(routings);
+      }
+
       return NextResponse.json({ error: 'itemCode is required' }, { status: 400 });
     }
 
