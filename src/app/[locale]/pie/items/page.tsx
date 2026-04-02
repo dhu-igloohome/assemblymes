@@ -394,10 +394,10 @@ export default function ItemsPage() {
       specification: '',
       status: 'ENABLED',
       sourceType: itemType === 'MATERIAL' ? 'PURCHASED' : 'MANUFACTURED',
-      isPurchasable: itemType === 'MATERIAL',
-      requiresFlashing: itemType === 'ASSEMBLY' || itemType === 'PRODUCT',
-      requiresTraceability: itemType === 'PRODUCT',
-      requiresDfu: itemType === 'PRODUCT',
+      isPurchasable: true,
+      requiresFlashing: false,
+      requiresTraceability: false,
+      requiresDfu: false,
       safetyStock: '0',
       imageUrl: '',
       drawing2dUrl: '',
@@ -680,18 +680,6 @@ export default function ItemsPage() {
                       nextType === 'MATERIAL' ? 'PURCHASED' : 'MANUFACTURED',
                       { shouldValidate: true }
                     );
-                    setValue('isPurchasable', nextType === 'MATERIAL', {
-                      shouldValidate: true,
-                    });
-                    setValue('requiresFlashing', nextType === 'ASSEMBLY' || nextType === 'PRODUCT', {
-                      shouldValidate: true,
-                    });
-                    setValue('requiresTraceability', nextType === 'PRODUCT', {
-                      shouldValidate: true,
-                    });
-                    setValue('requiresDfu', nextType === 'PRODUCT', {
-                      shouldValidate: true,
-                    });
                   }}
                 >
                   <SelectTrigger className="w-full">
