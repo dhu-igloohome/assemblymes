@@ -37,7 +37,12 @@ interface ExistingRoutingRecord {
 
 interface RoutingSuggestions {
   operationNames: string[];
-  workstations: string[];
+}
+
+interface WorkCenter {
+  id: string;
+  workCenterCode: string;
+  name: string;
 }
 
 export default function RoutingsPage() {
@@ -50,8 +55,8 @@ export default function RoutingsPage() {
   const [existingRoutings, setExistingRoutings] = useState<ExistingRoutingRecord[]>([]);
   const [suggestions, setSuggestions] = useState<RoutingSuggestions>({
     operationNames: [],
-    workstations: [],
   });
+  const [workCenters, setWorkCenters] = useState<WorkCenter[]>([]);
   const [isLoadingExistingList, setIsLoadingExistingList] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
@@ -79,16 +84,29 @@ export default function RoutingsPage() {
     try {
       const res = await fetch('/api/routings?mode=suggestions', { cache: 'no-store' });
       if (!res.ok) {
-        setSuggestions({ operationNames: [], workstations: [] });
+        setSuggestions({ operationNames: [] });
         return;
       }
       const data = (await res.json()) as RoutingSuggestions;
       setSuggestions({
         operationNames: Array.from(new Set(data.operationNames.map((v) => v.trim()).filter(Boolean))),
-        workstations: Array.from(new Set(data.workstations.map((v) => v.trim()).filter(Boolean))),
       });
     } catch {
-      setSuggestions({ operationNames: [], workstations: [] });
+      setSuggestions({ operationNames: [] });
+    }
+  }, []);
+
+  const loadWorkCenters = useCallback(async () => {
+    try {
+      const res = await fetch('/api/work-centers', { cache: 'no-store' });
+      if (!res.ok) {
+        setWorkCenters([]);
+        return;
+      }
+      const data = (await res.json()) as WorkCenter[];
+      setWorkCenters(data);
+    } catch {
+      setWorkCenters([]);
     }
   }, []);
 
@@ -135,6 +153,10 @@ export default function RoutingsPage() {
   useEffect(() => {
     void loadSuggestions();
   }, [loadSuggestions]);
+
+  useEffect(() => {
+    void loadWorkCenters();
+  }, [loadWorkCenters]);
 
   useEffect(() => {
     fetch('/api/items')
@@ -209,6 +231,7 @@ export default function RoutingsPage() {
       setSubmitMessage(t('save_success'));
       await loadExistingRoutings();
       await loadSuggestions();
+      await loadWorkCenters();
     } catch (error) {
       console.error(error);
       setSubmitError(error instanceof Error ? `${t('save_failed')} ${error.message}` : t('save_failed'));
@@ -319,11 +342,6 @@ export default function RoutingsPage() {
                 <option key={name} value={name} />
               ))}
             </datalist>
-            <datalist id="routing-workstation-options">
-              {suggestions.workstations.map((station) => (
-                <option key={station} value={station} />
-              ))}
-            </datalist>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -355,12 +373,29 @@ export default function RoutingsPage() {
                       />
                     </TableCell>
                     <TableCell className="min-w-[140px]">
-                      <Input
-                        placeholder={t('workstation')}
-                        value={op.workstation}
-                        list="routing-workstation-options"
-                        onChange={(e) => updateOperation(idx, 'workstation', e.target.value)}
-                      />
+                      <Select
+                        value={op.workstation || null}
+                        onValueChange={(value) =>
+                          updateOperation(idx, 'workstation', value ? String(value) : '')
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder={t('workstation')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {workCenters.map((wc) => (
+                            <SelectItem key={wc.id} value={wc.workCenterCode}>
+                              {wc.workCenterCode} - {wc.name}
+                            </SelectItem>
+                          ))}
+                          {op.workstation &&
+                          !workCenters.some((wc) => wc.workCenterCode === op.workstation) ? (
+                            <SelectItem value={op.workstation}>
+                              {`${op.workstation} (legacy)`}
+                            </SelectItem>
+                          ) : null}
+                        </SelectContent>
+                      </Select>
                     </TableCell>
                     <TableCell className="min-w-[100px]">
                       <Input
