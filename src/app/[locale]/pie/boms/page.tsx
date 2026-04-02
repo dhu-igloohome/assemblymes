@@ -588,21 +588,32 @@ export default function BomsPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Select 
-                        value={line.componentItemCode} 
-                        onValueChange={(val) => updateLine(idx, 'componentItemCode', val ? String(val) : null)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder={t('component_code')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {items.filter(i => i.itemCode !== parentItemCode).map(item => (
-                            <SelectItem key={item.itemCode} value={item.itemCode}>
-                              {item.itemCode} - {item.itemName}
-                            </SelectItem>
+                      <datalist id="bom-component-options">
+                        {items
+                          .filter((item) => item.itemCode !== parentItemCode)
+                          .map((item) => (
+                            <option
+                              key={item.itemCode}
+                              value={`${item.itemCode} ${item.itemName}`}
+                            />
                           ))}
-                        </SelectContent>
-                      </Select>
+                      </datalist>
+                      <Input
+                        placeholder={t('component_code')}
+                        list="bom-component-options"
+                        value={
+                          line.componentItemCode
+                            ? `${line.componentItemCode} ${
+                                items.find((i) => i.itemCode === line.componentItemCode)?.itemName ?? ''
+                              }`.trim()
+                            : ''
+                        }
+                        onChange={(e) => {
+                          const raw = e.target.value ?? '';
+                          const code = raw.trim().slice(0, 6);
+                          updateLine(idx, 'componentItemCode', /^\d{6}$/.test(code) ? code : null);
+                        }}
+                      />
                     </TableCell>
                     <TableCell>
                       <Input 
