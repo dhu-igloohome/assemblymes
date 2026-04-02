@@ -300,6 +300,13 @@
     "trace_line_invalid": "明细行格式错误，请使用 SN,BLUETOOTH_ID。",
     "serial_no_duplicate_in_file": "上传文件内序列号重复。",
     "bluetooth_id_duplicate_in_file": "上传文件内蓝牙编号重复。",
+    "choose_csv_file": "选择 CSV 文件",
+    "clear_csv_file": "清除文件",
+    "csv_rows_parsed": "已解析 {count} 条",
+    "csv_parse_failed": "CSV 解析失败，请检查编码与格式。",
+    "trace_csv_empty": "CSV 中没有有效数据行。",
+    "trace_csv_header_invalid": "未识别表头：请包含序列号列与蓝牙列（如 SN、Serial、蓝牙、Bluetooth、MAC 等）。",
+    "records_invalid": "记录格式无效。",
     "task_already_done": "任务已完成，不能再次开始。",
     "task_not_in_progress": "任务未处于执行中，无法直接完成。",
     "task_not_found": "任务不存在。"

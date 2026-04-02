@@ -1,23 +1,38 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import {
+  normalizeRecordsFromJsonPayload,
+  parseRecordsFromCsvText,
+  parseRecordsFromPlainText,
+  validateUniqueRecords,
+  type TraceRecordInput,
+} from '@/lib/batch-trace-records';
 
-interface UploadRecordInput {
-  serialNo: string;
-  bluetoothId: string;
-}
-
-function parseLine(line: string): UploadRecordInput | null {
-  const parts = line
-    .split(/[,\t;]/)
-    .map((p) => p.trim())
-    .filter(Boolean);
-  if (parts.length < 2) {
-    return null;
+function resolveRecords(body: Record<string, unknown>): TraceRecordInput[] | NextResponse {
+  const recordsRaw = body.records;
+  if (Array.isArray(recordsRaw) && recordsRaw.length > 0) {
+    const normalized = normalizeRecordsFromJsonPayload(recordsRaw);
+    if (!normalized.ok) {
+      return NextResponse.json({ error: normalized.error }, { status: 400 });
+    }
+    return normalized.records;
   }
-  return {
-    serialNo: parts[0].toUpperCase(),
-    bluetoothId: parts[1].toUpperCase(),
-  };
+
+  const recordsCsv = typeof body.recordsCsv === 'string' ? body.recordsCsv : '';
+  if (recordsCsv.trim() !== '') {
+    const parsed = parseRecordsFromCsvText(recordsCsv);
+    if (!parsed.ok) {
+      return NextResponse.json({ error: parsed.error, details: parsed.details }, { status: 400 });
+    }
+    return parsed.records;
+  }
+
+  const rawRecords = typeof body.recordsText === 'string' ? body.recordsText : '';
+  const plain = parseRecordsFromPlainText(rawRecords);
+  if (!plain.ok) {
+    return NextResponse.json({ error: plain.error, details: plain.details }, { status: 400 });
+  }
+  return plain.records;
 }
 
 export async function GET(request: Request) {
@@ -49,7 +64,6 @@ export async function POST(request: Request) {
     const skuItemCode = typeof body.skuItemCode === 'string' ? body.skuItemCode.trim() : '';
     const driveFileUrl = typeof body.driveFileUrl === 'string' ? body.driveFileUrl.trim() : '';
     const uploadedBy = typeof body.uploadedBy === 'string' ? body.uploadedBy.trim() : '';
-    const rawRecords = typeof body.recordsText === 'string' ? body.recordsText : '';
 
     if (!batchNo) {
       return NextResponse.json({ error: 'BATCH_NO_REQUIRED' }, { status: 400 });
@@ -61,41 +75,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'DRIVE_URL_INVALID' }, { status: 400 });
     }
 
-    const lines = rawRecords
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter(Boolean);
-
-    if (lines.length === 0) {
-      return NextResponse.json({ error: 'TRACE_RECORDS_REQUIRED' }, { status: 400 });
+    const resolved = resolveRecords(body);
+    if (resolved instanceof NextResponse) {
+      return resolved;
     }
 
-    const parsed: UploadRecordInput[] = [];
-    for (const line of lines) {
-      const record = parseLine(line);
-      if (!record) {
-        return NextResponse.json({ error: 'TRACE_LINE_INVALID', details: line }, { status: 400 });
-      }
-      parsed.push(record);
-    }
-
-    const serialSet = new Set<string>();
-    const bluetoothSet = new Set<string>();
-    for (const row of parsed) {
-      if (!row.serialNo) {
-        return NextResponse.json({ error: 'SERIAL_NO_REQUIRED' }, { status: 400 });
-      }
-      if (!row.bluetoothId) {
-        return NextResponse.json({ error: 'BLUETOOTH_ID_REQUIRED' }, { status: 400 });
-      }
-      if (serialSet.has(row.serialNo)) {
-        return NextResponse.json({ error: 'SERIAL_NO_DUPLICATE_IN_FILE' }, { status: 400 });
-      }
-      if (bluetoothSet.has(row.bluetoothId)) {
-        return NextResponse.json({ error: 'BLUETOOTH_ID_DUPLICATE_IN_FILE' }, { status: 400 });
-      }
-      serialSet.add(row.serialNo);
-      bluetoothSet.add(row.bluetoothId);
+    const unique = validateUniqueRecords(resolved);
+    if (!unique.ok) {
+      return NextResponse.json({ error: unique.error }, { status: 400 });
     }
 
     const result = await prisma.$transaction(async (tx) => {
@@ -105,12 +92,12 @@ export async function POST(request: Request) {
           skuItemCode,
           driveFileUrl,
           uploadedBy: uploadedBy || null,
-          recordCount: parsed.length,
+          recordCount: resolved.length,
         },
       });
 
       await tx.batchTraceRecord.createMany({
-        data: parsed.map((row) => ({
+        data: resolved.map((row) => ({
           uploadId: upload.id,
           batchNo,
           skuItemCode,
@@ -137,4 +124,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'TRACE_UPLOAD_CREATE_FAILED' }, { status: 400 });
   }
 }
-

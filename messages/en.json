@@ -300,6 +300,13 @@
     "trace_line_invalid": "Invalid line format. Use SN,BLUETOOTH_ID.",
     "serial_no_duplicate_in_file": "Duplicate serial number found in uploaded file.",
     "bluetooth_id_duplicate_in_file": "Duplicate Bluetooth ID found in uploaded file.",
+    "choose_csv_file": "Choose CSV file",
+    "clear_csv_file": "Clear file",
+    "csv_rows_parsed": "{count} rows parsed",
+    "csv_parse_failed": "Failed to parse CSV. Check encoding and format.",
+    "trace_csv_empty": "No data rows found in the CSV.",
+    "trace_csv_header_invalid": "Unrecognized header row: include serial and Bluetooth columns (e.g. SN, Serial, Bluetooth, MAC).",
+    "records_invalid": "Invalid records payload.",
     "task_already_done": "Task is already done and cannot be started again.",
     "task_not_in_progress": "Task is not in progress, cannot complete.",
     "task_not_found": "Task not found."

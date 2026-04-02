@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import type { ExecutionStage, ExecutionStatus, ExecutionTaskType } from '@prisma/client';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  parseRecordsFromCsvText,
+  validateUniqueRecords,
+  type TraceRecordInput,
+} from '@/lib/batch-trace-records';
 
 interface ExecutionTaskRow {
   id: string;
@@ -64,6 +69,10 @@ export default function ExecutionPage() {
   const [uploadRecordsText, setUploadRecordsText] = useState('');
   const [uploadBatchNo, setUploadBatchNo] = useState('');
   const [uploadSkuItemCode, setUploadSkuItemCode] = useState('');
+  const csvFileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadFileRecords, setUploadFileRecords] = useState<TraceRecordInput[] | null>(null);
+  const [csvParsedCount, setCsvParsedCount] = useState<number | null>(null);
+  const [csvFileName, setCsvFileName] = useState('');
 
   const loadRows = useCallback(async () => {
     setIsLoading(true);
@@ -232,22 +241,87 @@ export default function ExecutionPage() {
     return { ready, needDfu, blocked };
   }, [rows]);
 
+  const handleCsvFileSelected = (fileList: FileList | null) => {
+    setUploadError('');
+    const file = fileList?.[0];
+    if (!file) {
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const text = String(reader.result ?? '');
+      const parsed = parseRecordsFromCsvText(text);
+      if (!parsed.ok) {
+        const errMap: Record<string, string> = {
+          TRACE_CSV_EMPTY: 'trace_csv_empty',
+          TRACE_CSV_HEADER_INVALID: 'trace_csv_header_invalid',
+          TRACE_LINE_INVALID: 'trace_line_invalid',
+        };
+        setUploadFileRecords(null);
+        setCsvParsedCount(null);
+        setCsvFileName('');
+        setUploadError(errMap[parsed.error] ? t(errMap[parsed.error]) : t('csv_parse_failed'));
+        return;
+      }
+      const unique = validateUniqueRecords(parsed.records);
+      if (!unique.ok) {
+        const uMap: Record<string, string> = {
+          SERIAL_NO_DUPLICATE_IN_FILE: 'serial_no_duplicate_in_file',
+          BLUETOOTH_ID_DUPLICATE_IN_FILE: 'bluetooth_id_duplicate_in_file',
+          SERIAL_NO_REQUIRED: 'serial_no_required',
+          BLUETOOTH_ID_REQUIRED: 'bluetooth_id_required',
+        };
+        setUploadFileRecords(null);
+        setCsvParsedCount(null);
+        setCsvFileName('');
+        setUploadError(uMap[unique.error] ? t(uMap[unique.error]) : t('csv_parse_failed'));
+        return;
+      }
+      setUploadFileRecords(parsed.records);
+      setCsvParsedCount(parsed.records.length);
+      setCsvFileName(file.name);
+      setUploadRecordsText('');
+    };
+    reader.onerror = () => {
+      setUploadError(t('csv_parse_failed'));
+      setUploadFileRecords(null);
+      setCsvParsedCount(null);
+      setCsvFileName('');
+    };
+    reader.readAsText(file, 'UTF-8');
+  };
+
+  const clearCsvSelection = () => {
+    setUploadFileRecords(null);
+    setCsvParsedCount(null);
+    setCsvFileName('');
+    if (csvFileInputRef.current) {
+      csvFileInputRef.current.value = '';
+    }
+  };
+
   const uploadTraceFile = async () => {
     setUploadError('');
     setListMessage('');
     setListError('');
     setIsUploading(true);
     try {
+      const payloadBody: Record<string, unknown> = {
+        batchNo: uploadBatchNo.trim(),
+        skuItemCode: uploadSkuItemCode.trim(),
+        driveFileUrl: uploadDriveUrl.trim(),
+        uploadedBy: assignee.trim(),
+      };
+      if (uploadFileRecords && uploadFileRecords.length > 0) {
+        payloadBody.records = uploadFileRecords;
+      } else {
+        payloadBody.recordsText = uploadRecordsText;
+      }
+
       const res = await fetch('/api/traceability/batch-upload', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          batchNo: uploadBatchNo.trim(),
-          skuItemCode: uploadSkuItemCode.trim(),
-          driveFileUrl: uploadDriveUrl.trim(),
-          uploadedBy: assignee.trim(),
-          recordsText: uploadRecordsText,
-        }),
+        body: JSON.stringify(payloadBody),
       });
       const payload = (await res.json().catch(() => null)) as { error?: string } | null;
       if (!res.ok) {
@@ -257,10 +331,13 @@ export default function ExecutionPage() {
           DRIVE_URL_INVALID: 'drive_url_invalid',
           TRACE_RECORDS_REQUIRED: 'trace_records_required',
           TRACE_LINE_INVALID: 'trace_line_invalid',
+          TRACE_CSV_EMPTY: 'trace_csv_empty',
+          TRACE_CSV_HEADER_INVALID: 'trace_csv_header_invalid',
           SERIAL_NO_DUPLICATE_IN_FILE: 'serial_no_duplicate_in_file',
           BLUETOOTH_ID_DUPLICATE_IN_FILE: 'bluetooth_id_duplicate_in_file',
           SERIAL_NO_DUPLICATE: 'serial_no_duplicate',
           BLUETOOTH_ID_DUPLICATE: 'bluetooth_id_duplicate',
+          RECORDS_INVALID: 'records_invalid',
         };
         const code = payload?.error ?? '';
         setUploadError(map[code] ? t(map[code]) : t('trace_upload_failed'));
@@ -271,6 +348,7 @@ export default function ExecutionPage() {
       setUploadSkuItemCode('');
       setUploadDriveUrl('');
       setUploadRecordsText('');
+      clearCsvSelection();
       setListMessage(t('trace_upload_success'));
       await Promise.all([loadRows(), loadUploads()]);
     } catch {
@@ -386,7 +464,15 @@ export default function ExecutionPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen}>
+      <Dialog
+        open={uploadDialogOpen}
+        onOpenChange={(open) => {
+          setUploadDialogOpen(open);
+          if (open) {
+            setUploadError('');
+          }
+        }}
+      >
         <DialogContent className="sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>{t('trace_upload_dialog_title')}</DialogTitle>
@@ -407,11 +493,38 @@ export default function ExecutionPage() {
               value={uploadDriveUrl}
               onChange={(e) => setUploadDriveUrl(e.target.value)}
             />
+            <input
+              ref={csvFileInputRef}
+              type="file"
+              accept=".csv,text/csv,text/plain"
+              className="hidden"
+              onChange={(e) => handleCsvFileSelected(e.target.files)}
+            />
+            <div className="flex flex-wrap items-center gap-2">
+              <Button type="button" variant="outline" size="sm" onClick={() => csvFileInputRef.current?.click()}>
+                {t('choose_csv_file')}
+              </Button>
+              {csvFileName ? (
+                <span className="text-sm text-gray-600">
+                  {csvFileName}
+                  {csvParsedCount !== null ? ` · ${t('csv_rows_parsed', { count: csvParsedCount })}` : null}
+                </span>
+              ) : null}
+              {uploadFileRecords && uploadFileRecords.length > 0 ? (
+                <Button type="button" variant="ghost" size="sm" onClick={clearCsvSelection}>
+                  {t('clear_csv_file')}
+                </Button>
+              ) : null}
+            </div>
             <textarea
-              className="min-h-36 w-full rounded-md border px-3 py-2 text-sm outline-none focus:border-blue-500"
+              className="min-h-36 w-full rounded-md border px-3 py-2 text-sm outline-none focus:border-blue-500 disabled:bg-gray-50"
               placeholder={t('trace_records_text')}
               value={uploadRecordsText}
-              onChange={(e) => setUploadRecordsText(e.target.value)}
+              disabled={Boolean(uploadFileRecords && uploadFileRecords.length > 0)}
+              onChange={(e) => {
+                setUploadRecordsText(e.target.value);
+                clearCsvSelection();
+              }}
             />
             {uploadError ? <p className="text-sm text-red-600">{uploadError}</p> : null}
             <Button
