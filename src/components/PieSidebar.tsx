@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   Boxes,
@@ -11,6 +12,7 @@ import {
   Users,
 } from 'lucide-react';
 import { usePathname, Link } from '@/i18n/routing';
+import { Button } from '@/components/ui/button';
 
 const pieChildNavItems = [
   {
@@ -40,10 +42,40 @@ const pieChildNavItems = [
   },
 ] as const;
 
-export default function PieSidebar() {
+interface PieSidebarProps {
+  locale: string;
+  currentUser: {
+    username: string;
+    role: string;
+  } | null;
+}
+
+export default function PieSidebar({ locale, currentUser }: PieSidebarProps) {
   const t = useTranslations('Pie');
   const pathname = usePathname();
   const isPieActive = pathname === '/pie' || pathname.startsWith('/pie/');
+  const roleLabel =
+    currentUser?.role === 'super_admin' ? t('role_super_admin') : currentUser?.role || '—';
+
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState('');
+
+  const handleSignOut = async () => {
+    setSignOutError('');
+    setIsSigningOut(true);
+    try {
+      const res = await fetch('/api/auth/logout', { method: 'POST' });
+      if (!res.ok) {
+        setSignOutError(t('sign_out_failed'));
+        return;
+      }
+      window.location.assign(`/${locale}`);
+    } catch {
+      setSignOutError(t('sign_out_failed'));
+    } finally {
+      setIsSigningOut(false);
+    }
+  };
 
   return (
     <aside className="flex w-72 shrink-0 flex-col border-r bg-white">
@@ -101,6 +133,31 @@ export default function PieSidebar() {
           </div>
         </div>
       </nav>
+
+      <div className="border-t px-3 py-3">
+        <div className="rounded-lg bg-gray-50 p-3">
+          <p className="text-xs font-medium text-gray-500">{t('current_user')}</p>
+          <p className="mt-1 text-sm font-semibold text-gray-900">
+            {currentUser?.username || '—'}
+          </p>
+          <p className="mt-1 text-xs text-gray-600">
+            {t('role_label')}: {roleLabel}
+          </p>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="mt-3 w-full"
+            disabled={isSigningOut}
+            onClick={() => void handleSignOut()}
+          >
+            {isSigningOut ? t('signing_out') : t('sign_out')}
+          </Button>
+          {signOutError ? (
+            <p className="mt-2 text-xs text-red-600">{signOutError}</p>
+          ) : null}
+        </div>
+      </div>
     </aside>
   );
 }

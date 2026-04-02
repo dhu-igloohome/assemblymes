@@ -1,7 +1,7 @@
 import createMiddleware from 'next-intl/middleware';
 import { NextRequest, NextResponse } from 'next/server';
 import { routing } from '@/i18n/routing';
-import { AUTH_COOKIE_NAME } from '@/lib/auth';
+import { AUTH_COOKIE_NAME, SUPER_ADMIN_ROLE, parseSessionCookieValue } from '@/lib/auth';
 
 const intlMiddleware = createMiddleware(routing);
 
@@ -22,16 +22,18 @@ function isProtectedApi(pathname: string) {
   return (
     pathname.startsWith('/api/items') ||
     pathname.startsWith('/api/boms') ||
-    pathname.startsWith('/api/routings')
+    pathname.startsWith('/api/routings') ||
+    pathname.startsWith('/api/work-centers') ||
+    pathname.startsWith('/api/employees')
   );
 }
 
 export default function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const session = request.cookies.get(AUTH_COOKIE_NAME)?.value;
-  const isLoggedIn = session === 'super_admin';
+  const session = parseSessionCookieValue(request.cookies.get(AUTH_COOKIE_NAME)?.value);
+  const isLoggedIn = session?.role === SUPER_ADMIN_ROLE;
 
-  if (pathname.startsWith('/api/auth/login')) {
+  if (pathname.startsWith('/api/auth/login') || pathname.startsWith('/api/auth/logout')) {
     return NextResponse.next();
   }
 

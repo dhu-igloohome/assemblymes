@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server';
-import { AUTH_COOKIE_NAME, SUPER_ADMIN_ROLE, isValidSuperAdmin } from '@/lib/auth';
+import {
+  AUTH_COOKIE_NAME,
+  SUPER_ADMIN_ROLE,
+  createSessionCookieValue,
+  isValidSuperAdmin,
+} from '@/lib/auth';
 
 export async function POST(request: Request) {
   try {
@@ -30,7 +35,7 @@ export async function POST(request: Request) {
 
     response.cookies.set({
       name: AUTH_COOKIE_NAME,
-      value: SUPER_ADMIN_ROLE,
+      value: createSessionCookieValue({ username, role: SUPER_ADMIN_ROLE }),
       httpOnly: true,
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
