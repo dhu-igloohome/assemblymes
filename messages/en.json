@@ -147,6 +147,8 @@
   },
   "Routings": {
     "title": "Routing Management",
+    "yes": "Yes",
+    "no": "No",
     "select_item": "Select Item",
     "version": "Version",
     "existing_routings": "Existing Routing Records",
@@ -156,6 +158,8 @@
     "operation_name": "Operation Name",
     "workstation": "Workstation",
     "standard_time": "Standard Time (s)",
+    "inspection_point": "Inspection Point",
+    "inspection_standard": "Inspection Standard",
     "save": "Save Routing",
     "no_routing": "No Routing found for this item. Create one?",
     "no_existing_routings": "No routing records created yet",
@@ -165,6 +169,32 @@
     "save_failed": "Failed to save routing.",
     "submitting": "Saving…"
   },
+  "WorkCenters": {
+    "title": "Work Center Master",
+    "add": "Add Work Center",
+    "actions": "Actions",
+    "edit": "Edit",
+    "delete": "Delete",
+    "code": "Work Center Code",
+    "name": "Name",
+    "type": "Type",
+    "type_flow_line": "Flow line",
+    "type_standalone": "Standalone station",
+    "daily_capacity": "Daily capacity (reference)",
+    "loading": "Loading…",
+    "load_failed": "Failed to load work centers.",
+    "empty": "No work centers yet",
+    "save": "Save",
+    "submitting": "Saving…",
+    "create_success": "Work center created.",
+    "update_success": "Work center updated.",
+    "delete_success": "Work center deleted.",
+    "save_failed": "Save failed.",
+    "delete_failed": "Delete failed.",
+    "delete_confirm": "Delete this work center?",
+    "dialog_create": "New Work Center",
+    "dialog_edit": "Edit Work Center"
+  },
   "Pie": {
     "module_title": "PIE Management",
     "module_description": "Product and Industrial Engineering workspace",
@@ -172,10 +202,12 @@
     "items": "Material Master",
     "boms": "BOM Management",
     "routings": "Routing Management",
+    "work_centers": "Work Center Master",
     "welcome_title": "Welcome to PIE Management",
-    "welcome_description": "After sign-in, users land on the PIE Management home. The three business areas on the left all belong to PIE Management and cover material master data, BOM structures, and routing design.",
+    "welcome_description": "After sign-in, users land on the PIE Management home. The areas on the left cover material master data, BOM structures, routing design, and work centers.",
     "items_description": "Maintain product, assembly, and material master data with the 6-digit item code as the business key.",
     "boms_description": "Manage multi-level BOM structures by parent item, including component usage and scrap rate.",
-    "routings_description": "Define routing steps by item, including operation sequence, workstation, and standard cycle time."
+    "routings_description": "Define routing steps by item, including operation sequence, workstation, and standard cycle time.",
+    "work_centers_description": "Maintain assembly lines and stations as reference work centers for line balancing and shop-floor naming."
   }
 }

@@ -18,6 +18,8 @@ interface OperationLine {
   operationName: string;
   workstation: string;
   standardTimeSec: number;
+  isInspectionPoint: boolean;
+  inspectionStandard: string;
 }
 
 interface ExistingRoutingRecord {
@@ -79,11 +81,15 @@ export default function RoutingsPage() {
               operationName: string;
               workstation: string;
               standardTimeSec: number;
+              isInspectionPoint?: boolean;
+              inspectionStandard?: string | null;
             }) => ({
               sequence: o.sequence,
               operationName: o.operationName,
               workstation: o.workstation,
               standardTimeSec: o.standardTimeSec,
+              isInspectionPoint: o.isInspectionPoint ?? false,
+              inspectionStandard: o.inspectionStandard ?? '',
             })
           )
         );
@@ -123,12 +129,23 @@ export default function RoutingsPage() {
 
   const handleAddOperation = () => {
     setOperations([
-      ...operations, 
-      { sequence: (operations.length + 1) * 10, operationName: '', workstation: '', standardTimeSec: 60 }
+      ...operations,
+      {
+        sequence: (operations.length + 1) * 10,
+        operationName: '',
+        workstation: '',
+        standardTimeSec: 60,
+        isInspectionPoint: false,
+        inspectionStandard: '',
+      },
     ]);
   };
 
-  const updateOperation = (index: number, field: keyof OperationLine, value: string | number) => {
+  const updateOperation = (
+    index: number,
+    field: keyof OperationLine,
+    value: string | number | boolean
+  ) => {
     const newOps = [...operations];
     newOps[index] = { ...newOps[index], [field]: value };
     setOperations(newOps);
@@ -239,59 +256,87 @@ export default function RoutingsPage() {
             <h2 className="text-lg font-semibold text-gray-900">{t('operations_panel')}</h2>
             <Button variant="outline" onClick={handleAddOperation}>{t('add_operation')}</Button>
           </div>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('sequence')}</TableHead>
-                <TableHead>{t('operation_name')}</TableHead>
-                <TableHead>{t('workstation')}</TableHead>
-                <TableHead>{t('standard_time')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {operations.map((op, idx) => (
-                <TableRow key={idx}>
-                  <TableCell>
-                    <Input 
-                      type="number" 
-                      placeholder={t('sequence')}
-                      value={op.sequence}
-                      onChange={(e) => updateOperation(idx, 'sequence', Number(e.target.value))}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Input 
-                      placeholder={t('operation_name')}
-                      value={op.operationName}
-                      onChange={(e) => updateOperation(idx, 'operationName', e.target.value)}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Input 
-                      placeholder={t('workstation')}
-                      value={op.workstation}
-                      onChange={(e) => updateOperation(idx, 'workstation', e.target.value)}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Input 
-                      type="number" 
-                      placeholder={t('standard_time')}
-                      value={op.standardTimeSec}
-                      onChange={(e) => updateOperation(idx, 'standardTimeSec', Number(e.target.value))}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
-              {operations.length === 0 && (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center py-6 text-gray-500">
-                    {t('no_routing')}
-                  </TableCell>
+                  <TableHead>{t('sequence')}</TableHead>
+                  <TableHead>{t('operation_name')}</TableHead>
+                  <TableHead>{t('workstation')}</TableHead>
+                  <TableHead>{t('standard_time')}</TableHead>
+                  <TableHead>{t('inspection_point')}</TableHead>
+                  <TableHead>{t('inspection_standard')}</TableHead>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {operations.map((op, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell className="min-w-[88px]">
+                      <Input
+                        type="number"
+                        placeholder={t('sequence')}
+                        value={op.sequence}
+                        onChange={(e) => updateOperation(idx, 'sequence', Number(e.target.value))}
+                      />
+                    </TableCell>
+                    <TableCell className="min-w-[140px]">
+                      <Input
+                        placeholder={t('operation_name')}
+                        value={op.operationName}
+                        onChange={(e) => updateOperation(idx, 'operationName', e.target.value)}
+                      />
+                    </TableCell>
+                    <TableCell className="min-w-[140px]">
+                      <Input
+                        placeholder={t('workstation')}
+                        value={op.workstation}
+                        onChange={(e) => updateOperation(idx, 'workstation', e.target.value)}
+                      />
+                    </TableCell>
+                    <TableCell className="min-w-[100px]">
+                      <Input
+                        type="number"
+                        placeholder={t('standard_time')}
+                        value={op.standardTimeSec}
+                        onChange={(e) => updateOperation(idx, 'standardTimeSec', Number(e.target.value))}
+                      />
+                    </TableCell>
+                    <TableCell className="min-w-[120px]">
+                      <Select
+                        value={op.isInspectionPoint ? 'true' : 'false'}
+                        onValueChange={(value) =>
+                          updateOperation(idx, 'isInspectionPoint', value === 'true')
+                        }
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder={t('inspection_point')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="false">{t('no')}</SelectItem>
+                          <SelectItem value="true">{t('yes')}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell className="min-w-[180px]">
+                      <Input
+                        placeholder={t('inspection_standard')}
+                        value={op.inspectionStandard}
+                        disabled={!op.isInspectionPoint}
+                        onChange={(e) => updateOperation(idx, 'inspectionStandard', e.target.value)}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {operations.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={6} className="py-6 text-center text-gray-500">
+                      {t('no_routing')}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       )}
     </div>

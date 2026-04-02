@@ -68,6 +68,8 @@ export async function GET(request: Request) {
               sequence: true,
               operationName: true,
               workstation: true,
+              isInspectionPoint: true,
+              inspectionStandard: true,
             },
             orderBy: { sequence: 'asc' },
           },

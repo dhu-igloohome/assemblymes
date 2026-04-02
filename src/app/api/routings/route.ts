@@ -64,12 +64,26 @@ export async function POST(request: Request) {
         itemCode,
         version,
         operations: {
-          create: operations.map((op: { sequence: number, operationName: string, workstation: string, standardTimeSec: number }) => ({
-            sequence: op.sequence,
-            operationName: op.operationName,
-            workstation: op.workstation,
-            standardTimeSec: op.standardTimeSec,
-          })),
+          create: operations.map(
+            (op: {
+              sequence: number;
+              operationName: string;
+              workstation: string;
+              standardTimeSec: number;
+              isInspectionPoint?: boolean;
+              inspectionStandard?: string | null;
+            }) => ({
+              sequence: op.sequence,
+              operationName: op.operationName,
+              workstation: op.workstation,
+              standardTimeSec: op.standardTimeSec,
+              isInspectionPoint: op.isInspectionPoint ?? false,
+              inspectionStandard:
+                typeof op.inspectionStandard === 'string' && op.inspectionStandard.trim() !== ''
+                  ? op.inspectionStandard.trim()
+                  : null,
+            })
+          ),
         },
       },
       include: { operations: true },

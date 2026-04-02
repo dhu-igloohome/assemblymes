@@ -102,6 +102,8 @@ type ItemReferenceDetails = {
       sequence: number;
       operationName: string;
       workstation: string;
+      isInspectionPoint?: boolean;
+      inspectionStandard?: string | null;
     }>;
   }>;
 };
@@ -885,7 +887,9 @@ export default function ItemsPage() {
                           <div>
                             {entry.operations.map((operation) => (
                               <div key={operation.id}>
-                                {`${operation.sequence} - ${operation.operationName} / ${operation.workstation}`}
+                                            {`${operation.sequence} - ${operation.operationName} / ${operation.workstation}${
+                                              operation.isInspectionPoint ? ' [QC]' : ''
+                                            }`}
                               </div>
                             ))}
                           </div>

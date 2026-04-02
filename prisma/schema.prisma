@@ -112,16 +112,39 @@ model RoutingHeader {
 }
 
 model RoutingOperation {
-  id                String @id @default(uuid())
-  routingHeaderId   String @map("routing_header_id")
-  sequence          Int
-  operationName     String @map("operation_name")
-  workstation       String
-  standardTimeSec   Int    @map("standard_time_sec") // 标准工时(秒)
+  id                 String  @id @default(uuid())
+  routingHeaderId    String  @map("routing_header_id")
+  sequence           Int
+  operationName      String  @map("operation_name")
+  workstation        String
+  standardTimeSec    Int     @map("standard_time_sec") // 标准工时(秒)
+  isInspectionPoint  Boolean @default(false) @map("is_inspection_point")
+  inspectionStandard String? @map("inspection_standard") @db.Text
 
   // Relations
   routingHeader RoutingHeader @relation(fields: [routingHeaderId], references: [id], onDelete: Cascade)
 
   @@unique([routingHeaderId, sequence])
   @@map("routing_operations")
+}
+
+// ---------------------------------------------------------
+// 工作中心 (Work Center)
+// ---------------------------------------------------------
+
+enum WorkCenterType {
+  FLOW_LINE // 流水线
+  STANDALONE // 独立工位
+}
+
+model WorkCenter {
+  id              String         @id @default(uuid())
+  workCenterCode  String         @unique @map("work_center_code") @db.VarChar(16)
+  name            String
+  type            WorkCenterType
+  dailyCapacity   Int?           @map("daily_capacity")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+
+  @@map("work_centers")
 }
