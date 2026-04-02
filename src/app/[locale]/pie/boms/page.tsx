@@ -104,6 +104,7 @@ export default function BomsPage() {
   const [diffLines, setDiffLines] = useState<BomDiffLine[]>([]);
   const [submitMessage, setSubmitMessage] = useState('');
   const [submitError, setSubmitError] = useState('');
+  const [isLoadingExistingList, setIsLoadingExistingList] = useState(true);
 
   const loadVersions = useCallback(async (code: string) => {
     try {
@@ -130,6 +131,7 @@ export default function BomsPage() {
   }, []);
 
   const loadExistingBoms = useCallback(async () => {
+    setIsLoadingExistingList(true);
     try {
       const res = await fetch('/api/boms?mode=list', { cache: 'no-store' });
       if (!res.ok) {
@@ -141,6 +143,8 @@ export default function BomsPage() {
     } catch (error) {
       console.error(error);
       setExistingBoms([]);
+    } finally {
+      setIsLoadingExistingList(false);
     }
   }, []);
 
@@ -192,22 +196,29 @@ export default function BomsPage() {
   }, [loadTree, loadVersions]);
 
   useEffect(() => {
+    void loadExistingBoms();
+  }, [loadExistingBoms]);
+
+  useEffect(() => {
     fetch('/api/items')
-      .then(res => res.json())
+      .then((res) => res.json())
       .then((data: Item[]) => {
         setItems(data);
-        void loadExistingBoms();
-        const initialParentItemCode = searchParams.get('parentItemCode');
-        const exists = initialParentItemCode
-          ? data.some((item) => item.itemCode === initialParentItemCode)
-          : false;
-
-        if (exists && parentItemCode !== initialParentItemCode) {
-          void loadBom(initialParentItemCode);
-        }
       })
       .catch(console.error);
-  }, [loadBom, loadExistingBoms, parentItemCode, searchParams]);
+  }, []);
+
+  useEffect(() => {
+    const initialParentItemCode = searchParams.get('parentItemCode');
+    if (!initialParentItemCode || items.length === 0) {
+      return;
+    }
+    const exists = items.some((item) => item.itemCode === initialParentItemCode);
+    if (!exists) {
+      return;
+    }
+    void loadBom(initialParentItemCode);
+  }, [searchParams, items, loadBom]);
 
   useEffect(() => {
     if (!parentItemCode || !selectedVersion) {
@@ -355,14 +366,55 @@ export default function BomsPage() {
         <p className="text-sm text-red-600">{submitError}</p>
       ) : null}
 
-      <div className="flex space-x-4 mb-8">
-        <div className="w-1/3">
+      <div className="border rounded-md p-4 space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg font-semibold text-gray-900">{t('existing_boms')}</h2>
+        </div>
+        {isLoadingExistingList ? (
+          <p className="text-sm text-gray-500">{t('loading_records')}</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t('select_parent')}</TableHead>
+                <TableHead>{t('version')}</TableHead>
+                <TableHead>{t('current_version')}</TableHead>
+                <TableHead>{t('line_count')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {existingBoms.map((record) => (
+                <TableRow
+                  key={record.id}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => void loadBom(record.parentItemCode)}
+                >
+                  <TableCell>{`${record.parentItemCode} - ${record.parentItem.itemName}`}</TableCell>
+                  <TableCell>{record.version}</TableCell>
+                  <TableCell>{record.isActive ? t('yes') : t('no')}</TableCell>
+                  <TableCell>{record._count.lines}</TableCell>
+                </TableRow>
+              ))}
+              {existingBoms.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} className="py-6 text-center text-gray-500">
+                    {t('no_existing_boms')}
+                  </TableCell>
+                </TableRow>
+              ) : null}
+            </TableBody>
+          </Table>
+        )}
+      </div>
+
+      <div className="flex flex-wrap gap-4 mb-2">
+        <div className="min-w-[200px] flex-1">
           <Select onValueChange={(v) => loadBom(v ? String(v) : null)} value={parentItemCode}>
             <SelectTrigger>
               <SelectValue placeholder={t('select_parent')} />
             </SelectTrigger>
             <SelectContent>
-              {items.map(item => (
+              {items.map((item) => (
                 <SelectItem key={item.itemCode} value={item.itemCode}>
                   {item.itemCode} - {item.itemName}
                 </SelectItem>
@@ -370,14 +422,14 @@ export default function BomsPage() {
             </SelectContent>
           </Select>
         </div>
-        <div className="w-1/3">
-          <Input 
-            placeholder={t('version')} 
-            value={version} 
-            onChange={(e) => setVersion(e.target.value)} 
+        <div className="min-w-[120px] w-40">
+          <Input
+            placeholder={t('version')}
+            value={version}
+            onChange={(e) => setVersion(e.target.value)}
           />
         </div>
-        <div className="w-1/3">
+        <div className="min-w-[200px] flex-1">
           <Select
             value={selectedVersion}
             onValueChange={(value) => {
@@ -398,43 +450,6 @@ export default function BomsPage() {
             </SelectContent>
           </Select>
         </div>
-      </div>
-
-      <div className="border rounded-md p-4 space-y-4">
-        <div className="flex justify-between items-center">
-          <h2 className="text-lg font-semibold text-gray-700">{t('existing_boms')}</h2>
-        </div>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t('select_parent')}</TableHead>
-              <TableHead>{t('version')}</TableHead>
-              <TableHead>{t('current_version')}</TableHead>
-              <TableHead>{t('line_count')}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {existingBoms.map((record) => (
-              <TableRow
-                key={record.id}
-                className="cursor-pointer"
-                onClick={() => void loadBom(record.parentItemCode)}
-              >
-                <TableCell>{`${record.parentItemCode} - ${record.parentItem.itemName}`}</TableCell>
-                <TableCell>{record.version}</TableCell>
-                <TableCell>{record.isActive ? t('yes') : t('no')}</TableCell>
-                <TableCell>{record._count.lines}</TableCell>
-              </TableRow>
-            ))}
-            {existingBoms.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={4} className="text-center py-6 text-gray-500">
-                  {t('no_existing_boms')}
-                </TableCell>
-              </TableRow>
-            ) : null}
-          </TableBody>
-        </Table>
       </div>
 
       {parentItemCode && (

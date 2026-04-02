@@ -138,6 +138,7 @@
     "historical_version": "Historical Version",
     "existing_boms": "Existing BOM Records",
     "line_count": "Line Count",
+    "loading_records": "Loading BOM list…",
     "no_existing_boms": "No BOM records created yet",
     "no_versions": "No BOM versions found",
     "no_diff": "No differences found between the selected versions",
@@ -157,7 +158,12 @@
     "standard_time": "Standard Time (s)",
     "save": "Save Routing",
     "no_routing": "No Routing found for this item. Create one?",
-    "no_existing_routings": "No routing records created yet"
+    "no_existing_routings": "No routing records created yet",
+    "loading_records": "Loading routing list…",
+    "operations_panel": "Operations",
+    "save_success": "Routing saved successfully.",
+    "save_failed": "Failed to save routing.",
+    "submitting": "Saving…"
   },
   "Pie": {
     "module_title": "PIE Management",

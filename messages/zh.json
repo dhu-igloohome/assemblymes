@@ -138,6 +138,7 @@
     "historical_version": "历史版本",
     "existing_boms": "已创建 BOM 列表",
     "line_count": "行数",
+    "loading_records": "正在加载 BOM 列表…",
     "no_existing_boms": "暂无已创建 BOM",
     "no_versions": "暂无 BOM 版本记录",
     "no_diff": "所选两个版本之间暂无差异",
@@ -157,7 +158,12 @@
     "standard_time": "标准工时(秒)",
     "save": "保存工艺路线",
     "no_routing": "该物料尚未配置工艺路线，是否创建？",
-    "no_existing_routings": "暂无已创建工艺路线"
+    "no_existing_routings": "暂无已创建工艺路线",
+    "loading_records": "正在加载工艺路线列表…",
+    "operations_panel": "工序明细",
+    "save_success": "工艺路线已保存。",
+    "save_failed": "保存工艺路线失败。",
+    "submitting": "保存中…"
   },
   "Pie": {
     "module_title": "PIE 管理",

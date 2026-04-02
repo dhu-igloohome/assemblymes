@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -41,8 +41,13 @@ export default function RoutingsPage() {
   const [version, setVersion] = useState('V1.0');
   const [operations, setOperations] = useState<OperationLine[]>([]);
   const [existingRoutings, setExistingRoutings] = useState<ExistingRoutingRecord[]>([]);
+  const [isLoadingExistingList, setIsLoadingExistingList] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState('');
+  const [submitError, setSubmitError] = useState('');
 
-  const loadExistingRoutings = async () => {
+  const loadExistingRoutings = useCallback(async () => {
+    setIsLoadingExistingList(true);
     try {
       const res = await fetch('/api/routings?mode=list', { cache: 'no-store' });
       if (!res.ok) {
@@ -54,10 +59,12 @@ export default function RoutingsPage() {
     } catch (error) {
       console.error(error);
       setExistingRoutings([]);
+    } finally {
+      setIsLoadingExistingList(false);
     }
-  };
+  }, []);
 
-  const loadRouting = async (code: string | null) => {
+  const loadRouting = useCallback(async (code: string | null) => {
     if (!code) return;
     setItemCode(code);
     try {
@@ -65,12 +72,21 @@ export default function RoutingsPage() {
       if (res.ok) {
         const data = await res.json();
         setVersion(data.version);
-        setOperations(data.operations.map((o: { sequence: number, operationName: string, workstation: string, standardTimeSec: number }) => ({
-          sequence: o.sequence,
-          operationName: o.operationName,
-          workstation: o.workstation,
-          standardTimeSec: o.standardTimeSec
-        })));
+        setOperations(
+          data.operations.map(
+            (o: {
+              sequence: number;
+              operationName: string;
+              workstation: string;
+              standardTimeSec: number;
+            }) => ({
+              sequence: o.sequence,
+              operationName: o.operationName,
+              workstation: o.workstation,
+              standardTimeSec: o.standardTimeSec,
+            })
+          )
+        );
       } else {
         setOperations([]);
       }
@@ -78,25 +94,32 @@ export default function RoutingsPage() {
       console.error(error);
       setOperations([]);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    void loadExistingRoutings();
+  }, [loadExistingRoutings]);
 
   useEffect(() => {
     fetch('/api/items')
-      .then(res => res.json())
+      .then((res) => res.json())
       .then((data: Item[]) => {
         setItems(data);
-        void loadExistingRoutings();
-        const initialItemCode = searchParams.get('itemCode');
-        const exists = initialItemCode
-          ? data.some((item) => item.itemCode === initialItemCode)
-          : false;
-
-        if (exists && itemCode !== initialItemCode) {
-          void loadRouting(initialItemCode);
-        }
       })
       .catch(console.error);
-  }, [itemCode, searchParams]);
+  }, []);
+
+  useEffect(() => {
+    const initialItemCode = searchParams.get('itemCode');
+    if (!initialItemCode || items.length === 0) {
+      return;
+    }
+    const exists = items.some((item) => item.itemCode === initialItemCode);
+    if (!exists) {
+      return;
+    }
+    void loadRouting(initialItemCode);
+  }, [searchParams, items, loadRouting]);
 
   const handleAddOperation = () => {
     setOperations([
@@ -112,34 +135,92 @@ export default function RoutingsPage() {
   };
 
   const handleSave = async () => {
+    if (!itemCode) {
+      return;
+    }
+    setSubmitMessage('');
+    setSubmitError('');
+    setIsSubmitting(true);
     try {
-      await fetch('/api/routings', {
+      const res = await fetch('/api/routings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ itemCode, version, operations })
+        body: JSON.stringify({ itemCode, version, operations }),
       });
+      if (!res.ok) {
+        const payload = (await res.json().catch(() => null)) as { details?: string; error?: string } | null;
+        setSubmitError(payload?.details ?? payload?.error ?? t('save_failed'));
+        return;
+      }
+      setSubmitMessage(t('save_success'));
       await loadExistingRoutings();
-      alert('Saved!');
     } catch (error) {
       console.error(error);
+      setSubmitError(error instanceof Error ? `${t('save_failed')} ${error.message}` : t('save_failed'));
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="p-8 max-w-6xl mx-auto space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="mx-auto max-w-6xl space-y-6 p-8">
+      <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
-        <Button onClick={handleSave} disabled={!itemCode}>{t('save')}</Button>
+        <Button onClick={() => void handleSave()} disabled={!itemCode || isSubmitting}>
+          {isSubmitting ? t('submitting') : t('save')}
+        </Button>
       </div>
 
-      <div className="flex space-x-4 mb-8">
-        <div className="w-1/3">
+      {submitMessage ? <p className="text-sm text-green-600">{submitMessage}</p> : null}
+      {submitError ? <p className="text-sm text-red-600">{submitError}</p> : null}
+
+      <div className="space-y-4 rounded-md border p-4">
+        <div className="flex justify-between">
+          <h2 className="text-lg font-semibold text-gray-900">{t('existing_routings')}</h2>
+        </div>
+        {isLoadingExistingList ? (
+          <p className="text-sm text-gray-500">{t('loading_records')}</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t('select_item')}</TableHead>
+                <TableHead>{t('version')}</TableHead>
+                <TableHead>{t('operation_count')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {existingRoutings.map((record) => (
+                <TableRow
+                  key={record.id}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => void loadRouting(record.itemCode)}
+                >
+                  <TableCell>{`${record.itemCode} - ${record.item.itemName}`}</TableCell>
+                  <TableCell>{record.version}</TableCell>
+                  <TableCell>{record._count.operations}</TableCell>
+                </TableRow>
+              ))}
+              {existingRoutings.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={3} className="py-6 text-center text-gray-500">
+                    {t('no_existing_routings')}
+                  </TableCell>
+                </TableRow>
+              ) : null}
+            </TableBody>
+          </Table>
+        )}
+      </div>
+
+      <div className="flex flex-wrap gap-4">
+        <div className="min-w-[200px] flex-1">
           <Select onValueChange={(v) => loadRouting(v ? String(v) : null)} value={itemCode}>
             <SelectTrigger>
               <SelectValue placeholder={t('select_item')} />
             </SelectTrigger>
             <SelectContent>
-              {items.map(item => (
+              {items.map((item) => (
                 <SelectItem key={item.itemCode} value={item.itemCode}>
                   {item.itemCode} - {item.itemName}
                 </SelectItem>
@@ -147,54 +228,15 @@ export default function RoutingsPage() {
             </SelectContent>
           </Select>
         </div>
-        <div className="w-1/3">
-          <Input 
-            placeholder={t('version')} 
-            value={version} 
-            onChange={(e) => setVersion(e.target.value)} 
-          />
+        <div className="min-w-[120px] w-40">
+          <Input placeholder={t('version')} value={version} onChange={(e) => setVersion(e.target.value)} />
         </div>
-      </div>
-
-      <div className="border rounded-md p-4 space-y-4">
-        <div className="flex justify-between items-center">
-          <h2 className="text-lg font-semibold text-gray-700">{t('existing_routings')}</h2>
-        </div>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t('select_item')}</TableHead>
-              <TableHead>{t('version')}</TableHead>
-              <TableHead>{t('operation_count')}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {existingRoutings.map((record) => (
-              <TableRow
-                key={record.id}
-                className="cursor-pointer"
-                onClick={() => void loadRouting(record.itemCode)}
-              >
-                <TableCell>{`${record.itemCode} - ${record.item.itemName}`}</TableCell>
-                <TableCell>{record.version}</TableCell>
-                <TableCell>{record._count.operations}</TableCell>
-              </TableRow>
-            ))}
-            {existingRoutings.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={3} className="text-center py-6 text-gray-500">
-                  {t('no_existing_routings')}
-                </TableCell>
-              </TableRow>
-            ) : null}
-          </TableBody>
-        </Table>
       </div>
 
       {itemCode && (
-        <div className="border rounded-md p-4 space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-lg font-semibold text-gray-700">Operations</h2>
+        <div className="space-y-4 rounded-md border p-4">
+          <div className="flex justify-between">
+            <h2 className="text-lg font-semibold text-gray-900">{t('operations_panel')}</h2>
             <Button variant="outline" onClick={handleAddOperation}>{t('add_operation')}</Button>
           </div>
           <Table>
