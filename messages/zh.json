@@ -207,6 +207,35 @@
     "invalid_daily_capacity_value": "每日产能必须是数字。",
     "work_center_code_already_exists": "工作中心编码已存在。"
   },
+  "Employees": {
+    "title": "班组/人员主数据",
+    "add": "新增人员",
+    "actions": "操作",
+    "edit": "编辑",
+    "delete": "删除",
+    "employee_no": "员工编号",
+    "name": "姓名",
+    "team": "班组",
+    "skill_matrix": "技能矩阵",
+    "loading": "加载中…",
+    "load_failed": "加载人员失败。",
+    "empty": "暂无人员数据",
+    "save": "保存",
+    "submitting": "保存中…",
+    "create_success": "人员已创建。",
+    "update_success": "人员已更新。",
+    "delete_success": "人员已删除。",
+    "save_failed": "保存失败。",
+    "delete_failed": "删除失败。",
+    "delete_confirm": "确定删除该人员？",
+    "dialog_create": "新增人员",
+    "dialog_edit": "编辑人员",
+    "employee_no_invalid": "员工编号必须为 1–32 位：字母/数字/下划线（_）/短横线（-）。",
+    "employee_name_required": "姓名必填。",
+    "employee_team_required": "班组必填。",
+    "employee_no_duplicate": "员工编号已存在。",
+    "employee_not_found": "人员不存在或已被删除。"
+  },
   "Pie": {
     "module_title": "PIE 管理",
     "module_description": "产品与工业工程主界面",
@@ -215,11 +244,13 @@
     "boms": "BOM 管理",
     "routings": "工艺路线",
     "work_centers": "工作中心",
+    "employees": "班组/人员",
     "welcome_title": "欢迎进入 PIE Management",
-    "welcome_description": "登录后默认进入 PIE 管理主界面。左侧入口用于维护物料主数据、BOM、工艺路线与工作中心。",
+    "welcome_description": "登录后默认进入 PIE 管理主界面。左侧入口用于维护物料主数据、BOM、工艺路线、工作中心与班组人员。",
     "items_description": "统一维护成品、半成品与原材料的主数据，并以 6 位物料编码作为业务主键。",
     "boms_description": "按父件展开多层 BOM 结构，维护子件、用量与损耗率等核心装配数据。",
     "routings_description": "按物料编制工艺路线，管理工序顺序、工作中心与标准工时。",
-    "work_centers_description": "维护组装线、测试区等工作中心编码与类型，作为现场与排产的统一称谓参考。"
+    "work_centers_description": "维护组装线、测试区等工作中心编码与类型，作为现场与排产的统一称谓参考。",
+    "employees_description": "维护员工编号、班组与技能矩阵，为工序责任分配与排班打基础。"
   }
 }

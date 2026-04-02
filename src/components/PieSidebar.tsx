@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Boxes, ClipboardList, Factory, GitBranchPlus, Package2 } from 'lucide-react';
+import { Boxes, ClipboardList, Factory, GitBranchPlus, Package2, Users } from 'lucide-react';
 import { usePathname, Link } from '@/i18n/routing';
 
 const pieNavItems = [
@@ -29,6 +29,11 @@ const pieNavItems = [
     href: '/pie/work-centers',
     translationKey: 'work_centers',
     icon: Factory,
+  },
+  {
+    href: '/pie/employees',
+    translationKey: 'employees',
+    icon: Users,
   },
 ] as const;
 

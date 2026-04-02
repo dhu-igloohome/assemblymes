@@ -16,7 +16,7 @@ export default async function PieHomePage() {
           {t('welcome_description')}
         </p>
 
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           <div className="rounded-xl border bg-gray-50 p-5">
             <h3 className="text-sm font-semibold text-gray-900">{t('items')}</h3>
             <p className="mt-2 text-sm text-gray-600">{t('items_description')}</p>
@@ -32,6 +32,10 @@ export default async function PieHomePage() {
           <div className="rounded-xl border bg-gray-50 p-5">
             <h3 className="text-sm font-semibold text-gray-900">{t('work_centers')}</h3>
             <p className="mt-2 text-sm text-gray-600">{t('work_centers_description')}</p>
+          </div>
+          <div className="rounded-xl border bg-gray-50 p-5">
+            <h3 className="text-sm font-semibold text-gray-900">{t('employees')}</h3>
+            <p className="mt-2 text-sm text-gray-600">{t('employees_description')}</p>
           </div>
         </div>
       </div>

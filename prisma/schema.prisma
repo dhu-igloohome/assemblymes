@@ -154,3 +154,20 @@ model WorkCenter {
 
   @@map("work_centers")
 }
+
+// ---------------------------------------------------------
+// 班组/人员 (Teams & Employees)
+// ---------------------------------------------------------
+
+model Employee {
+  id          String   @id @default(uuid())
+  employeeNo  String   @unique @map("employee_no") @db.VarChar(32)
+  name        String
+  team        String
+  skillMatrix String?  @map("skill_matrix") @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([team])
+  @@map("employees")
+}

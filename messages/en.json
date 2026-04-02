@@ -207,6 +207,35 @@
     "invalid_daily_capacity_value": "Daily capacity must be a number.",
     "work_center_code_already_exists": "Work center code already exists."
   },
+  "Employees": {
+    "title": "Teams & Employees",
+    "add": "Add Employee",
+    "actions": "Actions",
+    "edit": "Edit",
+    "delete": "Delete",
+    "employee_no": "Employee ID",
+    "name": "Name",
+    "team": "Team",
+    "skill_matrix": "Skill Matrix",
+    "loading": "Loading…",
+    "load_failed": "Failed to load employees.",
+    "empty": "No employee records yet",
+    "save": "Save",
+    "submitting": "Saving…",
+    "create_success": "Employee created.",
+    "update_success": "Employee updated.",
+    "delete_success": "Employee deleted.",
+    "save_failed": "Save failed.",
+    "delete_failed": "Delete failed.",
+    "delete_confirm": "Delete this employee?",
+    "dialog_create": "New Employee",
+    "dialog_edit": "Edit Employee",
+    "employee_no_invalid": "Employee ID must be 1–32 characters: letters, digits, underscore (_), or hyphen (-).",
+    "employee_name_required": "Name is required.",
+    "employee_team_required": "Team is required.",
+    "employee_no_duplicate": "Employee ID already exists.",
+    "employee_not_found": "Employee not found."
+  },
   "Pie": {
     "module_title": "PIE Management",
     "module_description": "Product and Industrial Engineering workspace",
@@ -215,11 +244,13 @@
     "boms": "BOM Management",
     "routings": "Routing Management",
     "work_centers": "Work Center Master",
+    "employees": "Teams & Employees",
     "welcome_title": "Welcome to PIE Management",
-    "welcome_description": "After sign-in, users land on the PIE Management home. The areas on the left cover material master data, BOM structures, routing design, and work centers.",
+    "welcome_description": "After sign-in, users land on the PIE Management home. The areas on the left cover material master data, BOM structures, routing design, work centers, and teams/employees.",
     "items_description": "Maintain product, assembly, and material master data with the 6-digit item code as the business key.",
     "boms_description": "Manage multi-level BOM structures by parent item, including component usage and scrap rate.",
     "routings_description": "Define routing steps by item, including operation sequence, workstation, and standard cycle time.",
-    "work_centers_description": "Maintain assembly lines and stations as reference work centers for line balancing and shop-floor naming."
+    "work_centers_description": "Maintain assembly lines and stations as reference work centers for line balancing and shop-floor naming.",
+    "employees_description": "Maintain employee IDs, teams, and skill matrix entries as a lightweight foundation for assignment and scheduling."
   }
 }
