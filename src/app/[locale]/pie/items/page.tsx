@@ -243,6 +243,10 @@ export default function ItemsPage() {
   const hasCodeConflict =
     codeStatus === 'duplicate' &&
     !(isEditing && watchedItemCode === editingItemCode);
+  const boolBadgeClass = (v: boolean) =>
+    v
+      ? 'inline-flex rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700'
+      : 'inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600';
 
   const fetchItemsDirect = useCallback(async (active = true) => {
     try {
@@ -1160,10 +1164,26 @@ export default function ItemsPage() {
                 <TableCell>{t(`status_${item.status.toLowerCase()}` as Parameters<typeof t>[0])}</TableCell>
                 <TableCell>{item.unit}</TableCell>
                 <TableCell>{item.safetyStock}</TableCell>
-                <TableCell>{item.isPurchasable ? t('yes') : t('no')}</TableCell>
-                <TableCell>{item.requiresFlashing ? t('yes') : t('no')}</TableCell>
-                <TableCell>{item.requiresTraceability ? t('yes') : t('no')}</TableCell>
-                <TableCell>{item.requiresDfu ? t('yes') : t('no')}</TableCell>
+                <TableCell>
+                  <span className={boolBadgeClass(item.isPurchasable)}>
+                    {item.isPurchasable ? t('yes') : t('no')}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <span className={boolBadgeClass(item.requiresFlashing)}>
+                    {item.requiresFlashing ? t('yes') : t('no')}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <span className={boolBadgeClass(item.requiresTraceability)}>
+                    {item.requiresTraceability ? t('yes') : t('no')}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <span className={boolBadgeClass(item.requiresDfu)}>
+                    {item.requiresDfu ? t('yes') : t('no')}
+                  </span>
+                </TableCell>
                 <TableCell>{item.specification || '-'}</TableCell>
                 <TableCell>
                   {item.usage.totalReferences === 0 ? (
