@@ -66,6 +66,9 @@ model BomHeader {
   parentItemCode String   @map("parent_item_code") @db.VarChar(6)
   version        String
   isActive       Boolean  @default(true) @map("is_active")
+  effectiveDate  DateTime? @map("effective_date")
+  changeNote     String?   @map("change_note") @db.Text
+  createdBy      String?   @map("created_by")
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
@@ -100,6 +103,9 @@ model RoutingHeader {
   id        String   @id @default(uuid())
   itemCode  String   @map("item_code") @db.VarChar(6)
   version   String
+  effectiveDate DateTime? @map("effective_date")
+  changeNote    String?   @map("change_note") @db.Text
+  createdBy     String?   @map("created_by")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 

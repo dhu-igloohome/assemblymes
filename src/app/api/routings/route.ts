@@ -55,6 +55,9 @@ export async function GET(request: Request) {
             id: true,
             itemCode: true,
             version: true,
+            effectiveDate: true,
+            changeNote: true,
+            createdBy: true,
             updatedAt: true,
             item: {
               select: {
@@ -98,7 +101,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { itemCode, version, operations } = body;
+    const { itemCode, version, operations, effectiveDate, changeNote, createdBy } = body;
 
     if (typeof itemCode !== 'string' || !/^\d{6}$/.test(itemCode.trim())) {
       return NextResponse.json({ error: 'ITEM_CODE_INVALID' }, { status: 400 });
@@ -170,6 +173,18 @@ export async function POST(request: Request) {
         data: {
           itemCode: normalizedItemCode,
           version: normalizedVersion,
+          effectiveDate:
+            typeof effectiveDate === 'string' && effectiveDate.trim() !== ''
+              ? new Date(effectiveDate)
+              : null,
+          changeNote:
+            typeof changeNote === 'string' && changeNote.trim() !== ''
+              ? changeNote.trim()
+              : null,
+          createdBy:
+            typeof createdBy === 'string' && createdBy.trim() !== ''
+              ? createdBy.trim()
+              : null,
           operations: {
             create: normalizedOps,
           },
@@ -191,7 +206,20 @@ export async function POST(request: Request) {
                 version: normalizedVersion,
               },
             },
-            data: {},
+            data: {
+              effectiveDate:
+                typeof effectiveDate === 'string' && effectiveDate.trim() !== ''
+                  ? new Date(effectiveDate)
+                  : null,
+              changeNote:
+                typeof changeNote === 'string' && changeNote.trim() !== ''
+                  ? changeNote.trim()
+                  : null,
+              createdBy:
+                typeof createdBy === 'string' && createdBy.trim() !== ''
+                  ? createdBy.trim()
+                  : null,
+            },
             select: { id: true },
           });
 

@@ -26,6 +26,9 @@ interface ExistingRoutingRecord {
   id: string;
   itemCode: string;
   version: string;
+  effectiveDate: string | null;
+  changeNote: string | null;
+  createdBy: string | null;
   updatedAt: string;
   item: {
     itemName: string;
@@ -51,6 +54,9 @@ export default function RoutingsPage() {
   const [items, setItems] = useState<Item[]>([]);
   const [itemCode, setItemCode] = useState<string | null>(null);
   const [version, setVersion] = useState('V1.0');
+  const [effectiveDate, setEffectiveDate] = useState('');
+  const [changeNote, setChangeNote] = useState('');
+  const [createdBy, setCreatedBy] = useState('');
   const [operations, setOperations] = useState<OperationLine[]>([]);
   const [existingRoutings, setExistingRoutings] = useState<ExistingRoutingRecord[]>([]);
   const [suggestions, setSuggestions] = useState<RoutingSuggestions>({
@@ -118,6 +124,9 @@ export default function RoutingsPage() {
       if (res.ok) {
         const data = await res.json();
         setVersion(data.version);
+        setEffectiveDate(data.effectiveDate ? String(data.effectiveDate).slice(0, 10) : '');
+        setChangeNote(data.changeNote ?? '');
+        setCreatedBy(data.createdBy ?? '');
         setOperations(
           data.operations.map(
             (o: {
@@ -214,7 +223,14 @@ export default function RoutingsPage() {
       const res = await fetch('/api/routings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ itemCode, version, operations }),
+        body: JSON.stringify({
+          itemCode,
+          version,
+          effectiveDate,
+          changeNote,
+          createdBy,
+          operations,
+        }),
       });
       if (!res.ok) {
         const payload = (await res.json().catch(() => null)) as { details?: string; error?: string } | null;
@@ -265,6 +281,8 @@ export default function RoutingsPage() {
               <TableRow>
                 <TableHead>{t('select_item')}</TableHead>
                 <TableHead>{t('version')}</TableHead>
+                <TableHead>{t('effective_date')}</TableHead>
+                <TableHead>{t('created_by')}</TableHead>
                 <TableHead>{t('operation_count')}</TableHead>
               </TableRow>
             </TableHeader>
@@ -277,12 +295,14 @@ export default function RoutingsPage() {
                 >
                   <TableCell>{`${record.itemCode} - ${record.item.itemName}`}</TableCell>
                   <TableCell>{record.version}</TableCell>
+                  <TableCell>{record.effectiveDate ? String(record.effectiveDate).slice(0, 10) : '-'}</TableCell>
+                  <TableCell>{record.createdBy || '-'}</TableCell>
                   <TableCell>{record._count.operations}</TableCell>
                 </TableRow>
               ))}
               {existingRoutings.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={3} className="py-6 text-center text-gray-500">
+                  <TableCell colSpan={5} className="py-6 text-center text-gray-500">
                     {t('no_existing_routings')}
                   </TableCell>
                 </TableRow>
@@ -327,6 +347,28 @@ export default function RoutingsPage() {
             list="routing-version-options"
             value={version}
             onChange={(e) => setVersion(e.target.value)}
+          />
+        </div>
+        <div className="min-w-[160px] w-44">
+          <Input
+            type="date"
+            placeholder={t('effective_date')}
+            value={effectiveDate}
+            onChange={(e) => setEffectiveDate(e.target.value)}
+          />
+        </div>
+        <div className="min-w-[180px] flex-1">
+          <Input
+            placeholder={t('created_by')}
+            value={createdBy}
+            onChange={(e) => setCreatedBy(e.target.value)}
+          />
+        </div>
+        <div className="min-w-[260px] flex-1">
+          <Input
+            placeholder={t('change_note')}
+            value={changeNote}
+            onChange={(e) => setChangeNote(e.target.value)}
           />
         </div>
       </div>

@@ -23,6 +23,9 @@ interface BomVersion {
   id: string;
   version: string;
   isActive: boolean;
+  effectiveDate: string | null;
+  changeNote: string | null;
+  createdBy: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -32,6 +35,9 @@ interface ExistingBomRecord {
   parentItemCode: string;
   version: string;
   isActive: boolean;
+  effectiveDate: string | null;
+  changeNote: string | null;
+  createdBy: string | null;
   updatedAt: string;
   parentItem: {
     itemName: string;
@@ -95,6 +101,9 @@ export default function BomsPage() {
   const [items, setItems] = useState<Item[]>([]);
   const [parentItemCode, setParentItemCode] = useState<string | null>(null);
   const [version, setVersion] = useState('V1.0');
+  const [effectiveDate, setEffectiveDate] = useState('');
+  const [changeNote, setChangeNote] = useState('');
+  const [createdBy, setCreatedBy] = useState('');
   const [lines, setLines] = useState<BomLine[]>([]);
   const [existingBoms, setExistingBoms] = useState<ExistingBomRecord[]>([]);
   const [versions, setVersions] = useState<BomVersion[]>([]);
@@ -180,6 +189,9 @@ export default function BomsPage() {
       if (res.ok) {
         const data = await res.json();
         setVersion(data.version);
+        setEffectiveDate(data.effectiveDate ? String(data.effectiveDate).slice(0, 10) : '');
+        setChangeNote(data.changeNote ?? '');
+        setCreatedBy(data.createdBy ?? '');
         setSelectedVersion(data.version);
         setLines(data.lines.map((l: { componentItemCode: string, quantity: string | number, scrapRate: string | number }) => ({
           componentItemCode: l.componentItemCode,
@@ -234,6 +246,9 @@ export default function BomsPage() {
           return;
         }
         setVersion(data.version);
+        setEffectiveDate(data.effectiveDate ? String(data.effectiveDate).slice(0, 10) : '');
+        setChangeNote(data.changeNote ?? '');
+        setCreatedBy(data.createdBy ?? '');
         setLines(
           data.lines.map((line: { componentItemCode: string; quantity: string | number; scrapRate: string | number }) => ({
             componentItemCode: line.componentItemCode,
@@ -297,7 +312,14 @@ export default function BomsPage() {
       const res = await fetch('/api/boms', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ parentItemCode, version, lines })
+        body: JSON.stringify({
+          parentItemCode,
+          version,
+          effectiveDate,
+          changeNote,
+          createdBy,
+          lines,
+        })
       });
       if (!res.ok) {
         const payload = await res.json().catch(() => null);
@@ -378,6 +400,8 @@ export default function BomsPage() {
               <TableRow>
                 <TableHead>{t('select_parent')}</TableHead>
                 <TableHead>{t('version')}</TableHead>
+                <TableHead>{t('effective_date')}</TableHead>
+                <TableHead>{t('created_by')}</TableHead>
                 <TableHead>{t('current_version')}</TableHead>
                 <TableHead>{t('line_count')}</TableHead>
               </TableRow>
@@ -391,13 +415,15 @@ export default function BomsPage() {
                 >
                   <TableCell>{`${record.parentItemCode} - ${record.parentItem.itemName}`}</TableCell>
                   <TableCell>{record.version}</TableCell>
+                  <TableCell>{record.effectiveDate ? String(record.effectiveDate).slice(0, 10) : '-'}</TableCell>
+                  <TableCell>{record.createdBy || '-'}</TableCell>
                   <TableCell>{record.isActive ? t('yes') : t('no')}</TableCell>
                   <TableCell>{record._count.lines}</TableCell>
                 </TableRow>
               ))}
               {existingBoms.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="py-6 text-center text-gray-500">
+                  <TableCell colSpan={6} className="py-6 text-center text-gray-500">
                     {t('no_existing_boms')}
                   </TableCell>
                 </TableRow>
@@ -466,6 +492,28 @@ export default function BomsPage() {
               ))}
             </SelectContent>
           </Select>
+        </div>
+        <div className="min-w-[160px] w-44">
+          <Input
+            type="date"
+            placeholder={t('effective_date')}
+            value={effectiveDate}
+            onChange={(e) => setEffectiveDate(e.target.value)}
+          />
+        </div>
+        <div className="min-w-[180px] flex-1">
+          <Input
+            placeholder={t('created_by')}
+            value={createdBy}
+            onChange={(e) => setCreatedBy(e.target.value)}
+          />
+        </div>
+        <div className="min-w-[260px] flex-1">
+          <Input
+            placeholder={t('change_note')}
+            value={changeNote}
+            onChange={(e) => setChangeNote(e.target.value)}
+          />
         </div>
       </div>
 

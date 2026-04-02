@@ -76,6 +76,9 @@ export async function GET(request: Request) {
             parentItemCode: true,
             version: true,
             isActive: true,
+            effectiveDate: true,
+            changeNote: true,
+            createdBy: true,
             updatedAt: true,
             parentItem: {
               select: {
@@ -104,6 +107,9 @@ export async function GET(request: Request) {
           id: true,
           version: true,
           isActive: true,
+          effectiveDate: true,
+          changeNote: true,
+          createdBy: true,
           createdAt: true,
           updatedAt: true,
         },
@@ -295,7 +301,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { parentItemCode, version, lines } = body;
+    const { parentItemCode, version, lines, effectiveDate, changeNote, createdBy } = body;
 
     if (!parentItemCode || !version || !Array.isArray(lines)) {
       return NextResponse.json(
@@ -331,6 +337,18 @@ export async function POST(request: Request) {
           parentItemCode,
           version,
           isActive: true,
+          effectiveDate:
+            typeof effectiveDate === 'string' && effectiveDate.trim() !== ''
+              ? new Date(effectiveDate)
+              : null,
+          changeNote:
+            typeof changeNote === 'string' && changeNote.trim() !== ''
+              ? changeNote.trim()
+              : null,
+          createdBy:
+            typeof createdBy === 'string' && createdBy.trim() !== ''
+              ? createdBy.trim()
+              : null,
           lines: {
             create: lines.map((line: { componentItemCode: string; quantity: number; scrapRate?: number }) => ({
               componentItemCode: line.componentItemCode,
