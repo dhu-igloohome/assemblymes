@@ -284,7 +284,26 @@ export default function RoutingsPage() {
           </Select>
         </div>
         <div className="min-w-[120px] w-40">
-          <Input placeholder={t('version')} value={version} onChange={(e) => setVersion(e.target.value)} />
+          <datalist id="routing-version-options">
+            {Array.from(
+              new Set(
+                existingRoutings
+                  .filter((r) => r.itemCode === itemCode)
+                  .map((r) => r.version)
+                  .filter(Boolean)
+              )
+            )
+              .sort()
+              .map((v) => (
+                <option key={v} value={v} />
+              ))}
+          </datalist>
+          <Input
+            placeholder={t('version')}
+            list="routing-version-options"
+            value={version}
+            onChange={(e) => setVersion(e.target.value)}
+          />
         </div>
       </div>
 

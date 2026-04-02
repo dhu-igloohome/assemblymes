@@ -423,8 +423,25 @@ export default function BomsPage() {
           </Select>
         </div>
         <div className="min-w-[120px] w-40">
+          <datalist id="bom-version-options">
+            {Array.from(
+              new Set(
+                [
+                  ...versions.map((v) => v.version),
+                  ...existingBoms
+                    .filter((b) => b.parentItemCode === parentItemCode)
+                    .map((b) => b.version),
+                ].filter(Boolean)
+              )
+            )
+              .sort()
+              .map((v) => (
+                <option key={v} value={v} />
+              ))}
+          </datalist>
           <Input
             placeholder={t('version')}
+            list="bom-version-options"
             value={version}
             onChange={(e) => setVersion(e.target.value)}
           />
