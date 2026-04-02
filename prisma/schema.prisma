@@ -251,3 +251,31 @@ model BatchTraceRecord {
   @@index([batchNo])
   @@map("batch_trace_records")
 }
+
+enum WorkOrderStatus {
+  PLANNED
+  RELEASED
+  IN_PROGRESS
+  DONE
+  CANCELLED
+}
+
+model WorkOrder {
+  id            String          @id @default(uuid())
+  workOrderNo   String          @unique @map("work_order_no") @db.VarChar(32)
+  skuItemCode   String          @map("sku_item_code") @db.VarChar(6)
+  batchNo       String          @map("batch_no") @db.VarChar(32)
+  plannedQty    Int             @map("planned_qty")
+  targetVersion String?         @map("target_version") @db.VarChar(32)
+  status        WorkOrderStatus @default(PLANNED)
+  planStartDate DateTime?       @map("plan_start_date")
+  planEndDate   DateTime?       @map("plan_end_date")
+  createdBy     String?         @map("created_by") @db.VarChar(64)
+  notes         String?         @db.Text
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+
+  @@index([skuItemCode, status])
+  @@index([batchNo])
+  @@map("work_orders")
+}

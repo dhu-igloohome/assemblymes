@@ -8,6 +8,7 @@ import {
   ClipboardList,
   Cpu,
   Factory,
+  FileText,
   GitBranchPlus,
   Package2,
   Users,
@@ -45,6 +46,11 @@ const pieChildNavItems = [
     href: '/pie/execution',
     translationKey: 'execution',
     icon: Cpu,
+  },
+  {
+    href: '/pie/work-orders',
+    translationKey: 'work_orders',
+    icon: FileText,
   },
 ] as const;
 
