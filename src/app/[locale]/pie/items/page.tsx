@@ -614,7 +614,16 @@ export default function ItemsPage() {
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <Input placeholder={t('item_name')} {...register('itemName')} />
+                  <datalist id="item-master-name-options">
+                    {items
+                      .map((item) => item.itemName?.trim())
+                      .filter((v): v is string => Boolean(v))
+                      .slice(0, 200)
+                      .map((name) => (
+                        <option key={name} value={name} />
+                      ))}
+                  </datalist>
+                  <Input placeholder={t('item_name')} list="item-master-name-options" {...register('itemName')} />
                   {errors.itemName?.message ? (
                     <p className="text-xs text-red-600">{errors.itemName.message}</p>
                   ) : null}
@@ -684,7 +693,16 @@ export default function ItemsPage() {
                     <SelectItem value="PACKAGING">{t('group_packaging')}</SelectItem>
                   </SelectContent>
                 </Select>
-                <Input placeholder={t('specification')} {...register('specification')} />
+                <datalist id="item-master-spec-options">
+                  {items
+                    .map((item) => item.specification?.trim())
+                    .filter((v): v is string => Boolean(v))
+                    .slice(0, 200)
+                    .map((spec) => (
+                      <option key={spec} value={spec} />
+                    ))}
+                </datalist>
+                <Input placeholder={t('specification')} list="item-master-spec-options" {...register('specification')} />
                 <Select
                   value={watchedStatus}
                   onValueChange={(value) =>
@@ -764,7 +782,16 @@ export default function ItemsPage() {
                 </div>
                 <Input placeholder={t('image_url')} {...register('imageUrl')} />
                 <Input placeholder={t('description')} {...register('description')} />
-                <Input placeholder={t('remarks')} {...register('remarks')} />
+                <datalist id="item-master-remarks-options">
+                  {items
+                    .map((item) => item.remarks?.trim())
+                    .filter((v): v is string => Boolean(v))
+                    .slice(0, 200)
+                    .map((remark) => (
+                      <option key={remark} value={remark} />
+                    ))}
+                </datalist>
+                <Input placeholder={t('remarks')} list="item-master-remarks-options" {...register('remarks')} />
               </div>
               <p className="text-xs text-gray-500">{t('unit_auto_default')}</p>
               {submitError ? (
