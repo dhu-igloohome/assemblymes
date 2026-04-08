@@ -11,6 +11,7 @@ import {
   FileText,
   GitBranchPlus,
   Package2,
+  ShieldCheck,
   Users,
 } from 'lucide-react';
 import { usePathname, Link } from '@/i18n/routing';
@@ -51,6 +52,16 @@ const pieChildNavItems = [
     href: '/pie/work-orders',
     translationKey: 'work_orders',
     icon: FileText,
+  },
+  {
+    href: '/pie/inventory',
+    translationKey: 'inventory',
+    icon: Package2,
+  },
+  {
+    href: '/pie/quality',
+    translationKey: 'quality',
+    icon: ShieldCheck,
   },
 ] as const;
 

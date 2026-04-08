@@ -56,6 +56,8 @@ model Item {
   bomsAsParent    BomHeader[] @relation("BomParentItem")
   bomsAsComponent BomLine[]   @relation("BomComponentItem")
   routings        RoutingHeader[]
+  inventoryBalances InventoryBalance[]
+  inventoryTxns     InventoryTxn[]
 
   @@index([itemType, status])
   @@index([sourceType])
@@ -305,4 +307,109 @@ model WorkOrderDispatch {
   @@index([workOrderId, status])
   @@index([workstation, status])
   @@map("work_order_dispatches")
+}
+
+enum QualityInspectionStage {
+  IQC
+  IPQC
+  OQC
+}
+
+enum QualityInspectionResult {
+  PENDING
+  PASS
+  FAIL
+}
+
+model QualityInspection {
+  id           String                  @id @default(uuid())
+  inspectionNo String                  @unique @map("inspection_no") @db.VarChar(32)
+  stage        QualityInspectionStage
+  result       QualityInspectionResult @default(PENDING)
+  itemCode     String?                 @map("item_code") @db.VarChar(6)
+  batchNo      String?                 @map("batch_no") @db.VarChar(32)
+  workOrderNo  String?                 @map("work_order_no") @db.VarChar(32)
+  sampleSize   Int                     @default(0) @map("sample_size")
+  defectQty    Int                     @default(0) @map("defect_qty")
+  issueSummary String?                 @map("issue_summary") @db.Text
+  disposition  String?                 @db.Text
+  inspectedBy  String?                 @map("inspected_by") @db.VarChar(64)
+  inspectedAt  DateTime?               @map("inspected_at")
+  createdAt    DateTime                @default(now()) @map("created_at")
+  updatedAt    DateTime                @updatedAt @map("updated_at")
+
+  @@index([stage, result, createdAt])
+  @@index([itemCode, batchNo])
+  @@map("quality_inspections")
+}
+
+enum InventoryTxnType {
+  IN
+  OUT
+  TRANSFER
+  ADJUST
+}
+
+model Warehouse {
+  id            String            @id @default(uuid())
+  warehouseCode String            @unique @map("warehouse_code") @db.VarChar(16)
+  name          String
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+  locations     StorageLocation[]
+
+  @@map("warehouses")
+}
+
+model StorageLocation {
+  id           String             @id @default(uuid())
+  warehouseId  String             @map("warehouse_id")
+  locationCode String             @map("location_code") @db.VarChar(32)
+  name         String?
+  isActive     Boolean            @default(true) @map("is_active")
+  createdAt    DateTime           @default(now()) @map("created_at")
+  updatedAt    DateTime           @updatedAt @map("updated_at")
+  warehouse    Warehouse          @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  balances     InventoryBalance[]
+  txnsAsFrom   InventoryTxn[]     @relation("InventoryTxnFromLocation")
+  txnsAsTo     InventoryTxn[]     @relation("InventoryTxnToLocation")
+
+  @@unique([warehouseId, locationCode])
+  @@index([isActive])
+  @@map("storage_locations")
+}
+
+model InventoryBalance {
+  id             String          @id @default(uuid())
+  itemCode       String          @map("item_code") @db.VarChar(6)
+  locationId     String          @map("location_id")
+  quantity       Decimal         @default(0) @db.Decimal(14, 3)
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+  location       StorageLocation @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  item           Item            @relation(fields: [itemCode], references: [itemCode], onDelete: Restrict)
+
+  @@unique([itemCode, locationId])
+  @@index([locationId])
+  @@map("inventory_balances")
+}
+
+model InventoryTxn {
+  id               String            @id @default(uuid())
+  txnType          InventoryTxnType  @map("txn_type")
+  itemCode         String            @map("item_code") @db.VarChar(6)
+  quantity         Decimal           @db.Decimal(14, 3)
+  fromLocationId   String?           @map("from_location_id")
+  toLocationId     String?           @map("to_location_id")
+  refType          String?           @map("ref_type") @db.VarChar(32)
+  refNo            String?           @map("ref_no") @db.VarChar(64)
+  operator         String?           @db.VarChar(64)
+  remarks          String?           @db.Text
+  createdAt        DateTime          @default(now()) @map("created_at")
+  fromLocation     StorageLocation?  @relation("InventoryTxnFromLocation", fields: [fromLocationId], references: [id], onDelete: SetNull)
+  toLocation       StorageLocation?  @relation("InventoryTxnToLocation", fields: [toLocationId], references: [id], onDelete: SetNull)
+  item             Item              @relation(fields: [itemCode], references: [itemCode], onDelete: Restrict)
+
+  @@index([itemCode, createdAt])
+  @@index([refType, refNo])
+  @@map("inventory_txns")
 }

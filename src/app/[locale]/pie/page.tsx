@@ -17,6 +17,8 @@ export default async function PieHomePage({
     { titleKey: 'employees', descKey: 'employees_description', href: '/pie/employees' },
     { titleKey: 'execution', descKey: 'execution_description', href: '/pie/execution' },
     { titleKey: 'work_orders', descKey: 'work_orders_description', href: '/pie/work-orders' },
+    { titleKey: 'inventory', descKey: 'inventory_description', href: '/pie/inventory' },
+    { titleKey: 'quality', descKey: 'quality_description', href: '/pie/quality' },
   ] as const;
 
   return (
