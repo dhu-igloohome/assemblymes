@@ -278,6 +278,7 @@ model WorkOrder {
   updatedAt     DateTime        @updatedAt @map("updated_at")
   dispatches    WorkOrderDispatch[]
   materialTxns  WorkOrderMaterialTxn[]
+  costEntries   CostEntry[]
 
   @@index([skuItemCode, status])
   @@index([batchNo])
@@ -438,4 +439,30 @@ model WorkOrderMaterialTxn {
   @@index([workOrderId, createdAt])
   @@index([itemCode, batchNo])
   @@map("work_order_material_txns")
+}
+
+enum CostEntryType {
+  MATERIAL
+  LABOR
+  OVERHEAD
+  ADJUSTMENT
+}
+
+model CostEntry {
+  id          String        @id @default(uuid())
+  workOrderId String?       @map("work_order_id")
+  entryType   CostEntryType @map("entry_type")
+  amount      Decimal       @db.Decimal(14, 2)
+  currency    String        @default("CNY") @db.VarChar(8)
+  sourceType  String?       @map("source_type") @db.VarChar(32)
+  sourceRef   String?       @map("source_ref") @db.VarChar(64)
+  notes       String?       @db.Text
+  createdBy   String?       @map("created_by") @db.VarChar(64)
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+  workOrder   WorkOrder?    @relation(fields: [workOrderId], references: [id], onDelete: SetNull)
+
+  @@index([workOrderId, entryType, createdAt])
+  @@index([entryType, createdAt])
+  @@map("cost_entries")
 }
