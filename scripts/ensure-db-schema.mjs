@@ -1,22 +1,22 @@
 import { execSync } from 'node:child_process';
 
 const databaseUrl = process.env.DATABASE_URL ?? '';
+const allowDbPushOnBuild = process.env.ALLOW_DB_PUSH_ON_BUILD === 'true';
 
 function shouldPushSchema(url) {
   return url.startsWith('postgresql://') || url.startsWith('postgres://');
 }
 
-if (!shouldPushSchema(databaseUrl)) {
-  console.log('[ensure-db-schema] Skipping prisma db push for non-Postgres deploy environment.');
-  process.exit(0);
-}
-
 try {
-  console.log('[ensure-db-schema] Running prisma db push...');
-  execSync('npx prisma db push --skip-generate', {
-    stdio: 'inherit',
-    env: process.env,
-  });
+  if (allowDbPushOnBuild && shouldPushSchema(databaseUrl)) {
+    console.log('[ensure-db-schema] ALLOW_DB_PUSH_ON_BUILD=true, running prisma db push...');
+    execSync('npx prisma db push --skip-generate', {
+      stdio: 'inherit',
+      env: process.env,
+    });
+  } else {
+    console.log('[ensure-db-schema] Skipping prisma db push on build (safe default).');
+  }
 
   // Vercel build may reuse cached node_modules containing an older generated Prisma client.
   // Run generate explicitly so TypeScript types match the current Prisma schema.

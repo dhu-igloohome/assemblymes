@@ -11,7 +11,7 @@ export default async function PieLayout({
 }) {
   const { locale } = await params;
   const cookieStore = await cookies();
-  const session = parseSessionCookieValue(cookieStore.get(AUTH_COOKIE_NAME)?.value);
+  const session = await parseSessionCookieValue(cookieStore.get(AUTH_COOKIE_NAME)?.value);
 
   return (
     <div className="flex min-h-screen bg-gray-50">

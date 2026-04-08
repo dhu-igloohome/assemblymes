@@ -5,6 +5,45 @@ import {
   createSessionCookieValue,
   isValidSuperAdmin,
 } from '@/lib/auth';
+
+const WINDOW_MS = 10 * 60 * 1000;
+const BLOCK_MS = 15 * 60 * 1000;
+const MAX_ATTEMPTS = 8;
+
+const attempts = new Map<string, { count: number; firstAt: number; blockedUntil?: number }>();
+
+function getClientKey(request: Request, username: string) {
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
+  return `${ip}:${username.toLowerCase()}`;
+}
+
+function consumeAttempt(key: string) {
+  const now = Date.now();
+  const record = attempts.get(key);
+  if (!record) {
+    attempts.set(key, { count: 1, firstAt: now });
+    return { blocked: false };
+  }
+  if (record.blockedUntil && record.blockedUntil > now) {
+    return { blocked: true };
+  }
+  if (now - record.firstAt > WINDOW_MS) {
+    attempts.set(key, { count: 1, firstAt: now });
+    return { blocked: false };
+  }
+  const nextCount = record.count + 1;
+  if (nextCount >= MAX_ATTEMPTS) {
+    attempts.set(key, { count: nextCount, firstAt: record.firstAt, blockedUntil: now + BLOCK_MS });
+    return { blocked: true };
+  }
+  attempts.set(key, { count: nextCount, firstAt: record.firstAt });
+  return { blocked: false };
+}
+
+function clearAttempt(key: string) {
+  attempts.delete(key);
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -14,17 +53,24 @@ export async function POST(request: Request) {
 
     if (!username || !password) {
       return NextResponse.json(
-        { error: 'Username and password are required.' },
+        { error: 'INVALID_CREDENTIALS' },
         { status: 400 }
       );
     }
 
+    const key = getClientKey(request, username);
+    const status = consumeAttempt(key);
+    if (status.blocked) {
+      return NextResponse.json({ error: 'LOGIN_RATE_LIMITED' }, { status: 429 });
+    }
+
     if (!isValidSuperAdmin(username, password)) {
       return NextResponse.json(
-        { error: 'Invalid username or password.' },
+        { error: 'INVALID_CREDENTIALS' },
         { status: 401 }
       );
     }
+    clearAttempt(key);
 
     const response = NextResponse.json({
       success: true,
@@ -34,7 +80,7 @@ export async function POST(request: Request) {
 
     response.cookies.set({
       name: AUTH_COOKIE_NAME,
-      value: createSessionCookieValue({ username, role: SUPER_ADMIN_ROLE }),
+      value: await createSessionCookieValue({ username, role: SUPER_ADMIN_ROLE }),
       httpOnly: true,
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
@@ -43,11 +89,10 @@ export async function POST(request: Request) {
     });
 
     return response;
-  } catch (error: unknown) {
+  } catch {
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : 'Failed to sign in.',
+        error: 'LOGIN_FAILED',
       },
       { status: 500 }
     );

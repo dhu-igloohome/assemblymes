@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   ShoppingCart,
   Coins,
+  CalendarClock,
   Users,
 } from 'lucide-react';
 import { usePathname, Link } from '@/i18n/routing';
@@ -58,6 +59,12 @@ const navModules = [
     titleKey: 'module_cost',
     icon: Coins,
     children: [{ href: '/pie/cost', translationKey: 'cost_overview', icon: Coins }],
+  },
+  {
+    id: 'planning',
+    titleKey: 'module_planning',
+    icon: CalendarClock,
+    children: [{ href: '/pie/planning', translationKey: 'planning_overview', icon: CalendarClock }],
   },
 ] as const;
 

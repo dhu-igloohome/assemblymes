@@ -30,13 +30,14 @@ function isProtectedApi(pathname: string) {
     pathname.startsWith('/api/work-orders') ||
     pathname.startsWith('/api/inventory') ||
     pathname.startsWith('/api/quality') ||
-    pathname.startsWith('/api/cost')
+    pathname.startsWith('/api/cost') ||
+    pathname.startsWith('/api/planning')
   );
 }
 
-export default function proxy(request: NextRequest) {
+export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const session = parseSessionCookieValue(request.cookies.get(AUTH_COOKIE_NAME)?.value);
+  const session = await parseSessionCookieValue(request.cookies.get(AUTH_COOKIE_NAME)?.value);
   const isLoggedIn = session?.role === SUPER_ADMIN_ROLE;
 
   if (pathname.startsWith('/api/auth/login') || pathname.startsWith('/api/auth/logout')) {

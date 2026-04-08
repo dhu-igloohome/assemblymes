@@ -37,7 +37,14 @@ export default function LoginForm() {
       const result = await response.json();
 
       if (!response.ok) {
-        setErrorMessage(result.error ?? t('invalid_credentials'));
+        const code = typeof result?.error === 'string' ? result.error : '';
+        if (code === 'LOGIN_RATE_LIMITED') {
+          setErrorMessage(t('rate_limited'));
+        } else if (code === 'LOGIN_FAILED') {
+          setErrorMessage(t('request_failed'));
+        } else {
+          setErrorMessage(t('invalid_credentials'));
+        }
         return;
       }
 
