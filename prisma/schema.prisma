@@ -277,6 +277,7 @@ model WorkOrder {
   createdAt     DateTime        @default(now()) @map("created_at")
   updatedAt     DateTime        @updatedAt @map("updated_at")
   dispatches    WorkOrderDispatch[]
+  materialTxns  WorkOrderMaterialTxn[]
 
   @@index([skuItemCode, status])
   @@index([batchNo])
@@ -373,6 +374,7 @@ model StorageLocation {
   balances     InventoryBalance[]
   txnsAsFrom   InventoryTxn[]     @relation("InventoryTxnFromLocation")
   txnsAsTo     InventoryTxn[]     @relation("InventoryTxnToLocation")
+  workOrderMaterialTxns WorkOrderMaterialTxn[]
 
   @@unique([warehouseId, locationCode])
   @@index([isActive])
@@ -398,6 +400,7 @@ model InventoryTxn {
   txnType          InventoryTxnType  @map("txn_type")
   itemCode         String            @map("item_code") @db.VarChar(6)
   quantity         Decimal           @db.Decimal(14, 3)
+  batchNo          String?           @map("batch_no") @db.VarChar(32)
   fromLocationId   String?           @map("from_location_id")
   toLocationId     String?           @map("to_location_id")
   refType          String?           @map("ref_type") @db.VarChar(32)
@@ -408,8 +411,31 @@ model InventoryTxn {
   fromLocation     StorageLocation?  @relation("InventoryTxnFromLocation", fields: [fromLocationId], references: [id], onDelete: SetNull)
   toLocation       StorageLocation?  @relation("InventoryTxnToLocation", fields: [toLocationId], references: [id], onDelete: SetNull)
   item             Item              @relation(fields: [itemCode], references: [itemCode], onDelete: Restrict)
+  workOrderMaterialTxns WorkOrderMaterialTxn[]
 
   @@index([itemCode, createdAt])
+  @@index([batchNo, createdAt])
   @@index([refType, refNo])
   @@map("inventory_txns")
+}
+
+model WorkOrderMaterialTxn {
+  id             String    @id @default(uuid())
+  workOrderId    String    @map("work_order_id")
+  inventoryTxnId String?   @map("inventory_txn_id")
+  mode           String    @db.VarChar(16)
+  itemCode       String    @map("item_code") @db.VarChar(6)
+  locationId     String    @map("location_id")
+  quantity       Decimal   @db.Decimal(14, 3)
+  batchNo        String?   @map("batch_no") @db.VarChar(32)
+  operator       String?   @db.VarChar(64)
+  remarks        String?   @db.Text
+  createdAt      DateTime  @default(now()) @map("created_at")
+  workOrder      WorkOrder @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  location       StorageLocation @relation(fields: [locationId], references: [id], onDelete: Restrict)
+  inventoryTxn   InventoryTxn? @relation(fields: [inventoryTxnId], references: [id], onDelete: SetNull)
+
+  @@index([workOrderId, createdAt])
+  @@index([itemCode, batchNo])
+  @@map("work_order_material_txns")
 }
