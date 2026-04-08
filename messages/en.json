@@ -339,6 +339,15 @@
     "module_title": "PIE Management",
     "module_description": "Product and Industrial Engineering workspace",
     "overview": "PIE Overview",
+    "module_pie": "PIE",
+    "module_inventory": "Inventory",
+    "module_quality": "Quality (QMS)",
+    "module_procurement": "Procurement (P2P)",
+    "module_cost": "Cost",
+    "inventory_overview": "Inventory Overview",
+    "quality_overview": "QMS Overview",
+    "procurement_overview": "Procurement Overview",
+    "cost_overview": "Cost Overview",
     "items": "Material Master",
     "boms": "BOM Management",
     "routings": "Routing Management",
@@ -348,9 +357,6 @@
     "work_orders": "Work Orders",
     "inventory": "Inventory",
     "quality": "Quality",
-    "section_master_data": "Master Data",
-    "section_execution": "Execution",
-    "section_supply_quality": "Warehouse & Quality",
     "current_user": "Current User",
     "role_label": "Role",
     "role_super_admin": "Super Admin",
@@ -398,6 +404,14 @@
     "sample_size_invalid": "Sample size must be zero or positive integer.",
     "defect_qty_invalid": "Defect quantity must be zero or positive integer.",
     "defect_exceeds_sample": "Defect quantity cannot exceed sample size."
+  },
+  "Procurement": {
+    "title": "Procurement (P2P)",
+    "description": "Procurement module scaffold is ready. Next step is PR/PO/GRN and reconciliation workflows."
+  },
+  "Cost": {
+    "title": "Cost Management",
+    "description": "Cost module scaffold is ready. Next step is material/labor/MOH allocation and work-order cost analytics."
   },
   "Inventory": {
     "title": "Inventory & Warehousing",

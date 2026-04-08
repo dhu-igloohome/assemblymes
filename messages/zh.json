@@ -339,6 +339,15 @@
     "module_title": "PIE 管理",
     "module_description": "产品与工业工程主界面",
     "overview": "PIE 总览",
+    "module_pie": "PIE 管理",
+    "module_inventory": "库存管理",
+    "module_quality": "质量管理",
+    "module_procurement": "采购（P2P）",
+    "module_cost": "成本管理",
+    "inventory_overview": "库存总览",
+    "quality_overview": "QMS 总览",
+    "procurement_overview": "采购总览",
+    "cost_overview": "成本总览",
     "items": "物料主数据",
     "boms": "BOM 管理",
     "routings": "工艺路线",
@@ -348,9 +357,6 @@
     "work_orders": "工单管理",
     "inventory": "库存管理",
     "quality": "质量管理",
-    "section_master_data": "基础资料",
-    "section_execution": "生产执行",
-    "section_supply_quality": "仓储与质量",
     "current_user": "当前登录",
     "role_label": "角色",
     "role_super_admin": "超级管理员",
@@ -398,6 +404,14 @@
     "sample_size_invalid": "抽样数必须为大于等于 0 的整数。",
     "defect_qty_invalid": "不良数必须为大于等于 0 的整数。",
     "defect_exceeds_sample": "不良数不能超过抽样数。"
+  },
+  "Procurement": {
+    "title": "采购（P2P）",
+    "description": "采购模块骨架已就位。下一步将实现请购、采购单、收货与对账流程。"
+  },
+  "Cost": {
+    "title": "成本管理",
+    "description": "成本模块骨架已就位。下一步将实现材料、人工、制造费用归集与工单成本分析。"
   },
   "Inventory": {
     "title": "库存与仓储",

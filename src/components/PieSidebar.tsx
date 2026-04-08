@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   Boxes,
+  ChevronDown,
   ClipboardList,
   Cpu,
   Factory,
@@ -11,62 +12,52 @@ import {
   GitBranchPlus,
   Package2,
   ShieldCheck,
+  ShoppingCart,
+  Coins,
   Users,
 } from 'lucide-react';
 import { usePathname, Link } from '@/i18n/routing';
 import { Button } from '@/components/ui/button';
 
-const masterDataNavItems = [
+const navModules = [
   {
-    href: '/pie/items',
-    translationKey: 'items',
+    id: 'pie',
+    titleKey: 'module_pie',
+    icon: Boxes,
+    children: [
+      { href: '/pie', translationKey: 'overview', icon: Boxes },
+      { href: '/pie/items', translationKey: 'items', icon: Package2 },
+      { href: '/pie/boms', translationKey: 'boms', icon: GitBranchPlus },
+      { href: '/pie/routings', translationKey: 'routings', icon: ClipboardList },
+      { href: '/pie/work-centers', translationKey: 'work_centers', icon: Factory },
+      { href: '/pie/employees', translationKey: 'employees', icon: Users },
+      { href: '/pie/execution', translationKey: 'execution', icon: Cpu },
+      { href: '/pie/work-orders', translationKey: 'work_orders', icon: FileText },
+    ],
+  },
+  {
+    id: 'inventory',
+    titleKey: 'module_inventory',
     icon: Package2,
+    children: [{ href: '/pie/inventory', translationKey: 'inventory_overview', icon: Package2 }],
   },
   {
-    href: '/pie/boms',
-    translationKey: 'boms',
-    icon: GitBranchPlus,
-  },
-  {
-    href: '/pie/routings',
-    translationKey: 'routings',
-    icon: ClipboardList,
-  },
-  {
-    href: '/pie/work-centers',
-    translationKey: 'work_centers',
-    icon: Factory,
-  },
-  {
-    href: '/pie/employees',
-    translationKey: 'employees',
-    icon: Users,
-  },
-] as const;
-
-const executionNavItems = [
-  {
-    href: '/pie/execution',
-    translationKey: 'execution',
-    icon: Cpu,
-  },
-  {
-    href: '/pie/work-orders',
-    translationKey: 'work_orders',
-    icon: FileText,
-  },
-] as const;
-
-const supplyQualityNavItems = [
-  {
-    href: '/pie/inventory',
-    translationKey: 'inventory',
-    icon: Package2,
-  },
-  {
-    href: '/pie/quality',
-    translationKey: 'quality',
+    id: 'quality',
+    titleKey: 'module_quality',
     icon: ShieldCheck,
+    children: [{ href: '/pie/quality', translationKey: 'quality_overview', icon: ShieldCheck }],
+  },
+  {
+    id: 'procurement',
+    titleKey: 'module_procurement',
+    icon: ShoppingCart,
+    children: [{ href: '/pie/procurement', translationKey: 'procurement_overview', icon: ShoppingCart }],
+  },
+  {
+    id: 'cost',
+    titleKey: 'module_cost',
+    icon: Coins,
+    children: [{ href: '/pie/cost', translationKey: 'cost_overview', icon: Coins }],
   },
 ] as const;
 
@@ -81,10 +72,22 @@ interface PieSidebarProps {
 export default function PieSidebar({ locale, currentUser }: PieSidebarProps) {
   const t = useTranslations('Pie');
   const pathname = usePathname();
-  const [isSigningOut, setIsSigningOut] = useState(false);
-  const [signOutError, setSignOutError] = useState('');
+  const [openModules, setOpenModules] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(navModules.map((module) => [module.id, true]))
+  );
   const roleLabel =
     currentUser?.role === 'super_admin' ? t('role_super_admin') : currentUser?.role || '—';
+
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState('');
+
+  useEffect(() => {
+    const activeModule = navModules.find((module) =>
+      module.children.some((child) => pathname === child.href || pathname.startsWith(`${child.href}/`))
+    );
+    if (!activeModule) return;
+    setOpenModules((prev) => ({ ...prev, [activeModule.id]: true }));
+  }, [pathname]);
 
   const handleSignOut = async () => {
     setSignOutError('');
@@ -109,102 +112,64 @@ export default function PieSidebar({ locale, currentUser }: PieSidebarProps) {
         <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
           AssemblyMES
         </p>
-        <h1 className="mt-2 text-xl font-semibold text-white">
-          {t('module_title')}
-        </h1>
+        <h1 className="mt-2 text-xl font-semibold text-white">{t('module_title')}</h1>
         <p className="mt-1 text-sm text-slate-400">{t('module_description')}</p>
       </div>
 
       <nav className="flex flex-1 flex-col gap-2 px-3 py-4">
-        <div className="rounded-lg border border-slate-800 bg-slate-900/70 px-2 py-2">
-          <Link
-            href="/pie"
-            className={[
-              'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
-              pathname === '/pie'
-                ? 'bg-indigo-500/20 font-medium text-indigo-100'
-                : 'text-slate-300 hover:bg-slate-800 hover:text-white',
-            ].join(' ')}
-          >
-            <Boxes className="size-4" />
-            <span>{t('overview')}</span>
-          </Link>
+        {navModules.map((module) => {
+          const ModuleIcon = module.icon;
+          const isModuleActive = module.children.some(
+            (child) => pathname === child.href || pathname.startsWith(`${child.href}/`)
+          );
+          const isOpen = Boolean(openModules[module.id]);
+          return (
+            <div key={module.id} className="rounded-lg border border-slate-800 bg-slate-900/70">
+              <button
+                type="button"
+                onClick={() => setOpenModules((prev) => ({ ...prev, [module.id]: !isOpen }))}
+                className={[
+                  'flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm transition-colors',
+                  isModuleActive
+                    ? 'bg-indigo-500/15 font-medium text-indigo-200'
+                    : 'text-slate-200 hover:bg-slate-800 hover:text-white',
+                ].join(' ')}
+              >
+                <span className="flex items-center gap-3">
+                  <ModuleIcon className="size-4" />
+                  <span>{t(module.titleKey)}</span>
+                </span>
+                <ChevronDown
+                  className={['size-4 transition-transform', isOpen ? 'rotate-180' : ''].join(' ')}
+                />
+              </button>
 
-          <div className="mt-3 px-3 text-[11px] font-medium uppercase tracking-[0.16em] text-slate-500">
-            {t('section_master_data')}
-          </div>
-          <div className="mt-1 space-y-1">
-            {masterDataNavItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={[
-                    'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
-                    isActive
-                      ? 'bg-indigo-500/20 font-medium text-indigo-100'
-                      : 'text-slate-300 hover:bg-slate-800 hover:text-white',
-                  ].join(' ')}
-                >
-                  <Icon className="size-4" />
-                  <span>{t(item.translationKey)}</span>
-                </Link>
-              );
-            })}
-          </div>
-
-          <div className="mt-3 px-3 text-[11px] font-medium uppercase tracking-[0.16em] text-slate-500">
-            {t('section_execution')}
-          </div>
-          <div className="mt-1 space-y-1">
-            {executionNavItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={[
-                    'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
-                    isActive
-                      ? 'bg-indigo-500/20 font-medium text-indigo-100'
-                      : 'text-slate-300 hover:bg-slate-800 hover:text-white',
-                  ].join(' ')}
-                >
-                  <Icon className="size-4" />
-                  <span>{t(item.translationKey)}</span>
-                </Link>
-              );
-            })}
-          </div>
-
-          <div className="mt-3 px-3 text-[11px] font-medium uppercase tracking-[0.16em] text-slate-500">
-            {t('section_supply_quality')}
-          </div>
-          <div className="mt-1 space-y-1">
-            {supplyQualityNavItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={[
-                    'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
-                    isActive
-                      ? 'bg-indigo-500/20 font-medium text-indigo-100'
-                      : 'text-slate-300 hover:bg-slate-800 hover:text-white',
-                  ].join(' ')}
-                >
-                  <Icon className="size-4" />
-                  <span>{t(item.translationKey)}</span>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
+              <div className={['overflow-hidden transition-all duration-200', isOpen ? 'max-h-96' : 'max-h-0'].join(' ')}>
+                <div className="space-y-1 px-2 pb-2">
+                  {module.children.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={[
+                          'ml-4 flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
+                          isActive
+                            ? 'bg-indigo-500/20 font-medium text-indigo-100'
+                            : 'text-slate-300 hover:bg-slate-800 hover:text-white',
+                        ].join(' ')}
+                      >
+                        <Icon className="size-4" />
+                        <span>{t(item.translationKey)}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </nav>
 
       <div className="border-t border-slate-800 px-3 py-3">
