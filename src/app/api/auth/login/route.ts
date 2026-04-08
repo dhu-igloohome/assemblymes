@@ -5,6 +5,7 @@ import {
   createSessionCookieValue,
   isValidSuperAdmin,
 } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
 
 const WINDOW_MS = 10 * 60 * 1000;
 const BLOCK_MS = 15 * 60 * 1000;
@@ -17,31 +18,63 @@ function getClientKey(request: Request, username: string) {
   return `${ip}:${username.toLowerCase()}`;
 }
 
-function consumeAttempt(key: string) {
+function getClientIp(request: Request) {
+  return request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || null;
+}
+
+function getUserAgent(request: Request) {
+  return request.headers.get('user-agent')?.slice(0, 255) || null;
+}
+
+function isBlocked(key: string) {
+  const now = Date.now();
+  const record = attempts.get(key);
+  return Boolean(record?.blockedUntil && record.blockedUntil > now);
+}
+
+function consumeFailedAttempt(key: string) {
   const now = Date.now();
   const record = attempts.get(key);
   if (!record) {
     attempts.set(key, { count: 1, firstAt: now });
-    return { blocked: false };
-  }
-  if (record.blockedUntil && record.blockedUntil > now) {
-    return { blocked: true };
+    return false;
   }
   if (now - record.firstAt > WINDOW_MS) {
     attempts.set(key, { count: 1, firstAt: now });
-    return { blocked: false };
+    return false;
   }
   const nextCount = record.count + 1;
   if (nextCount >= MAX_ATTEMPTS) {
     attempts.set(key, { count: nextCount, firstAt: record.firstAt, blockedUntil: now + BLOCK_MS });
-    return { blocked: true };
+    return true;
   }
   attempts.set(key, { count: nextCount, firstAt: record.firstAt });
-  return { blocked: false };
+  return false;
 }
 
 function clearAttempt(key: string) {
   attempts.delete(key);
+}
+
+async function auditLogin(
+  request: Request,
+  username: string,
+  success: boolean,
+  reasonCode?: string
+) {
+  try {
+    await prisma.authLoginAudit.create({
+      data: {
+        username: username || 'unknown',
+        ip: getClientIp(request),
+        userAgent: getUserAgent(request),
+        success,
+        reasonCode: reasonCode || null,
+      },
+    });
+  } catch {
+    // audit log should not block login flow
+  }
 }
 
 export async function POST(request: Request) {
@@ -52,6 +85,7 @@ export async function POST(request: Request) {
     const locale = body.locale === 'en' ? 'en' : 'zh';
 
     if (!username || !password) {
+      await auditLogin(request, username, false, 'INVALID_CREDENTIALS');
       return NextResponse.json(
         { error: 'INVALID_CREDENTIALS' },
         { status: 400 }
@@ -59,18 +93,34 @@ export async function POST(request: Request) {
     }
 
     const key = getClientKey(request, username);
-    const status = consumeAttempt(key);
-    if (status.blocked) {
-      return NextResponse.json({ error: 'LOGIN_RATE_LIMITED' }, { status: 429 });
+    const isValid = await isValidSuperAdmin(username, password);
+    if (isBlocked(key) && !isValid) {
+      await auditLogin(request, username, false, 'LOGIN_RATE_LIMITED');
+      const response = NextResponse.json({ error: 'LOGIN_RATE_LIMITED' }, { status: 429 });
+      response.headers.set('Retry-After', String(Math.ceil(BLOCK_MS / 1000)));
+      response.headers.set('X-RateLimit-Limit', String(MAX_ATTEMPTS));
+      response.headers.set('X-RateLimit-Window', String(Math.ceil(WINDOW_MS / 1000)));
+      return response;
     }
 
-    if (!isValidSuperAdmin(username, password)) {
+    if (!isValid) {
+      const blocked = consumeFailedAttempt(key);
+      if (blocked) {
+        await auditLogin(request, username, false, 'LOGIN_RATE_LIMITED');
+        const response = NextResponse.json({ error: 'LOGIN_RATE_LIMITED' }, { status: 429 });
+        response.headers.set('Retry-After', String(Math.ceil(BLOCK_MS / 1000)));
+        response.headers.set('X-RateLimit-Limit', String(MAX_ATTEMPTS));
+        response.headers.set('X-RateLimit-Window', String(Math.ceil(WINDOW_MS / 1000)));
+        return response;
+      }
+      await auditLogin(request, username, false, 'INVALID_CREDENTIALS');
       return NextResponse.json(
         { error: 'INVALID_CREDENTIALS' },
         { status: 401 }
       );
     }
     clearAttempt(key);
+    await auditLogin(request, username, true);
 
     const response = NextResponse.json({
       success: true,
@@ -90,6 +140,7 @@ export async function POST(request: Request) {
 
     return response;
   } catch {
+    await auditLogin(request, 'unknown', false, 'LOGIN_FAILED');
     return NextResponse.json(
       {
         error: 'LOGIN_FAILED',

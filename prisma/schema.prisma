@@ -466,3 +466,111 @@ model CostEntry {
   @@index([entryType, createdAt])
   @@map("cost_entries")
 }
+
+model AuthLoginAudit {
+  id         String   @id @default(uuid())
+  username   String   @db.VarChar(64)
+  ip         String?  @db.VarChar(128)
+  userAgent  String?  @map("user_agent") @db.VarChar(255)
+  success    Boolean
+  reasonCode String?  @map("reason_code") @db.VarChar(64)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([username, createdAt])
+  @@index([success, createdAt])
+  @@map("auth_login_audits")
+}
+
+enum SalesOrderStatus {
+  DRAFT
+  CONFIRMED
+  PARTIALLY_SHIPPED
+  SHIPPED
+  CLOSED
+  CANCELLED
+}
+
+enum InvoiceStatus {
+  DRAFT
+  ISSUED
+  PARTIALLY_PAID
+  PAID
+  VOID
+}
+
+model SalesOrder {
+  id            String           @id @default(uuid())
+  orderNo       String           @unique @map("order_no") @db.VarChar(32)
+  customerName  String           @map("customer_name") @db.VarChar(128)
+  skuItemCode   String           @map("sku_item_code") @db.VarChar(6)
+  batchNo       String?          @map("batch_no") @db.VarChar(32)
+  orderedQty    Int              @map("ordered_qty")
+  unitPrice     Decimal          @map("unit_price") @db.Decimal(14, 2)
+  currency      String           @default("CNY") @db.VarChar(8)
+  dueDate       DateTime?        @map("due_date")
+  status        SalesOrderStatus @default(DRAFT)
+  notes         String?          @db.Text
+  createdBy     String?          @map("created_by") @db.VarChar(64)
+  createdAt     DateTime         @default(now()) @map("created_at")
+  updatedAt     DateTime         @updatedAt @map("updated_at")
+  shipments     Shipment[]
+  invoices      Invoice[]
+
+  @@index([customerName, createdAt])
+  @@index([skuItemCode, status])
+  @@map("sales_orders")
+}
+
+model Shipment {
+  id            String    @id @default(uuid())
+  salesOrderId  String    @map("sales_order_id")
+  shippedQty    Int       @map("shipped_qty")
+  shippedAt     DateTime  @default(now()) @map("shipped_at")
+  logisticsNo   String?   @map("logistics_no") @db.VarChar(64)
+  warehouseCode String?   @map("warehouse_code") @db.VarChar(16)
+  remarks       String?   @db.Text
+  createdBy     String?   @map("created_by") @db.VarChar(64)
+  createdAt     DateTime  @default(now()) @map("created_at")
+  salesOrder    SalesOrder @relation(fields: [salesOrderId], references: [id], onDelete: Cascade)
+
+  @@index([salesOrderId, shippedAt])
+  @@map("shipments")
+}
+
+model Invoice {
+  id           String        @id @default(uuid())
+  salesOrderId String        @map("sales_order_id")
+  invoiceNo    String        @unique @map("invoice_no") @db.VarChar(32)
+  status       InvoiceStatus @default(DRAFT)
+  invoiceDate  DateTime?     @map("invoice_date")
+  amount       Decimal       @db.Decimal(14, 2)
+  paidAmount   Decimal       @default(0) @map("paid_amount") @db.Decimal(14, 2)
+  currency     String        @default("CNY") @db.VarChar(8)
+  dueDate      DateTime?     @map("due_date")
+  notes        String?       @db.Text
+  createdBy    String?       @map("created_by") @db.VarChar(64)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  salesOrder   SalesOrder    @relation(fields: [salesOrderId], references: [id], onDelete: Cascade)
+  payments     Payment[]
+
+  @@index([salesOrderId, status])
+  @@index([invoiceDate])
+  @@map("invoices")
+}
+
+model Payment {
+  id          String    @id @default(uuid())
+  invoiceId   String    @map("invoice_id")
+  amount      Decimal   @db.Decimal(14, 2)
+  paidAt      DateTime  @default(now()) @map("paid_at")
+  method      String?   @db.VarChar(32)
+  referenceNo String?   @map("reference_no") @db.VarChar(64)
+  remarks     String?   @db.Text
+  createdBy   String?   @map("created_by") @db.VarChar(64)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  invoice     Invoice   @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId, paidAt])
+  @@map("payments")
+}

@@ -23,6 +23,7 @@ Open [http://localhost:3000](http://localhost:3000).
    - `AUTH_SECRET`
    - `SUPER_ADMINS_JSON`
    for Production (and Preview if needed).
+   - `SUPER_ADMINS_JSON` supports `passwordHash` (recommended, bcrypt) and temporary `password` fallback.
 3. Connect the Git repository and deploy. Build runs `npm run build`, which executes `scripts/ensure-db-schema.mjs`.
    - Safe default: build skips `prisma db push`.
    - Optional: set `ALLOW_DB_PUSH_ON_BUILD=true` only in controlled environments.
