@@ -1,0 +1,26 @@
+---
+description: Prefer DESIGN.md-driven UI generation using awesome-design-md patterns
+alwaysApply: true
+---
+
+# DESIGN.md First UI Rule
+
+When implementing or refactoring UI in `assemblymes`, default to a `DESIGN.md`-driven workflow.
+
+## Source of truth
+
+- Prefer a root-level `DESIGN.md` as the visual contract for UI generation.
+- If `DESIGN.md` is missing and the task is UI-heavy, ask to add one or draft one before major UI changes.
+- Use the structure popularized by `awesome-design-md` (theme, palette, typography, components, layout, responsive behavior).
+
+## Required behavior for UI tasks
+
+- Before coding substantial UI changes, summarize which visual tokens/rules are being applied.
+- Keep visual consistency across pages (colors, spacing scale, radius, typography hierarchy, component states).
+- Avoid ad-hoc one-off styles that conflict with `DESIGN.md` unless explicitly requested.
+- For any new page, include at minimum: heading hierarchy, spacing rhythm, button/input states, and empty/loading/error visuals.
+
+## Communication expectation
+
+- In delivery notes, briefly map UI outcomes back to the selected `DESIGN.md` principles.
+- If no `DESIGN.md` is present, state that explicitly and list the temporary style assumptions.

@@ -1,14 +1,33 @@
 import { getTranslations } from 'next-intl/server';
+import { Link } from '@/i18n/routing';
 
-export default async function PieHomePage() {
+export default async function PieHomePage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  const isZh = locale === 'zh';
   const t = await getTranslations('Pie');
+  const modules = [
+    { titleKey: 'items', descKey: 'items_description', href: '/pie/items' },
+    { titleKey: 'boms', descKey: 'boms_description', href: '/pie/boms' },
+    { titleKey: 'routings', descKey: 'routings_description', href: '/pie/routings' },
+    { titleKey: 'work_centers', descKey: 'work_centers_description', href: '/pie/work-centers' },
+    { titleKey: 'employees', descKey: 'employees_description', href: '/pie/employees' },
+    { titleKey: 'execution', descKey: 'execution_description', href: '/pie/execution' },
+    { titleKey: 'work_orders', descKey: 'work_orders_description', href: '/pie/work-orders' },
+  ] as const;
 
   return (
     <div className="p-8 md:p-10">
-      <div className="rounded-2xl border bg-white p-8 shadow-sm">
-        <p className="text-sm font-medium uppercase tracking-[0.2em] text-blue-600">
-          PIE Management
+      <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+        <p className="text-sm font-semibold tracking-[0.2em] text-indigo-600">
+          {isZh ? t('module_title') : 'PIE Management'}
         </p>
+        {isZh ? (
+          <p className="mt-1 text-xs uppercase tracking-[0.2em] text-slate-500">PIE Management</p>
+        ) : null}
         <h2 className="mt-3 text-3xl font-bold tracking-tight text-gray-900">
           {t('welcome_title')}
         </h2>
@@ -16,35 +35,21 @@ export default async function PieHomePage() {
           {t('welcome_description')}
         </p>
 
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-7">
-          <div className="rounded-xl border bg-gray-50 p-5">
-            <h3 className="text-sm font-semibold text-gray-900">{t('items')}</h3>
-            <p className="mt-2 text-sm text-gray-600">{t('items_description')}</p>
-          </div>
-          <div className="rounded-xl border bg-gray-50 p-5">
-            <h3 className="text-sm font-semibold text-gray-900">{t('boms')}</h3>
-            <p className="mt-2 text-sm text-gray-600">{t('boms_description')}</p>
-          </div>
-          <div className="rounded-xl border bg-gray-50 p-5">
-            <h3 className="text-sm font-semibold text-gray-900">{t('routings')}</h3>
-            <p className="mt-2 text-sm text-gray-600">{t('routings_description')}</p>
-          </div>
-          <div className="rounded-xl border bg-gray-50 p-5">
-            <h3 className="text-sm font-semibold text-gray-900">{t('work_centers')}</h3>
-            <p className="mt-2 text-sm text-gray-600">{t('work_centers_description')}</p>
-          </div>
-          <div className="rounded-xl border bg-gray-50 p-5">
-            <h3 className="text-sm font-semibold text-gray-900">{t('employees')}</h3>
-            <p className="mt-2 text-sm text-gray-600">{t('employees_description')}</p>
-          </div>
-          <div className="rounded-xl border bg-gray-50 p-5">
-            <h3 className="text-sm font-semibold text-gray-900">{t('execution')}</h3>
-            <p className="mt-2 text-sm text-gray-600">{t('execution_description')}</p>
-          </div>
-          <div className="rounded-xl border bg-gray-50 p-5">
-            <h3 className="text-sm font-semibold text-gray-900">{t('work_orders')}</h3>
-            <p className="mt-2 text-sm text-gray-600">{t('work_orders_description')}</p>
-          </div>
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {modules.map((module) => (
+            <Link
+              key={module.titleKey}
+              href={module.href}
+              className="rounded-xl border border-slate-200 bg-slate-50 p-5 transition-all hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-indigo-50/40"
+            >
+              <h3 className="text-sm font-semibold text-slate-900">
+                {t(module.titleKey)}
+              </h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">
+                {t(module.descKey)}
+              </p>
+            </Link>
+          ))}
         </div>
       </div>
     </div>

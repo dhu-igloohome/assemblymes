@@ -1,0 +1,27 @@
+---
+description: Auto deployment to Vercel is mandatory and highest priority
+alwaysApply: true
+---
+
+# Auto-Deploy Highest Priority Rule
+
+In `assemblymes`, automatic deployment to Vercel is a top-priority, always-on requirement.
+
+## Mandatory policy
+
+- Treat `Cursor -> GitHub -> Vercel auto deployment` as a core delivery contract.
+- After code changes, do not stop at local edits only.
+- Ensure changes are in a deployable Git state (commit-ready, push-ready) after local verification.
+- If commit/push is blocked (permissions, auth, branch protection, failing checks), explicitly report the blocker and provide exact recovery steps.
+
+## Required delivery sequence
+
+1. Self-check change scope and safety.
+2. Run lint/build verification.
+3. Prepare or complete Git commit/push for Vercel trigger.
+4. Confirm deployment trigger status (or clearly state blocker).
+
+## Non-negotiable
+
+- Never present implementation as complete while it is only local.
+- If user asks to pause before commit/push, explicitly mark that Vercel is not updated yet.
