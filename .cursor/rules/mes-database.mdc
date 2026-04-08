@@ -1,0 +1,32 @@
+---
+description: Prisma schema, indexes, deploy sync, and API compatibility for assemblymes
+globs: "prisma/**/*"
+alwaysApply: false
+---
+
+# MES Database Discipline (Prisma / Neon)
+
+## Schema design
+
+- Use **`@map` / `@@map`** for PostgreSQL column and table names when the project already uses that convention; stay consistent with existing models.
+- Prefer **explicit relation options** (`onDelete`, `onUpdate`) where ambiguity would hurt production data; match patterns used by sibling models.
+- Add **`@@index`** (or `@unique` where appropriate) for:
+  - Foreign keys and frequent filters (`status`, `tenantId`, `batchNo`, `itemCode`, etc.)
+  - Fields used in `orderBy` or `where` on list endpoints
+
+## Compatibility and rollout
+
+- **New columns** on existing tables: prefer **`?` optional** or **`@default(...)`** so existing rows and older deploys do not break before backfill.
+- **Renames and type changes** are breaking: coordinate **API + UI + any seed/scripts** in the same change set, or use a deliberate multi-step migration strategy.
+- Avoid gratuitous enum churn; if you add enum values, ensure **API validation** and **TypeScript unions** stay in sync.
+
+## Deploy and local workflow
+
+- Production builds run `scripts/ensure-db-schema.mjs`, which uses **`prisma db push`** when `DATABASE_URL` is Postgres (e.g. Neon on Vercel). Schema must remain **push-compatible** with the live database or builds/deploys fail.
+- After editing `schema.prisma`, run **`npx prisma generate`** locally so types match; CI/build also runs generate where configured.
+- If you introduce a migration-based workflow later, document it in-repo and align with this script—do not leave two conflicting sources of truth.
+
+## API layer expectations
+
+- **Unique constraints**: handle `P2002` (or equivalent) with **stable error codes** and user-facing i18n messages, not raw DB errors.
+- List endpoints that grow: consider **`take` / cursor** limits to protect Neon and serverless timeouts.

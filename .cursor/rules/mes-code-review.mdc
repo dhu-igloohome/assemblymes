@@ -1,0 +1,36 @@
+---
+description: PR-style self-check, diff hygiene, and security/UX gates for assemblymes
+globs: "**/*.{ts,tsx,js,jsx,mjs}"
+alwaysApply: false
+---
+
+# MES Code Review Discipline (assemblymes)
+
+Use this as a **pre-merge / pre-push** mindset. It does not replace `delivery-discipline.mdc` or `vercel-deploy-discipline.mdc`; it adds **reviewer-style gates** on top of them.
+
+## Scope and diff hygiene
+
+- Every changed line should map to the **current user goal**. Avoid drive-by refactors, renames, or formatting sweeps outside that scope.
+- Prefer **small, reviewable diffs** over large “while we’re here” bundles.
+- Do not remove existing comments or unrelated logic unless the task explicitly requires it.
+
+## Security and auth
+
+- Assume **API routes under `src/proxy.ts` protection** are the contract: new sensitive endpoints must be classified correctly (protected vs public).
+- Session and cookies: follow existing `AUTH_COOKIE_NAME` / `parseSessionCookieValue` patterns; do not invent parallel auth without an explicit product decision.
+- Never commit secrets, tokens, or real production URLs in code or examples.
+
+## Data and errors
+
+- Prefer **stable error codes** in JSON APIs and **translated messages** in UI (`messages/en.json`, `messages/zh.json`). Avoid exposing raw stack traces or internal Prisma messages to end users.
+- Validate inputs on the server; client validation is additive, not a substitute.
+
+## UX rules (assemblymes)
+
+- Any submit/save action must comply with `submission-feedback.mdc`: visible submitting state, success, and clear failure text.
+- User-visible strings that need translation belong in **next-intl** message files, not hard-coded in components (except truly dev-only diagnostics).
+
+## Quality bar before handoff
+
+- After code changes: run **lint and production build** as required by project rules; fix or report blockers with logs and root cause.
+- For behavior changes: state **what was verified** (which page/API path), not only “build passed.”
