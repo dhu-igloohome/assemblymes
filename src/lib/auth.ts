@@ -48,9 +48,6 @@ function base64UrlDecode(value: string) {
 
 function safeEqual(a: string, b: string) {
   if (a.length !== b.length) return false;
-  if (typeof Buffer !== 'undefined') {
-    return crypto.timingSafeEqual(Buffer.from(a), Buffer.from(b));
-  }
   let mismatch = 0;
   for (let i = 0; i < a.length; i += 1) mismatch |= a.charCodeAt(i) ^ b.charCodeAt(i);
   return mismatch === 0;
@@ -133,3 +130,4 @@ export function isValidSuperAdmin(username: string, password: string) {
     (admin) => admin.username === username && admin.password === password
   );
 }
+

@@ -23,7 +23,9 @@ Open [http://localhost:3000](http://localhost:3000).
    - `AUTH_SECRET`
    - `SUPER_ADMINS_JSON`
    for Production (and Preview if needed).
-3. Connect the Git repository and deploy; the build runs `npm run build`, which executes `scripts/ensure-db-schema.mjs` to `prisma db push` when `DATABASE_URL` is Postgres, then `next build`.
+3. Connect the Git repository and deploy. Build runs `npm run build`, which executes `scripts/ensure-db-schema.mjs`.
+   - Safe default: build skips `prisma db push`.
+   - Optional: set `ALLOW_DB_PUSH_ON_BUILD=true` only in controlled environments.
 
 Ensure the database allows SSL if your provider requires it (often `?sslmode=require` in the URL).
 
@@ -32,7 +34,7 @@ Ensure the database allows SSL if your provider requires it (often `?sslmode=req
 | Script        | Purpose                                      |
 |---------------|----------------------------------------------|
 | `npm run dev` | Next.js dev server                           |
-| `npm run build` | Production build + schema sync (on Vercel) |
+| `npm run build` | Production build (+ Prisma generate)       |
 | `npm run start` | Start production server locally          |
 | `npm run lint`  | ESLint                                   |
 
