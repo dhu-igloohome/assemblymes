@@ -58,7 +58,12 @@ export default function LoginForm() {
             <CardTitle className="text-2xl font-bold tracking-tight text-blue-600">
               AssemblyMES
             </CardTitle>
-            <CardDescription>{t('title')}</CardDescription>
+            <CardDescription className="space-y-2">
+              <span className="block">{t('title')}</span>
+              <span className="block text-xs font-normal text-muted-foreground leading-snug">
+                {t('tagline')}
+              </span>
+            </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">

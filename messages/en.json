@@ -1,10 +1,11 @@
 {
   "Index": {
     "title": "Welcome to AssemblyMES",
-    "description": "AssemblyMES initialized successfully!"
+    "description": "Free production helpers for small assembly shops (not a commercial product)."
   },
   "Login": {
     "title": "Sign In",
+    "tagline": "Free tooling for small assembly shops. Not sold commercially; no public registration.",
     "username_placeholder": "Username",
     "password_placeholder": "Password",
     "submit_button": "Login",
@@ -422,9 +423,6 @@
     "pause_reason_required": "Pause reason is required.",
     "completed_qty_invalid": "Completed quantity must be zero or positive integer.",
     "completed_qty_exceeds_planned": "Completed quantity cannot exceed planned quantity.",
-    "subscription_read_only": "Subscription expired. This tenant is currently read-only.",
-    "subscription_active_banner": "Subscription active, {days} days left.",
-    "subscription_read_only_banner": "Subscription expired. Work order writes are disabled until renewal.",
     "plan_date_invalid": "Invalid plan date.",
     "work_order_not_found": "Work order not found."
   }

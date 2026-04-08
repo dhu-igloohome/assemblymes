@@ -5,8 +5,6 @@ import {
   createSessionCookieValue,
   isValidSuperAdmin,
 } from '@/lib/auth';
-import { ensureTenantForUser } from '@/lib/tenant-subscription';
-
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -27,8 +25,6 @@ export async function POST(request: Request) {
         { status: 401 }
       );
     }
-
-    await ensureTenantForUser(username);
 
     const response = NextResponse.json({
       success: true,

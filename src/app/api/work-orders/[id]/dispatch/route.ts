@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { getCurrentTenantSubscription } from '@/lib/tenant-subscription';
 
 type DispatchAction = 'ASSIGN' | 'START' | 'PAUSE' | 'COMPLETE';
 
@@ -13,11 +12,6 @@ export async function POST(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const sub = await getCurrentTenantSubscription();
-    if (sub?.readOnly) {
-      return NextResponse.json({ error: 'SUBSCRIPTION_READ_ONLY' }, { status: 403 });
-    }
-
     const { id } = await context.params;
     if (!id) {
       return NextResponse.json({ error: 'ID_REQUIRED' }, { status: 400 });
