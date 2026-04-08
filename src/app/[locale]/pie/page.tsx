@@ -22,6 +22,7 @@ export default async function PieHomePage({
     { titleKey: 'module_procurement', descKey: 'procurement_description', href: '/pie/procurement' },
     { titleKey: 'module_cost', descKey: 'cost_description', href: '/pie/cost' },
     { titleKey: 'module_planning', descKey: 'planning_description', href: '/pie/planning' },
+    { titleKey: 'module_o2c', descKey: 'o2c_description', href: '/pie/o2c' },
   ] as const;
 
   return (
