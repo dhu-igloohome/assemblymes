@@ -82,7 +82,7 @@ function BomTree({
       {nodes.map((node) => (
         <div key={node.id} className="space-y-2">
           <div
-            className="rounded-md border bg-white p-3 text-sm text-gray-700"
+            className="rounded-xl border border-slate-200 bg-white shadow-sm bg-white p-3 text-sm text-gray-700"
             style={{ marginLeft: `${level * 20}px` }}
           >
             <div className="font-medium">{`${node.componentItemCode} - ${node.componentItemName}`}</div>
@@ -375,9 +375,9 @@ export default function BomsPage() {
   };
 
   return (
-    <div className="p-8 max-w-6xl mx-auto space-y-6">
+    <div className="mx-auto max-w-6xl space-y-6 p-8">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
+        <h1 className="text-2xl font-bold text-slate-900">{t('title')}</h1>
         <Button onClick={handleSave} disabled={!parentItemCode}>{t('save')}</Button>
       </div>
 
@@ -388,7 +388,7 @@ export default function BomsPage() {
         <p className="text-sm text-red-600">{submitError}</p>
       ) : null}
 
-      <div className="border rounded-md p-4 space-y-4">
+      <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-4 space-y-4">
         <div className="flex justify-between items-center">
           <h2 className="text-lg font-semibold text-gray-900">{t('existing_boms')}</h2>
         </div>
@@ -519,7 +519,7 @@ export default function BomsPage() {
 
       {parentItemCode && (
         <div className="space-y-6">
-          <div className="border rounded-md p-4 space-y-4">
+          <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-4 space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-lg font-semibold text-gray-700">{t('version_panel')}</h2>
               <Button
@@ -546,7 +546,7 @@ export default function BomsPage() {
             </div>
           </div>
 
-          <div className="border rounded-md p-4 space-y-4">
+          <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-4 space-y-4">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <h2 className="text-lg font-semibold text-gray-700">{t('diff_panel')}</h2>
               <div className="w-full sm:w-64">
@@ -614,7 +614,7 @@ export default function BomsPage() {
             )}
           </div>
 
-          <div className="border rounded-md p-4 space-y-4">
+          <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-4 space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-lg font-semibold text-gray-700">{t('line_panel')}</h2>
               <Button variant="outline" onClick={handleAddLine}>{t('add_component')}</Button>
@@ -718,7 +718,7 @@ export default function BomsPage() {
             </Table>
           </div>
 
-          <div className="border rounded-md p-4 space-y-4">
+          <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-4 space-y-4">
             <div className="flex justify-between items-center">
               <h2 className="text-lg font-semibold text-gray-700">{t('tree_panel')}</h2>
             </div>

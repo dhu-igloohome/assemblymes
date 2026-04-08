@@ -11,9 +11,14 @@ function sub(a: Prisma.Decimal, b: Prisma.Decimal) {
   return a.minus(b);
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const batchNo = parseOptionalString(searchParams.get('batchNo'));
     const rows = await prisma.inventoryTxn.findMany({
+      where: {
+        ...(batchNo ? { batchNo } : {}),
+      },
       include: {
         item: { select: { itemCode: true, itemName: true } },
         fromLocation: { include: { warehouse: true } },
@@ -45,6 +50,7 @@ export async function POST(request: Request) {
     const refNo = parseOptionalString(body.refNo);
     const operator = parseOptionalString(body.operator);
     const remarks = parseOptionalString(body.remarks);
+    const batchNo = parseOptionalString(body.batchNo);
     const qty = parsePositiveDecimal(body.quantity);
 
     if (!isInventoryTxnType(txnType)) {
@@ -141,6 +147,7 @@ export async function POST(request: Request) {
           txnType,
           itemCode,
           quantity: qty,
+          batchNo: batchNo || null,
           fromLocationId: fromLocationId || null,
           toLocationId: toLocationId || null,
           refType: refType || null,

@@ -3,6 +3,37 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { parseOptionalString, parsePositiveDecimal } from '@/lib/inventory';
 
+export async function GET(
+  _request: Request,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await context.params;
+    if (!id) {
+      return NextResponse.json({ error: 'ID_REQUIRED' }, { status: 400 });
+    }
+    const rows = await prisma.workOrderMaterialTxn.findMany({
+      where: { workOrderId: id },
+      include: {
+        location: {
+          include: { warehouse: true },
+        },
+      },
+      orderBy: [{ createdAt: 'desc' }],
+      take: 200,
+    });
+    return NextResponse.json(rows);
+  } catch (error: unknown) {
+    return NextResponse.json(
+      {
+        error: 'WORK_ORDER_MATERIAL_LOAD_FAILED',
+        details: error instanceof Error ? error.message : String(error),
+      },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(
   request: Request,
   context: { params: Promise<{ id: string }> }
@@ -17,6 +48,7 @@ export async function POST(
     const mode = parseOptionalString(body.mode).toUpperCase();
     const itemCode = parseOptionalString(body.itemCode);
     const locationId = parseOptionalString(body.locationId);
+    const batchNo = parseOptionalString(body.batchNo);
     const operator = parseOptionalString(body.operator);
     const remarks = parseOptionalString(body.remarks);
     const qty = parsePositiveDecimal(body.quantity);
@@ -84,15 +116,30 @@ export async function POST(
         });
       }
 
-      return tx.inventoryTxn.create({
+      const inventoryTxn = await tx.inventoryTxn.create({
         data: {
           txnType: mode === 'ISSUE' ? 'OUT' : 'IN',
           itemCode,
           quantity: qty,
+          batchNo: batchNo || null,
           fromLocationId: mode === 'ISSUE' ? locationId : null,
           toLocationId: mode === 'RETURN' ? locationId : null,
           refType: 'WORK_ORDER',
           refNo: workOrder.workOrderNo,
+          operator: operator || null,
+          remarks: remarks || null,
+        },
+      });
+
+      return tx.workOrderMaterialTxn.create({
+        data: {
+          workOrderId: workOrder.id,
+          inventoryTxnId: inventoryTxn.id,
+          mode,
+          itemCode,
+          locationId,
+          quantity: qty,
+          batchNo: batchNo || null,
           operator: operator || null,
           remarks: remarks || null,
         },

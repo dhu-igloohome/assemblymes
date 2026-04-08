@@ -388,7 +388,7 @@ export default function ExecutionPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-8">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
+        <h1 className="text-2xl font-bold text-slate-900">{t('title')}</h1>
         <div className="flex gap-2">
           <Button type="button" variant="outline" onClick={() => setUploadDialogOpen(true)}>
             {t('upload_trace')}
@@ -564,7 +564,7 @@ export default function ExecutionPage() {
               ) : null}
             </div>
             <textarea
-              className="min-h-36 w-full rounded-md border px-3 py-2 text-sm outline-none focus:border-blue-500 disabled:bg-gray-50"
+              className="min-h-36 w-full rounded-xl border border-slate-200 bg-white shadow-sm px-3 py-2 text-sm outline-none focus:border-blue-500 disabled:bg-gray-50"
               placeholder={t('trace_records_text')}
               value={uploadRecordsText}
               disabled={Boolean(uploadFileRecords && uploadFileRecords.length > 0)}
@@ -589,7 +589,7 @@ export default function ExecutionPage() {
       {listMessage ? <p className="text-sm text-green-600">{listMessage}</p> : null}
       {listError ? <p className="text-sm text-red-600">{listError}</p> : null}
 
-      <div className="rounded-md border">
+      <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
         {isLoading ? (
           <p className="p-6 text-sm text-gray-500">{t('loading')}</p>
         ) : (
@@ -665,7 +665,7 @@ export default function ExecutionPage() {
         )}
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b bg-gray-50 px-4 py-3 text-sm font-medium text-gray-700">
           {t('trace_upload_list')}
         </div>
@@ -709,4 +709,5 @@ export default function ExecutionPage() {
     </div>
   );
 }
+
 

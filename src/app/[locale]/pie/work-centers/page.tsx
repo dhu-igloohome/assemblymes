@@ -193,7 +193,7 @@ export default function WorkCentersPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-6 p-8">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
+        <h1 className="text-2xl font-bold text-slate-900">{t('title')}</h1>
         <Button type="button" onClick={openCreate}>
           {t('add')}
         </Button>
@@ -276,7 +276,7 @@ export default function WorkCentersPage() {
       {listMessage ? <p className="text-sm text-green-600">{listMessage}</p> : null}
       {listError ? <p className="text-sm text-red-600">{listError}</p> : null}
 
-      <div className="rounded-md border">
+      <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
         {isLoading ? (
           <p className="p-6 text-sm text-gray-500">{t('loading')}</p>
         ) : (
@@ -327,3 +327,4 @@ export default function WorkCentersPage() {
     </div>
   );
 }
+

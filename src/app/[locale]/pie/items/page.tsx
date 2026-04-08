@@ -603,7 +603,7 @@ export default function ItemsPage() {
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-8">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
+        <h1 className="text-2xl font-bold text-slate-900">{t('title')}</h1>
         <Dialog
           open={isDialogOpen}
           onOpenChange={(open) => {
@@ -960,7 +960,7 @@ export default function ItemsPage() {
             ) : null}
             {!isLoadingReferences && !referenceError && referenceDetails ? (
               <>
-                <div className="rounded-md border p-4">
+                <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-4">
                   <h3 className="font-medium text-gray-900">{t('reference_bom_parent_section')}</h3>
                   <div className="mt-2 space-y-2 text-xs text-gray-700">
                     {referenceDetails.bomParents.length === 0 ? (
@@ -989,7 +989,7 @@ export default function ItemsPage() {
                   </div>
                 </div>
 
-                <div className="rounded-md border p-4">
+                <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-4">
                   <h3 className="font-medium text-gray-900">{t('reference_bom_component_section')}</h3>
                   <div className="mt-2 space-y-2 text-xs text-gray-700">
                     {referenceDetails.bomComponents.length === 0 ? (
@@ -1019,7 +1019,7 @@ export default function ItemsPage() {
                   </div>
                 </div>
 
-                <div className="rounded-md border p-4">
+                <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-4">
                   <h3 className="font-medium text-gray-900">{t('reference_routing_section')}</h3>
                   <div className="mt-2 space-y-2 text-xs text-gray-700">
                     {referenceDetails.routings.length === 0 ? (
@@ -1061,7 +1061,7 @@ export default function ItemsPage() {
         </DialogContent>
       </Dialog>
 
-      <div className="grid gap-3 rounded-md border p-4 md:grid-cols-4">
+      <div className="grid gap-3 rounded-xl border border-slate-200 bg-white shadow-sm p-4 md:grid-cols-4">
         <Input
           placeholder={t('search_placeholder')}
           value={filters.keyword}
@@ -1128,7 +1128,7 @@ export default function ItemsPage() {
         </Select>
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
         <Table>
           <TableHeader>
             <TableRow>

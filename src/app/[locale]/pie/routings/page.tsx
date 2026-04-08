@@ -260,7 +260,7 @@ export default function RoutingsPage() {
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
+        <h1 className="text-2xl font-bold text-slate-900">{t('title')}</h1>
         <Button onClick={() => void handleSave()} disabled={!itemCode || isSubmitting}>
           {isSubmitting ? t('submitting') : t('save')}
         </Button>
@@ -269,7 +269,7 @@ export default function RoutingsPage() {
       {submitMessage ? <p className="text-sm text-green-600">{submitMessage}</p> : null}
       {submitError ? <p className="text-sm text-red-600">{submitError}</p> : null}
 
-      <div className="space-y-4 rounded-md border p-4">
+      <div className="space-y-4 rounded-xl border border-slate-200 bg-white shadow-sm p-4">
         <div className="flex justify-between">
           <h2 className="text-lg font-semibold text-gray-900">{t('existing_routings')}</h2>
         </div>
@@ -374,7 +374,7 @@ export default function RoutingsPage() {
       </div>
 
       {itemCode && (
-        <div className="space-y-4 rounded-md border p-4">
+        <div className="space-y-4 rounded-xl border border-slate-200 bg-white shadow-sm p-4">
           <div className="flex justify-between">
             <h2 className="text-lg font-semibold text-gray-900">{t('operations_panel')}</h2>
             <Button variant="outline" onClick={handleAddOperation}>{t('add_operation')}</Button>

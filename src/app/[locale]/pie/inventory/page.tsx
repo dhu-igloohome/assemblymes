@@ -30,7 +30,26 @@ interface TxnRow {
   quantity: string;
   refType: string | null;
   refNo: string | null;
+  batchNo: string | null;
   createdAt: string;
+}
+
+interface WarningRow {
+  itemCode: string;
+  itemName: string;
+  safetyStock: number;
+  onHand: number;
+  shortage: number;
+}
+
+interface WoMaterialRow {
+  id: string;
+  mode: 'ISSUE' | 'RETURN';
+  itemCode: string;
+  quantity: string;
+  batchNo: string | null;
+  createdAt: string;
+  location: { locationCode: string; warehouse: { warehouseCode: string } };
 }
 
 export default function InventoryPage() {
@@ -38,6 +57,8 @@ export default function InventoryPage() {
   const [warehouses, setWarehouses] = useState<WarehouseRow[]>([]);
   const [balances, setBalances] = useState<BalanceRow[]>([]);
   const [txns, setTxns] = useState<TxnRow[]>([]);
+  const [warnings, setWarnings] = useState<WarningRow[]>([]);
+  const [woRows, setWoRows] = useState<WoMaterialRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState('');
@@ -57,6 +78,7 @@ export default function InventoryPage() {
   const [remarks, setRemarks] = useState('');
   const [workOrderId, setWorkOrderId] = useState('');
   const [materialMode, setMaterialMode] = useState<'ISSUE' | 'RETURN'>('ISSUE');
+  const [batchNo, setBatchNo] = useState('');
 
   const locationOptions = useMemo(
     () =>
@@ -85,6 +107,12 @@ export default function InventoryPage() {
       setWarehouses((await wRes.json()) as WarehouseRow[]);
       setBalances((await bRes.json()) as BalanceRow[]);
       setTxns((await tRes.json()) as TxnRow[]);
+      const warnRes = await fetch('/api/inventory/warnings', { cache: 'no-store' });
+      if (warnRes.ok) {
+        setWarnings((await warnRes.json()) as WarningRow[]);
+      } else {
+        setWarnings([]);
+      }
     } catch {
       setError(t('load_failed'));
     } finally {
@@ -160,6 +188,7 @@ export default function InventoryPage() {
           txnType,
           itemCode: itemCode.trim(),
           quantity: qty.trim(),
+          batchNo: batchNo.trim(),
           fromLocationId,
           toLocationId,
           operator: operator.trim(),
@@ -173,6 +202,7 @@ export default function InventoryPage() {
       }
       setMessage(t('txn_create_success'));
       setQty('');
+      setBatchNo('');
       setRemarks('');
       await loadData();
     } catch {
@@ -195,6 +225,7 @@ export default function InventoryPage() {
           itemCode: itemCode.trim(),
           locationId: materialMode === 'ISSUE' ? fromLocationId : toLocationId,
           quantity: qty.trim(),
+          batchNo: batchNo.trim(),
           operator: operator.trim(),
           remarks: remarks.trim(),
         }),
@@ -205,6 +236,14 @@ export default function InventoryPage() {
         return;
       }
       setMessage(t('material_txn_success'));
+      if (workOrderId.trim()) {
+        const hisRes = await fetch(`/api/inventory/work-orders/${workOrderId.trim()}/materials`, {
+          cache: 'no-store',
+        });
+        if (hisRes.ok) {
+          setWoRows((await hisRes.json()) as WoMaterialRow[]);
+        }
+      }
       await loadData();
     } catch {
       setError(t('save_failed'));
@@ -215,10 +254,10 @@ export default function InventoryPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-8">
-      <h1 className="text-2xl font-bold text-gray-900">{t('title')}</h1>
+      <h1 className="text-2xl font-bold text-slate-900">{t('title')}</h1>
 
-      <section className="rounded-xl border bg-white p-4">
-        <h2 className="text-base font-semibold text-gray-900">{t('warehouse_section')}</h2>
+      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <h2 className="text-base font-semibold text-slate-900">{t('warehouse_section')}</h2>
         <div className="mt-3 grid gap-3 md:grid-cols-4">
           <Input placeholder={t('warehouse_code')} value={warehouseCode} onChange={(e) => setWarehouseCode(e.target.value.toUpperCase())} />
           <Input placeholder={t('warehouse_name')} value={warehouseName} onChange={(e) => setWarehouseName(e.target.value)} />
@@ -230,8 +269,8 @@ export default function InventoryPage() {
         </Button>
       </section>
 
-      <section className="rounded-xl border bg-white p-4">
-        <h2 className="text-base font-semibold text-gray-900">{t('txn_section')}</h2>
+      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <h2 className="text-base font-semibold text-slate-900">{t('txn_section')}</h2>
         <div className="mt-3 grid gap-3 md:grid-cols-4">
           <Select value={txnType} onValueChange={(v) => setTxnType((v || 'IN') as TxnType)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
@@ -244,6 +283,7 @@ export default function InventoryPage() {
           </Select>
           <Input placeholder={t('sku_item_code')} value={itemCode} onChange={(e) => setItemCode(e.target.value)} />
           <Input placeholder={t('quantity')} value={qty} onChange={(e) => setQty(e.target.value)} />
+          <Input placeholder={t('batch_no_optional')} value={batchNo} onChange={(e) => setBatchNo(e.target.value)} />
           <Input placeholder={t('operator_optional')} value={operator} onChange={(e) => setOperator(e.target.value)} />
           <Select value={fromLocationId || undefined} onValueChange={(v) => setFromLocationId(v || '')}>
             <SelectTrigger><SelectValue placeholder={t('from_location')} /></SelectTrigger>
@@ -264,8 +304,8 @@ export default function InventoryPage() {
         </Button>
       </section>
 
-      <section className="rounded-xl border bg-white p-4">
-        <h2 className="text-base font-semibold text-gray-900">{t('work_order_material_section')}</h2>
+      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <h2 className="text-base font-semibold text-slate-900">{t('work_order_material_section')}</h2>
         <div className="mt-3 grid gap-3 md:grid-cols-5">
           <Input placeholder={t('work_order_id')} value={workOrderId} onChange={(e) => setWorkOrderId(e.target.value)} />
           <Select value={materialMode} onValueChange={(v) => setMaterialMode((v || 'ISSUE') as 'ISSUE' | 'RETURN')}>
@@ -277,6 +317,7 @@ export default function InventoryPage() {
           </Select>
           <Input placeholder={t('sku_item_code')} value={itemCode} onChange={(e) => setItemCode(e.target.value)} />
           <Input placeholder={t('quantity')} value={qty} onChange={(e) => setQty(e.target.value)} />
+          <Input placeholder={t('batch_no_optional')} value={batchNo} onChange={(e) => setBatchNo(e.target.value)} />
           <Select
             value={(materialMode === 'ISSUE' ? fromLocationId : toLocationId) || undefined}
             onValueChange={(v) => (materialMode === 'ISSUE' ? setFromLocationId(v || '') : setToLocationId(v || ''))}
@@ -296,7 +337,37 @@ export default function InventoryPage() {
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
       <section className="rounded-xl border bg-white p-4">
-        <h2 className="text-base font-semibold text-gray-900">{t('balances')}</h2>
+        <h2 className="text-base font-semibold text-gray-900">{t('warnings')}</h2>
+        {warnings.length === 0 ? (
+          <p className="p-4 text-sm text-gray-500">{t('no_warnings')}</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t('sku_item_code')}</TableHead>
+                <TableHead>{t('item_name')}</TableHead>
+                <TableHead>{t('safety_stock')}</TableHead>
+                <TableHead>{t('on_hand')}</TableHead>
+                <TableHead>{t('shortage')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {warnings.map((row) => (
+                <TableRow key={row.itemCode}>
+                  <TableCell>{row.itemCode}</TableCell>
+                  <TableCell>{row.itemName}</TableCell>
+                  <TableCell>{row.safetyStock}</TableCell>
+                  <TableCell>{row.onHand}</TableCell>
+                  <TableCell className="text-red-600">{row.shortage}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </section>
+
+      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <h2 className="text-base font-semibold text-slate-900">{t('balances')}</h2>
         {isLoading ? (
           <p className="p-4 text-sm text-gray-500">{t('loading')}</p>
         ) : (
@@ -325,8 +396,8 @@ export default function InventoryPage() {
         )}
       </section>
 
-      <section className="rounded-xl border bg-white p-4">
-        <h2 className="text-base font-semibold text-gray-900">{t('txns')}</h2>
+      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+        <h2 className="text-base font-semibold text-slate-900">{t('txns')}</h2>
         {isLoading ? (
           <p className="p-4 text-sm text-gray-500">{t('loading')}</p>
         ) : (
@@ -336,6 +407,7 @@ export default function InventoryPage() {
                 <TableHead>{t('txn_type')}</TableHead>
                 <TableHead>{t('sku_item_code')}</TableHead>
                 <TableHead>{t('quantity')}</TableHead>
+                <TableHead>{t('batch_no_optional')}</TableHead>
                 <TableHead>{t('reference')}</TableHead>
                 <TableHead>{t('time')}</TableHead>
               </TableRow>
@@ -346,7 +418,40 @@ export default function InventoryPage() {
                   <TableCell>{row.txnType}</TableCell>
                   <TableCell>{row.itemCode}</TableCell>
                   <TableCell>{row.quantity}</TableCell>
+                  <TableCell>{row.batchNo || '—'}</TableCell>
                   <TableCell>{row.refType && row.refNo ? `${row.refType}:${row.refNo}` : '—'}</TableCell>
+                  <TableCell>{new Date(row.createdAt).toLocaleString()}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </section>
+
+      <section className="rounded-xl border bg-white p-4">
+        <h2 className="text-base font-semibold text-gray-900">{t('work_order_material_history')}</h2>
+        {woRows.length === 0 ? (
+          <p className="p-4 text-sm text-gray-500">{t('work_order_material_history_hint')}</p>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t('mode')}</TableHead>
+                <TableHead>{t('sku_item_code')}</TableHead>
+                <TableHead>{t('quantity')}</TableHead>
+                <TableHead>{t('batch_no_optional')}</TableHead>
+                <TableHead>{t('location')}</TableHead>
+                <TableHead>{t('time')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {woRows.map((row) => (
+                <TableRow key={row.id}>
+                  <TableCell>{row.mode}</TableCell>
+                  <TableCell>{row.itemCode}</TableCell>
+                  <TableCell>{row.quantity}</TableCell>
+                  <TableCell>{row.batchNo || '—'}</TableCell>
+                  <TableCell>{row.location.warehouse.warehouseCode}/{row.location.locationCode}</TableCell>
                   <TableCell>{new Date(row.createdAt).toLocaleString()}</TableCell>
                 </TableRow>
               ))}
