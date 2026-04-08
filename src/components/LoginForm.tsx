@@ -53,7 +53,7 @@ export default function LoginForm() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-slate-950 p-4">
       <div className="w-full max-w-md">
         <LanguageSwitcher />
-        <Card>
+        <Card className="gap-0 bg-slate-900 py-0 ring-slate-800">
           <CardHeader className="space-y-1 rounded-t-xl border-b border-slate-800 bg-slate-900 text-center">
             <CardTitle className="text-2xl font-bold tracking-tight text-indigo-300">
               AssemblyMES
@@ -93,7 +93,7 @@ export default function LoginForm() {
                 <p className="text-sm text-red-600">{errorMessage}</p>
               ) : null}
             </CardContent>
-            <CardFooter className="bg-slate-900">
+            <CardFooter className="border-t-0 bg-slate-900">
               <Button
                 type="submit"
                 className="h-12 w-full bg-indigo-600 text-base font-semibold text-white hover:bg-indigo-500"
