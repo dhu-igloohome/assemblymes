@@ -1,10 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import {
   Boxes,
-  ChevronDown,
   ClipboardList,
   Cpu,
   Factory,
@@ -17,7 +16,7 @@ import {
 import { usePathname, Link } from '@/i18n/routing';
 import { Button } from '@/components/ui/button';
 
-const pieChildNavItems = [
+const masterDataNavItems = [
   {
     href: '/pie/items',
     translationKey: 'items',
@@ -43,6 +42,9 @@ const pieChildNavItems = [
     translationKey: 'employees',
     icon: Users,
   },
+] as const;
+
+const executionNavItems = [
   {
     href: '/pie/execution',
     translationKey: 'execution',
@@ -53,6 +55,9 @@ const pieChildNavItems = [
     translationKey: 'work_orders',
     icon: FileText,
   },
+] as const;
+
+const supplyQualityNavItems = [
   {
     href: '/pie/inventory',
     translationKey: 'inventory',
@@ -76,19 +81,10 @@ interface PieSidebarProps {
 export default function PieSidebar({ locale, currentUser }: PieSidebarProps) {
   const t = useTranslations('Pie');
   const pathname = usePathname();
-  const isPieActive = pathname === '/pie' || pathname.startsWith('/pie/');
-  const [isNavOpen, setIsNavOpen] = useState(isPieActive);
-  const roleLabel =
-    currentUser?.role === 'super_admin' ? t('role_super_admin') : currentUser?.role || '—';
-
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState('');
-
-  useEffect(() => {
-    if (isPieActive) {
-      setIsNavOpen(true);
-    }
-  }, [isPieActive]);
+  const roleLabel =
+    currentUser?.role === 'super_admin' ? t('role_super_admin') : currentUser?.role || '—';
 
   const handleSignOut = async () => {
     setSignOutError('');
@@ -120,61 +116,93 @@ export default function PieSidebar({ locale, currentUser }: PieSidebarProps) {
       </div>
 
       <nav className="flex flex-1 flex-col gap-2 px-3 py-4">
-        <div className="rounded-lg border border-slate-800 bg-slate-900/70">
-          <button
-            type="button"
-            onClick={() => setIsNavOpen((prev) => !prev)}
+        <div className="rounded-lg border border-slate-800 bg-slate-900/70 px-2 py-2">
+          <Link
+            href="/pie"
             className={[
-              'flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm transition-colors',
-              isPieActive
-                ? 'bg-indigo-500/15 font-medium text-indigo-200'
-                : 'text-slate-200 hover:bg-slate-800 hover:text-white',
+              'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
+              pathname === '/pie'
+                ? 'bg-indigo-500/20 font-medium text-indigo-100'
+                : 'text-slate-300 hover:bg-slate-800 hover:text-white',
             ].join(' ')}
           >
-            <span className="flex items-center gap-3">
-              <Boxes className="size-4" />
-              <span>{t('module_title')}</span>
-            </span>
-            <ChevronDown
-              className={['size-4 transition-transform', isNavOpen ? 'rotate-180' : ''].join(' ')}
-            />
-          </button>
+            <Boxes className="size-4" />
+            <span>{t('overview')}</span>
+          </Link>
 
-          <div className={['overflow-hidden transition-all duration-200', isNavOpen ? 'max-h-96' : 'max-h-0'].join(' ')}>
-            <div className="space-y-1 px-2 pb-2">
-              <Link
-                href="/pie"
-                className={[
-                  'ml-4 flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
-                  pathname === '/pie'
-                    ? 'bg-indigo-500/20 font-medium text-indigo-100'
-                    : 'text-slate-300 hover:bg-slate-800 hover:text-white',
-                ].join(' ')}
-              >
-                <Boxes className="size-4" />
-                <span>{t('overview')}</span>
-              </Link>
-              {pieChildNavItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+          <div className="mt-3 px-3 text-[11px] font-medium uppercase tracking-[0.16em] text-slate-500">
+            {t('section_master_data')}
+          </div>
+          <div className="mt-1 space-y-1">
+            {masterDataNavItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={[
+                    'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
+                    isActive
+                      ? 'bg-indigo-500/20 font-medium text-indigo-100'
+                      : 'text-slate-300 hover:bg-slate-800 hover:text-white',
+                  ].join(' ')}
+                >
+                  <Icon className="size-4" />
+                  <span>{t(item.translationKey)}</span>
+                </Link>
+              );
+            })}
+          </div>
 
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={[
-                      'ml-4 flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
-                      isActive
-                        ? 'bg-indigo-500/20 font-medium text-indigo-100'
-                        : 'text-slate-300 hover:bg-slate-800 hover:text-white',
-                    ].join(' ')}
-                  >
-                    <Icon className="size-4" />
-                    <span>{t(item.translationKey)}</span>
-                  </Link>
-                );
-              })}
-            </div>
+          <div className="mt-3 px-3 text-[11px] font-medium uppercase tracking-[0.16em] text-slate-500">
+            {t('section_execution')}
+          </div>
+          <div className="mt-1 space-y-1">
+            {executionNavItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={[
+                    'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
+                    isActive
+                      ? 'bg-indigo-500/20 font-medium text-indigo-100'
+                      : 'text-slate-300 hover:bg-slate-800 hover:text-white',
+                  ].join(' ')}
+                >
+                  <Icon className="size-4" />
+                  <span>{t(item.translationKey)}</span>
+                </Link>
+              );
+            })}
+          </div>
+
+          <div className="mt-3 px-3 text-[11px] font-medium uppercase tracking-[0.16em] text-slate-500">
+            {t('section_supply_quality')}
+          </div>
+          <div className="mt-1 space-y-1">
+            {supplyQualityNavItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={[
+                    'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors',
+                    isActive
+                      ? 'bg-indigo-500/20 font-medium text-indigo-100'
+                      : 'text-slate-300 hover:bg-slate-800 hover:text-white',
+                  ].join(' ')}
+                >
+                  <Icon className="size-4" />
+                  <span>{t(item.translationKey)}</span>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </nav>
