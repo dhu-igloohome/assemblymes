@@ -337,8 +337,8 @@
     "range_too_large": "单次最多创建 5000 条执行任务，请缩小范围或分批提交。"
   },
   "Pie": {
-    "module_title": "PIE 工程管理",
-    "module_description": "维护物料、BOM、工艺与产线基础数据",
+    "module_title": "Assembly MES",
+    "module_description": "面向小型组装工厂的免费制造执行系统，覆盖工程、生产、质量、库存、成本与经营闭环。",
     "overview": "PIE 总览",
     "module_pie": "PIE 管理",
     "module_inventory": "库存管理",

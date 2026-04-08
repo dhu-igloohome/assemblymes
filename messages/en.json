@@ -337,8 +337,8 @@
     "range_too_large": "At most 5000 tasks per submit. Narrow the range or split into batches."
   },
   "Pie": {
-    "module_title": "PIE Engineering",
-    "module_description": "Maintain item, BOM, routing, and line master data",
+    "module_title": "Assembly MES",
+    "module_description": "A free MES for small assembly factories covering engineering, execution, quality, inventory, cost, and business loop modules.",
     "overview": "PIE Overview",
     "module_pie": "PIE",
     "module_inventory": "Inventory",
