@@ -113,7 +113,7 @@ export default function PlanningPage() {
                     <TableCell className="text-red-600">{row.shortageQty}</TableCell>
                   </TableRow>
                 ))}
-                {(data?.shortage.length ?? 0) === 0 ? (
+                {(data?.shortage?.length ?? 0) === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="py-8 text-center text-slate-500">
                       {t('empty')}

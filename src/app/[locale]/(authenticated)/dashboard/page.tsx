@@ -91,7 +91,7 @@ export default function GlobalDashboard() {
             <TrendingUp className="size-4 text-indigo-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-slate-900">{data?.recentOrders.length || 0}</div>
+            <div className="text-2xl font-bold text-slate-900">{data?.recentOrders?.length || 0}</div>
             <p className="text-xs text-slate-500 mt-1">{tPie('module_o2c')}</p>
           </CardContent>
         </Card>
@@ -113,7 +113,7 @@ export default function GlobalDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {data?.recentOrders.map((order: any) => (
+              {(data?.recentOrders || []).map((order: any) => (
                 <div key={order.orderNo} className="flex items-center justify-between p-3 rounded-lg border border-slate-100 bg-white hover:bg-slate-50 transition-colors">
                   <div className="space-y-1">
                     <p className="text-sm font-semibold text-slate-900">{order.customerName}</p>
@@ -127,7 +127,7 @@ export default function GlobalDashboard() {
                   </div>
                 </div>
               ))}
-              {(!data?.recentOrders || data.recentOrders.length === 0) && (
+              {(!data?.recentOrders || data.recentOrders?.length === 0) && (
                 <p className="text-center py-6 text-slate-400 text-sm italic">{tPie('empty')}</p>
               )}
             </div>

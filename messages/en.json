@@ -157,6 +157,8 @@
     "role_label": "Role",
     "sign_out": "Sign Out",
     "signing_out": "Signing out...",
-    "sign_out_failed": "Sign out failed"
+    "sign_out_failed": "Sign out failed",
+    "loading": "Loading...",
+    "empty": "No data"
   }
 }
