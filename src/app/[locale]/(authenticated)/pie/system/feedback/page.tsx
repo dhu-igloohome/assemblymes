@@ -28,11 +28,10 @@ export default function VisitorFeedbackPage() {
           const data = await res.json();
           setFeedbacks(data);
         } else {
-          const data = await res.json().catch(() => ({}));
-          setError(`Failed to load feedback: ${data.error || res.statusText} (${res.status})`);
+          setError('Failed to load feedback');
         }
-      } catch (err) {
-        setError(`Failed to load feedback: ${err instanceof Error ? err.message : 'Unknown error'}`);
+      } catch {
+        setError('Failed to load feedback');
       } finally {
         setIsLoading(false);
       }
