@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { autoFinishWorkOrder, autoIssueMaterialsForWorkOrder } from '@/lib/services/sales-order-automation';
+import { AUTH_COOKIE_NAME, parseSessionCookieValue } from '@/lib/auth';
 
 const WORK_ORDER_STATUS_OPTIONS = [
   'PLANNED',
@@ -20,18 +22,35 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const cookie = request.headers.get('cookie');
+    const sessionCookie = cookie?.split('; ').find((c) => c.startsWith(`${AUTH_COOKIE_NAME}=`));
+    const session = parseSessionCookieValue(sessionCookie?.split('=')[1]);
+
+    if (!session) {
+      return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+    }
+
+    if (session.role !== 'SUPER_ADMIN' && session.role !== 'PLANNER' && session.role !== 'PRODUCTION') {
+      return NextResponse.json({ error: 'FORBIDDEN_ROLE' }, { status: 403 });
+    }
+
     const { id } = await context.params;
     if (!id) {
       return NextResponse.json({ error: 'ID_REQUIRED' }, { status: 400 });
     }
     const body = (await request.json()) as Record<string, unknown>;
     const statusRaw = typeof body.status === 'string' ? body.status.trim() : '';
+    const operator = session.employeeName || session.username;
     const notes = typeof body.notes === 'string' ? body.notes.trim() : undefined;
 
     const existing = await prisma.workOrder.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: 'WORK_ORDER_NOT_FOUND' }, { status: 404 });
     }
+    const finishedQtyNum =
+      typeof body.finishedQty === 'number'
+        ? body.finishedQty
+        : Number.parseInt(String(body.finishedQty ?? existing.plannedQty), 10);
 
     const data: { status?: WorkOrderStatus; notes?: string | null } = {};
     if (statusRaw) {
@@ -51,6 +70,13 @@ export async function PATCH(
       where: { id },
       data,
     });
+    if (statusRaw === 'RELEASED') {
+      await autoIssueMaterialsForWorkOrder(id, operator || 'system');
+    }
+    if (statusRaw === 'DONE') {
+      const qty = Number.isInteger(finishedQtyNum) && finishedQtyNum > 0 ? finishedQtyNum : existing.plannedQty;
+      await autoFinishWorkOrder(id, qty, operator || 'system');
+    }
     return NextResponse.json(updated);
   } catch {
     return NextResponse.json({ error: 'WORK_ORDER_UPDATE_FAILED' }, { status: 400 });

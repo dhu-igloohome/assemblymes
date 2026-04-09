@@ -1,47 +1,24 @@
+import { compare } from 'bcryptjs';
+import { prisma } from './prisma';
+
 export const AUTH_COOKIE_NAME = 'assemblymes_session';
 
-export const SUPER_ADMIN_ROLE = 'super_admin' as const;
+export const SUPER_ADMIN_ROLE = 'SUPER_ADMIN' as const;
 
 const SESSION_TTL_SECONDS = 60 * 60 * 12;
 
-interface SuperAdminCredential {
-  username: string;
-  password: string;
-}
-
 export interface SessionUser {
+  userId: string;
   username: string;
   role: string;
+  employeeId?: string;
+  employeeName?: string;
   exp: number;
 }
 
-function getSuperAdmins(): SuperAdminCredential[] {
-  const raw = process.env.SUPER_ADMINS_JSON ?? '[]';
-  try {
-    const parsed = JSON.parse(raw) as Array<Record<string, unknown>>;
-    const fromEnv = parsed
-      .map((entry) => ({
-        username: typeof entry.username === 'string' ? entry.username.trim() : '',
-        password: typeof entry.password === 'string' ? entry.password : '',
-      }))
-      .filter((entry) => Boolean(entry.username && entry.password));
-    if (fromEnv.length > 0) {
-      return fromEnv;
-    }
-  } catch {
-    // ignore parse error and fallback below
-  }
-  // Keep backward compatibility for existing deployments.
-  return [
-    { username: 'david', password: 'david123' },
-    { username: 'shu', password: 'shu123' },
-  ];
-}
-
-export function createSessionCookieValue(user: Pick<SessionUser, 'username' | 'role'>) {
-  const payload = {
-    username: user.username,
-    role: user.role,
+export function createSessionCookieValue(user: Omit<SessionUser, 'exp'>) {
+  const payload: SessionUser = {
+    ...user,
     exp: Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS,
   };
   return Buffer.from(JSON.stringify(payload), 'utf8').toString('base64');
@@ -53,7 +30,7 @@ export function parseSessionCookieValue(value: string | undefined): SessionUser 
   }
   try {
     const payload = JSON.parse(Buffer.from(value, 'base64').toString('utf8')) as SessionUser;
-    if (!payload?.username || !payload?.role || !payload?.exp) {
+    if (!payload?.username || !payload?.role || !payload?.exp || !payload?.userId) {
       return null;
     }
     if (payload.exp <= Math.floor(Date.now() / 1000)) {
@@ -65,10 +42,27 @@ export function parseSessionCookieValue(value: string | undefined): SessionUser 
   }
 }
 
-export async function isValidSuperAdmin(username: string, password: string) {
-  const admins = getSuperAdmins();
-  const matched = admins.find((admin) => admin.username === username);
-  if (!matched) return false;
-  return matched.password === password;
+export async function verifyUserCredentials(username: string, password: string): Promise<Omit<SessionUser, 'exp'> | null> {
+  const user = await prisma.systemUser.findUnique({
+    where: { username },
+    include: { employee: true },
+  });
+
+  if (!user || !user.isActive) {
+    return null;
+  }
+
+  const isValid = await compare(password, user.passwordHash);
+  if (!isValid) {
+    return null;
+  }
+
+  return {
+    userId: user.id,
+    username: user.username,
+    role: user.role,
+    employeeId: user.employee.id,
+    employeeName: user.employee.name,
+  };
 }
 

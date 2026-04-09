@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 
 export async function GET() {
   try {
-    const [orders, invoices, payments, orderCosts] = await Promise.all([
+    const [orders, invoices, payments, orderCosts, shipments] = await Promise.all([
       prisma.salesOrder.findMany({
         select: {
           id: true,
@@ -42,6 +42,19 @@ export async function GET() {
         where: { workOrderId: { not: null } },
         _sum: { amount: true },
       }),
+      prisma.shipment.findMany({
+        select: {
+          id: true,
+          shipmentNo: true,
+          salesOrderId: true,
+          shippedQty: true,
+          shippedAt: true,
+          logisticsNo: true,
+          warehouseCode: true,
+        },
+        orderBy: [{ shippedAt: 'desc' }],
+        take: 500,
+      }),
     ]);
 
     const paymentByInvoice = new Map<string, number>();
@@ -64,6 +77,7 @@ export async function GET() {
     const billedTotal = Array.from(invoiceByOrder.values()).reduce((sum, v) => sum + v.billed, 0);
     const receivedTotal = Array.from(invoiceByOrder.values()).reduce((sum, v) => sum + v.received, 0);
     const arTotal = billedTotal - receivedTotal;
+    const shippedQtyTotal = shipments.reduce((sum, s) => sum + s.shippedQty, 0);
 
     const costByWorkOrder = new Map<string, number>();
     for (const row of orderCosts) {
@@ -74,12 +88,15 @@ export async function GET() {
     const orderProfitRows = orders.map((o) => {
       const revenue = Number(o.unitPrice) * o.orderedQty;
       const billedInfo = invoiceByOrder.get(o.id) ?? { billed: 0, received: 0 };
+      const orderShipments = shipments.filter((s) => s.salesOrderId === o.id);
+      const shippedQty = orderShipments.reduce((sum, s) => sum + s.shippedQty, 0);
       return {
         orderNo: o.orderNo,
         customerName: o.customerName,
         skuItemCode: o.skuItemCode,
         status: o.status,
         revenue,
+        shippedQty,
         billed: billedInfo.billed,
         received: billedInfo.received,
       };
@@ -92,9 +109,13 @@ export async function GET() {
         billedTotal,
         receivedTotal,
         arTotal,
+        shippedQtyTotal,
         linkedCostWorkOrders: costByWorkOrder.size,
       },
       orderProfitRows,
+      recentShipments: shipments.slice(0, 50),
+      recentInvoices: invoices.slice(0, 50),
+      recentPayments: payments.slice(0, 100),
     });
   } catch (error: unknown) {
     return NextResponse.json(

@@ -32,17 +32,22 @@ function isProtectedApi(pathname: string) {
     pathname.startsWith('/api/quality') ||
     pathname.startsWith('/api/cost') ||
     pathname.startsWith('/api/planning') ||
-    pathname.startsWith('/api/o2c')
+    pathname.startsWith('/api/o2c') ||
+    pathname.startsWith('/api/procurement')
   );
 }
 
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const session = await parseSessionCookieValue(request.cookies.get(AUTH_COOKIE_NAME)?.value);
-  const isLoggedIn = session?.role === SUPER_ADMIN_ROLE;
+  const isLoggedIn = !!session;
 
   if (pathname.startsWith('/api/auth/login') || pathname.startsWith('/api/auth/logout')) {
     return NextResponse.next();
+  }
+
+  if (pathname.startsWith('/api/system') && session?.role !== SUPER_ADMIN_ROLE) {
+     return NextResponse.json({ error: 'Unauthorized: requires super admin' }, { status: 401 });
   }
 
   if (isProtectedApi(pathname) && !isLoggedIn) {
@@ -53,10 +58,18 @@ export default async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  if (isProtectedPage(pathname) && !isLoggedIn) {
-    const locale = getLocaleFromPath(pathname);
-    const loginUrl = new URL(`/${locale}`, request.url);
-    return NextResponse.redirect(loginUrl);
+  if (isProtectedPage(pathname)) {
+    if (!isLoggedIn) {
+      const locale = getLocaleFromPath(pathname);
+      const loginUrl = new URL(`/${locale}`, request.url);
+      return NextResponse.redirect(loginUrl);
+    }
+    
+    // Page level route protection based on roles
+    if (pathname.includes('/pie/system') && session?.role !== SUPER_ADMIN_ROLE) {
+      const locale = getLocaleFromPath(pathname);
+      return NextResponse.redirect(new URL(`/${locale}/pie`, request.url));
+    }
   }
 
   return intlMiddleware(request);

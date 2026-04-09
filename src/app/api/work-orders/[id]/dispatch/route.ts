@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { AUTH_COOKIE_NAME, parseSessionCookieValue } from '@/lib/auth';
 
 type DispatchAction = 'ASSIGN' | 'START' | 'PAUSE' | 'COMPLETE';
 
@@ -12,6 +13,18 @@ export async function POST(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
+    const cookie = request.headers.get('cookie');
+    const sessionCookie = cookie?.split('; ').find((c) => c.startsWith(`${AUTH_COOKIE_NAME}=`));
+    const session = parseSessionCookieValue(sessionCookie?.split('=')[1]);
+
+    if (!session) {
+      return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+    }
+
+    if (session.role !== 'SUPER_ADMIN' && session.role !== 'PLANNER' && session.role !== 'PRODUCTION') {
+      return NextResponse.json({ error: 'FORBIDDEN_ROLE' }, { status: 403 });
+    }
+
     const { id } = await context.params;
     if (!id) {
       return NextResponse.json({ error: 'ID_REQUIRED' }, { status: 400 });

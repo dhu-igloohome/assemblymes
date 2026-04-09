@@ -1,0 +1,49 @@
+import { NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
+import bcrypt from 'bcryptjs';
+import { parseSessionCookieValue, AUTH_COOKIE_NAME, SUPER_ADMIN_ROLE } from '@/lib/auth';
+
+export async function PUT(
+  request: Request,
+  context: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id } = await context.params;
+    
+    const cookie = request.headers.get('cookie');
+    const sessionCookie = cookie?.split('; ').find((c) => c.startsWith(`${AUTH_COOKIE_NAME}=`));
+    const session = parseSessionCookieValue(sessionCookie?.split('=')[1]);
+
+    if (!session || session.role !== SUPER_ADMIN_ROLE) {
+      return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { role, isActive, password } = body;
+
+    const dataToUpdate: any = {};
+    if (role) dataToUpdate.role = role;
+    if (isActive !== undefined) dataToUpdate.isActive = isActive;
+    
+    if (password && password.trim() !== '') {
+      dataToUpdate.passwordHash = await bcrypt.hash(password, 10);
+    }
+
+    if (Object.keys(dataToUpdate).length === 0) {
+      return NextResponse.json({ error: 'NO_DATA_TO_UPDATE' }, { status: 400 });
+    }
+
+    const updatedUser = await prisma.systemUser.update({
+      where: { id },
+      data: dataToUpdate,
+      include: {
+        employee: true,
+      }
+    });
+
+    const { passwordHash: _ph, ...userWithoutPassword } = updatedUser;
+    return NextResponse.json(userWithoutPassword);
+  } catch (error) {
+    return NextResponse.json({ error: 'FAILED_TO_UPDATE_USER' }, { status: 500 });
+  }
+}

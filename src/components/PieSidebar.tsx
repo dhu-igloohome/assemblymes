@@ -73,6 +73,13 @@ const navModules = [
     icon: Handshake,
     children: [{ href: '/pie/o2c', translationKey: 'o2c_overview', icon: Handshake }],
   },
+  {
+    id: 'system',
+    titleKey: 'module_system',
+    icon: ShieldCheck,
+    roles: ['SUPER_ADMIN'],
+    children: [{ href: '/pie/system/users', translationKey: 'system_users', icon: Users }],
+  },
 ] as const;
 
 interface PieSidebarProps {
@@ -89,8 +96,7 @@ export default function PieSidebar({ locale, currentUser }: PieSidebarProps) {
   const [openModules, setOpenModules] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(navModules.map((module) => [module.id, true]))
   );
-  const roleLabel =
-    currentUser?.role === 'super_admin' ? t('role_super_admin') : currentUser?.role || '—';
+  const roleLabel = currentUser?.role || '—';
 
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [signOutError, setSignOutError] = useState('');
@@ -132,6 +138,14 @@ export default function PieSidebar({ locale, currentUser }: PieSidebarProps) {
 
       <nav className="flex flex-1 flex-col gap-2 px-3 py-4">
         {navModules.map((module) => {
+          // Check role access
+          if ('roles' in module && currentUser) {
+            const allowedRoles = (module as any).roles as string[];
+            if (!allowedRoles.includes(currentUser.role)) {
+              return null;
+            }
+          }
+          
           const ModuleIcon = module.icon;
           const isModuleActive = module.children.some(
             (child) => pathname === child.href || pathname.startsWith(`${child.href}/`)

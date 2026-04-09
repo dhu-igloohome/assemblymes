@@ -58,6 +58,7 @@ model Item {
   routings        RoutingHeader[]
   inventoryBalances InventoryBalance[]
   inventoryTxns     InventoryTxn[]
+  purchaseOrderLines PurchaseOrderLine[]
 
   @@index([itemType, status])
   @@index([sourceType])
@@ -166,14 +167,41 @@ model WorkCenter {
 // 班组/人员 (Teams & Employees)
 // ---------------------------------------------------------
 
+enum SystemRole {
+  SUPER_ADMIN
+  ENGINEER
+  PLANNER
+  INVENTORY
+  PRODUCTION
+  QUALITY
+  FINANCE
+}
+
+model SystemUser {
+  id           String     @id @default(uuid())
+  username     String     @unique @db.VarChar(64)
+  passwordHash String     @map("password_hash") @db.VarChar(255)
+  role         SystemRole @default(PRODUCTION)
+  employeeId   String     @unique @map("employee_id")
+  isActive     Boolean    @default(true) @map("is_active")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+  
+  employee     Employee   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@map("system_users")
+}
+
 model Employee {
-  id          String   @id @default(uuid())
-  employeeNo  String   @unique @map("employee_no") @db.VarChar(32)
+  id          String      @id @default(uuid())
+  employeeNo  String      @unique @map("employee_no") @db.VarChar(32)
   name        String
   team        String
-  skillMatrix String?  @map("skill_matrix") @db.Text
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  skillMatrix String?     @map("skill_matrix") @db.Text
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+  
+  systemUser  SystemUser?
 
   @@index([team])
   @@map("employees")
@@ -265,6 +293,7 @@ enum WorkOrderStatus {
 model WorkOrder {
   id            String          @id @default(uuid())
   workOrderNo   String          @unique @map("work_order_no") @db.VarChar(32)
+  salesOrderId  String?         @map("sales_order_id")
   skuItemCode   String          @map("sku_item_code") @db.VarChar(6)
   batchNo       String          @map("batch_no") @db.VarChar(32)
   plannedQty    Int             @map("planned_qty")
@@ -279,6 +308,7 @@ model WorkOrder {
   dispatches    WorkOrderDispatch[]
   materialTxns  WorkOrderMaterialTxn[]
   costEntries   CostEntry[]
+  salesOrder    SalesOrder?     @relation(fields: [salesOrderId], references: [id], onDelete: SetNull)
 
   @@index([skuItemCode, status])
   @@index([batchNo])
@@ -376,6 +406,7 @@ model StorageLocation {
   txnsAsFrom   InventoryTxn[]     @relation("InventoryTxnFromLocation")
   txnsAsTo     InventoryTxn[]     @relation("InventoryTxnToLocation")
   workOrderMaterialTxns WorkOrderMaterialTxn[]
+  purchaseReceipts PurchaseReceipt[]
 
   @@unique([warehouseId, locationCode])
   @@index([isActive])
@@ -413,6 +444,7 @@ model InventoryTxn {
   toLocation       StorageLocation?  @relation("InventoryTxnToLocation", fields: [toLocationId], references: [id], onDelete: SetNull)
   item             Item              @relation(fields: [itemCode], references: [itemCode], onDelete: Restrict)
   workOrderMaterialTxns WorkOrderMaterialTxn[]
+  purchaseReceipts PurchaseReceipt[]
 
   @@index([itemCode, createdAt])
   @@index([batchNo, createdAt])
@@ -509,12 +541,17 @@ model SalesOrder {
   currency      String           @default("CNY") @db.VarChar(8)
   dueDate       DateTime?        @map("due_date")
   status        SalesOrderStatus @default(DRAFT)
+  confirmedAt   DateTime?        @map("confirmed_at")
+  confirmedBy   String?          @map("confirmed_by") @db.VarChar(64)
   notes         String?          @db.Text
   createdBy     String?          @map("created_by") @db.VarChar(64)
   createdAt     DateTime         @default(now()) @map("created_at")
   updatedAt     DateTime         @updatedAt @map("updated_at")
   shipments     Shipment[]
   invoices      Invoice[]
+  workOrders    WorkOrder[]
+  mrpRuns       MrpRun[]
+  purchaseOrders PurchaseOrder[]
 
   @@index([customerName, createdAt])
   @@index([skuItemCode, status])
@@ -523,13 +560,18 @@ model SalesOrder {
 
 model Shipment {
   id            String    @id @default(uuid())
+  shipmentNo    String    @unique @map("shipment_no") @db.VarChar(32)
   salesOrderId  String    @map("sales_order_id")
   shippedQty    Int       @map("shipped_qty")
+  status        String    @default("POSTED") @db.VarChar(16)
   shippedAt     DateTime  @default(now()) @map("shipped_at")
+  postedAt      DateTime? @map("posted_at")
   logisticsNo   String?   @map("logistics_no") @db.VarChar(64)
   warehouseCode String?   @map("warehouse_code") @db.VarChar(16)
+  locationId    String?   @map("location_id")
   remarks       String?   @db.Text
   createdBy     String?   @map("created_by") @db.VarChar(64)
+  operator      String?   @db.VarChar(64)
   createdAt     DateTime  @default(now()) @map("created_at")
   salesOrder    SalesOrder @relation(fields: [salesOrderId], references: [id], onDelete: Cascade)
 
@@ -542,7 +584,10 @@ model Invoice {
   salesOrderId String        @map("sales_order_id")
   invoiceNo    String        @unique @map("invoice_no") @db.VarChar(32)
   status       InvoiceStatus @default(DRAFT)
+  invoiceType  String        @default("STANDARD") @map("invoice_type") @db.VarChar(32)
   invoiceDate  DateTime?     @map("invoice_date")
+  issuedAt     DateTime?     @map("issued_at")
+  taxRate      Decimal?      @map("tax_rate") @db.Decimal(6, 4)
   amount       Decimal       @db.Decimal(14, 2)
   paidAmount   Decimal       @default(0) @map("paid_amount") @db.Decimal(14, 2)
   currency     String        @default("CNY") @db.VarChar(8)
@@ -561,9 +606,11 @@ model Invoice {
 
 model Payment {
   id          String    @id @default(uuid())
+  paymentNo   String    @unique @map("payment_no") @db.VarChar(32)
   invoiceId   String    @map("invoice_id")
   amount      Decimal   @db.Decimal(14, 2)
   paidAt      DateTime  @default(now()) @map("paid_at")
+  currency    String    @default("CNY") @db.VarChar(8)
   method      String?   @db.VarChar(32)
   referenceNo String?   @map("reference_no") @db.VarChar(64)
   remarks     String?   @db.Text
@@ -573,4 +620,98 @@ model Payment {
 
   @@index([invoiceId, paidAt])
   @@map("payments")
+}
+
+enum PurchaseOrderStatus {
+  DRAFT
+  CONFIRMED
+  PARTIALLY_RECEIVED
+  RECEIVED
+  CLOSED
+  CANCELLED
+}
+
+model Supplier {
+  id           String   @id @default(uuid())
+  supplierCode String   @unique @map("supplier_code") @db.VarChar(32)
+  name         String   @db.VarChar(128)
+  contact      String?  @db.VarChar(64)
+  phone        String?  @db.VarChar(32)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+  purchaseOrders PurchaseOrder[]
+
+  @@map("suppliers")
+}
+
+model PurchaseOrder {
+  id              String              @id @default(uuid())
+  poNo            String              @unique @map("po_no") @db.VarChar(32)
+  salesOrderId    String?             @map("sales_order_id")
+  supplierId      String              @map("supplier_id")
+  status          PurchaseOrderStatus @default(DRAFT)
+  currency        String              @default("CNY") @db.VarChar(8)
+  expectedDate    DateTime?           @map("expected_date")
+  createdBy       String?             @map("created_by") @db.VarChar(64)
+  confirmedAt     DateTime?           @map("confirmed_at")
+  confirmedBy     String?             @map("confirmed_by") @db.VarChar(64)
+  createdAt       DateTime            @default(now()) @map("created_at")
+  updatedAt       DateTime            @updatedAt @map("updated_at")
+  supplier        Supplier            @relation(fields: [supplierId], references: [id], onDelete: Restrict)
+  salesOrder      SalesOrder?         @relation(fields: [salesOrderId], references: [id], onDelete: SetNull)
+  lines           PurchaseOrderLine[]
+  receipts        PurchaseReceipt[]
+
+  @@index([supplierId, status])
+  @@map("purchase_orders")
+}
+
+model MrpRun {
+  id            String    @id @default(uuid())
+  salesOrderId  String    @map("sales_order_id")
+  triggeredBy   String?   @map("triggered_by") @db.VarChar(64)
+  status        String    @default("DONE") @db.VarChar(16)
+  summary       String?   @db.Text
+  createdAt     DateTime  @default(now()) @map("created_at")
+  salesOrder    SalesOrder @relation(fields: [salesOrderId], references: [id], onDelete: Cascade)
+
+  @@index([salesOrderId, createdAt])
+  @@map("mrp_runs")
+}
+
+model PurchaseOrderLine {
+  id              String        @id @default(uuid())
+  purchaseOrderId String        @map("purchase_order_id")
+  itemCode        String        @map("item_code") @db.VarChar(6)
+  orderedQty      Decimal       @map("ordered_qty") @db.Decimal(14, 3)
+  receivedQty     Decimal       @default(0) @map("received_qty") @db.Decimal(14, 3)
+  unitPrice       Decimal       @default(0) @map("unit_price") @db.Decimal(14, 2)
+  createdAt       DateTime      @default(now()) @map("created_at")
+  updatedAt       DateTime      @updatedAt @map("updated_at")
+  purchaseOrder   PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  item            Item          @relation(fields: [itemCode], references: [itemCode], onDelete: Restrict)
+  receipts        PurchaseReceipt[]
+
+  @@index([purchaseOrderId])
+  @@index([itemCode])
+  @@map("purchase_order_lines")
+}
+
+model PurchaseReceipt {
+  id              String    @id @default(uuid())
+  purchaseOrderId String    @map("purchase_order_id")
+  lineId          String    @map("line_id")
+  inventoryTxnId  String?   @map("inventory_txn_id")
+  locationId      String    @map("location_id")
+  receivedQty     Decimal   @map("received_qty") @db.Decimal(14, 3)
+  batchNo         String?   @map("batch_no") @db.VarChar(32)
+  operator        String?   @db.VarChar(64)
+  createdAt       DateTime  @default(now()) @map("created_at")
+  purchaseOrder   PurchaseOrder     @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  line            PurchaseOrderLine @relation(fields: [lineId], references: [id], onDelete: Cascade)
+  inventoryTxn    InventoryTxn?     @relation(fields: [inventoryTxnId], references: [id], onDelete: SetNull)
+  location        StorageLocation   @relation(fields: [locationId], references: [id], onDelete: Restrict)
+
+  @@index([purchaseOrderId, createdAt])
+  @@map("purchase_receipts")
 }

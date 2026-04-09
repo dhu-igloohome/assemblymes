@@ -40,7 +40,23 @@ export async function GET() {
       orderBy: [{ createdAt: 'desc' }],
       take: 200,
     });
-    return NextResponse.json(rows);
+    const payload = rows.map((row) => {
+      const shippedQty = row.shipments.reduce((sum, s) => sum + s.shippedQty, 0);
+      const billed = row.invoices.reduce((sum, inv) => sum + Number(inv.amount), 0);
+      const received = row.invoices.reduce(
+        (sum, inv) => sum + inv.payments.reduce((pSum, p) => pSum + Number(p.amount), 0),
+        0
+      );
+      return {
+        ...row,
+        shippedQty,
+        unshippedQty: Math.max(0, row.orderedQty - shippedQty),
+        billedAmount: billed,
+        receivedAmount: received,
+        arAmount: billed - received,
+      };
+    });
+    return NextResponse.json(payload);
   } catch (error: unknown) {
     return NextResponse.json(
       {
@@ -93,6 +109,9 @@ export async function POST(request: Request) {
     }
     if (!isStatus(statusRaw)) {
       return NextResponse.json({ error: 'SALES_ORDER_STATUS_INVALID' }, { status: 400 });
+    }
+    if (statusRaw !== 'DRAFT') {
+      return NextResponse.json({ error: 'SO_CREATE_STATUS_INVALID' }, { status: 400 });
     }
     if (dueDate === undefined) {
       return NextResponse.json({ error: 'DUE_DATE_INVALID' }, { status: 400 });

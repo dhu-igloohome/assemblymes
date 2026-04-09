@@ -1,9 +1,8 @@
 import { NextResponse } from 'next/server';
 import {
   AUTH_COOKIE_NAME,
-  SUPER_ADMIN_ROLE,
   createSessionCookieValue,
-  isValidSuperAdmin,
+  verifyUserCredentials,
 } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 
@@ -93,7 +92,9 @@ export async function POST(request: Request) {
     }
 
     const key = getClientKey(request, username);
-    const isValid = await isValidSuperAdmin(username, password);
+    const sessionUser = await verifyUserCredentials(username, password);
+    const isValid = sessionUser !== null;
+    
     if (isBlocked(key) && !isValid) {
       await auditLogin(request, username, false, 'LOGIN_RATE_LIMITED');
       const response = NextResponse.json({ error: 'LOGIN_RATE_LIMITED' }, { status: 429 });
@@ -124,13 +125,13 @@ export async function POST(request: Request) {
 
     const response = NextResponse.json({
       success: true,
-      role: SUPER_ADMIN_ROLE,
+      role: sessionUser.role,
       redirectTo: `/${locale}/pie`,
     });
 
     response.cookies.set({
       name: AUTH_COOKIE_NAME,
-      value: await createSessionCookieValue({ username, role: SUPER_ADMIN_ROLE }),
+      value: createSessionCookieValue(sessionUser),
       httpOnly: true,
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
