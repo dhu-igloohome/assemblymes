@@ -20,8 +20,10 @@ function isProtectedPage(pathname: string) {
 }
 
 function isPublicApi(pathname: string) {
-  // Only auth login and logout are public
-  return pathname.startsWith('/api/auth/login') || pathname.startsWith('/api/auth/logout');
+  // Allow login, logout and visitor feedback
+  return pathname.startsWith('/api/auth/login') || 
+         pathname.startsWith('/api/auth/logout') ||
+         pathname.startsWith('/api/feedback');
 }
 
 export default async function proxy(request: NextRequest) {
