@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { parseSessionCookieValue, AUTH_COOKIE_NAME, SUPER_ADMIN_ROLE } from '@/lib/auth';
+import { cookies } from 'next/headers';
 
 // 访客提交留言（公开接口）
 export async function POST(request: Request) {
@@ -47,19 +48,22 @@ export async function POST(request: Request) {
 }
 
 // 管理员查看留言（受限接口）
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    const cookie = request.headers.get('cookie');
-    const sessionCookie = cookie?.split('; ').find((c) => c.startsWith(`${AUTH_COOKIE_NAME}=`));
+    const cookieStore = await cookies();
+    const sessionToken = cookieStore.get(AUTH_COOKIE_NAME)?.value;
     
-    if (!sessionCookie) {
+    if (!sessionToken) {
       return NextResponse.json({ error: 'NO_SESSION' }, { status: 401 });
     }
 
-    const session = parseSessionCookieValue(sessionCookie.split('=')[1]);
+    const session = parseSessionCookieValue(sessionToken);
 
     if (!session || session.role !== SUPER_ADMIN_ROLE) {
-      return NextResponse.json({ error: 'NOT_AUTHORIZED_AS_ADMIN' }, { status: 403 });
+      return NextResponse.json({ 
+        error: 'NOT_AUTHORIZED_AS_ADMIN',
+        currentRole: session?.role || 'NONE'
+      }, { status: 403 });
     }
 
     const feedbacks = await prisma.visitorFeedback.findMany({
