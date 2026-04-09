@@ -100,7 +100,7 @@ export default function LoginForm() {
                 <p className="text-sm text-red-600">{errorMessage}</p>
               ) : null}
             </CardContent>
-            <CardFooter className="border-t-0 bg-slate-900">
+            <CardFooter className="border-t-0 bg-slate-900 pb-6">
               <Button
                 type="submit"
                 className="h-12 w-full bg-indigo-600 text-base font-semibold text-white hover:bg-indigo-500"
@@ -111,6 +111,44 @@ export default function LoginForm() {
             </CardFooter>
           </form>
         </Card>
+
+        {/* Visitor Demo Notice */}
+        <div className="mt-8 overflow-hidden rounded-xl border border-indigo-500/30 bg-indigo-500/5 p-5 backdrop-blur-sm">
+          <h3 className="flex items-center gap-2 text-sm font-bold text-indigo-300">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-indigo-400 opacity-75"></span>
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-indigo-500"></span>
+            </span>
+            {t('demo_title')}
+          </h3>
+          <p className="mt-3 text-xs leading-relaxed text-slate-400">
+            {t('demo_description')}
+          </p>
+          <div className="mt-4 space-y-2.5 rounded-lg bg-slate-900/50 p-4 ring-1 ring-slate-800">
+            <p className="text-[11px] font-medium text-indigo-200/80">
+              {t('demo_status')}
+            </p>
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-mono text-emerald-400">
+                {t('demo_account', { username: 'anyone', password: 'anything' })}
+              </p>
+              <Button 
+                variant="ghost" 
+                size="xs" 
+                className="h-7 px-2 text-[10px] text-slate-500 hover:text-indigo-300"
+                onClick={() => {
+                  setUsername('anyone');
+                  setPassword('anything');
+                }}
+              >
+                {t('submit_button')}
+              </Button>
+            </div>
+          </div>
+          <p className="mt-4 text-center text-[10px] italic text-slate-500">
+            &ldquo;{t('demo_welcome')}&rdquo;
+          </p>
+        </div>
       </div>
     </div>
   );

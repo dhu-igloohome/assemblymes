@@ -1,4 +1,20 @@
 {
+  "Login": {
+    "title": "Sign In",
+    "tagline": "Assembly MES Production Platform",
+    "username_placeholder": "Username",
+    "password_placeholder": "Password",
+    "submit_button": "Sign In Now",
+    "submitting": "Signing in...",
+    "invalid_credentials": "Invalid username or password",
+    "rate_limited": "Too many login attempts. Please try again later.",
+    "request_failed": "Login request failed",
+    "demo_title": "Welcome to Assembly MES Demo",
+    "demo_description": "A lightweight MES solution specifically tailored for Smart Lock Assembly Factories. Our goal is to provide a completely free and efficient digital management platform.",
+    "demo_status": "🛠️ Status: Under active development. Core business loops are ready for testing.",
+    "demo_account": "🔑 Test Account: {username} / Password: {password}",
+    "demo_welcome": "Feel free to explore and share your valuable feedback!"
+  },
   "Common": {
     "save": "Save",
     "cancel": "Cancel",

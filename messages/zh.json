@@ -1,4 +1,20 @@
 {
+  "Login": {
+    "title": "登录系统",
+    "tagline": "Assembly MES 生产执行平台",
+    "username_placeholder": "用户名",
+    "password_placeholder": "密码",
+    "submit_button": "立即登录",
+    "submitting": "正在登录...",
+    "invalid_credentials": "用户名或密码错误",
+    "rate_limited": "登录尝试过多，请稍后再试",
+    "request_failed": "登录请求失败",
+    "demo_title": "欢迎体验 Assembly MES",
+    "demo_description": "本系统是专为智能门锁组装工厂打造的轻量化生产执行系统。我们致力于为中小制造企业提供一个开源、透明且完全免费的数字化管理方案。",
+    "demo_status": "🛠️ 当前状态：持续开发迭代中，功能闭环已初步完成。",
+    "demo_account": "🔑 测试账号：{username} / 密码：{password}",
+    "demo_welcome": "诚邀您登录测试，您的反馈是我们进步的动力！"
+  },
   "Common": {
     "save": "保存",
     "cancel": "取消",
