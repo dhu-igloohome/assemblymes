@@ -40,10 +40,11 @@ export default function FeedbackBoard() {
         setContact('');
         setTimeout(() => setIsSuccess(false), 5000);
       } else {
-        setError(t('feedback_error'));
+        const data = await res.json().catch(() => ({}));
+        setError(data.details || data.error || t('feedback_error'));
       }
-    } catch {
-      setError(t('feedback_error'));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('feedback_error'));
     } finally {
       setIsSubmitting(false);
     }
