@@ -57,7 +57,7 @@ export async function GET() {
       return NextResponse.json({ error: 'NO_SESSION' }, { status: 401 });
     }
 
-    const session = parseSessionCookieValue(sessionToken);
+    const session = await parseSessionCookieValue(sessionToken);
 
     if (!session || session.role !== SUPER_ADMIN_ROLE) {
       return NextResponse.json({ 

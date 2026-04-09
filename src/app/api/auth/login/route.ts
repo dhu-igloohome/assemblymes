@@ -129,9 +129,11 @@ export async function POST(request: Request) {
       redirectTo: `/${locale}/pie`,
     });
 
+    const cookieValue = await createSessionCookieValue(sessionUser);
+
     response.cookies.set({
       name: AUTH_COOKIE_NAME,
-      value: createSessionCookieValue(sessionUser),
+      value: cookieValue,
       httpOnly: true,
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',

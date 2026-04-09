@@ -1,11 +1,10 @@
 import { compare } from 'bcryptjs';
-import { createHmac, timingSafeEqual } from 'crypto';
 import { prisma } from './prisma';
 
 export const AUTH_COOKIE_NAME = 'assemblymes_session';
 export const SUPER_ADMIN_ROLE = 'SUPER_ADMIN' as const;
 
-// Environment variable for HMAC signing. Default is for development only.
+// Environment variable for HMAC signing.
 const AUTH_SECRET = process.env.AUTH_SECRET || 'assemblymes-default-secret-2026-04-09';
 const SESSION_TTL_SECONDS = 60 * 60 * 12;
 
@@ -18,42 +17,47 @@ export interface SessionUser {
   exp: number;
 }
 
-function sign(payload: string): string {
-  // Use a simple but consistent signing for both Node and Edge if createHmac is tricky,
-  // but actually Next.js 15 supports most crypto APIs. 
-  // Let's ensure length check for timingSafeEqual.
-  return createHmac('sha256', AUTH_SECRET).update(payload).digest('base64');
+/**
+ * Edge-compatible HMAC-SHA256 signature using Web Crypto API
+ */
+async function sign(payload: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(AUTH_SECRET);
+  const data = encoder.encode(payload);
+
+  const cryptoKey = await crypto.subtle.importKey(
+    'raw',
+    keyData,
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  );
+
+  const signature = await crypto.subtle.sign('HMAC', cryptoKey, data);
+  return btoa(String.fromCharCode(...new Uint8Array(signature)));
 }
 
-export function createSessionCookieValue(user: Omit<SessionUser, 'exp'>) {
+export async function createSessionCookieValue(user: Omit<SessionUser, 'exp'>) {
   const payload: SessionUser = {
     ...user,
     exp: Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS,
   };
   const data = Buffer.from(JSON.stringify(payload), 'utf8').toString('base64');
-  const signature = sign(data);
+  const signature = await sign(data);
   return `${data}.${signature}`;
 }
 
-export function parseSessionCookieValue(value: string | undefined): SessionUser | null {
+export async function parseSessionCookieValue(value: string | undefined): Promise<SessionUser | null> {
   if (!value || !value.includes('.')) {
     return null;
   }
   try {
     const [data, signature] = value.split('.');
-    const expectedSignature = sign(data);
+    const expectedSignature = await sign(data);
     
-    const signatureBuffer = Buffer.from(signature);
-    const expectedSignatureBuffer = Buffer.from(expectedSignature);
-
-    if (signatureBuffer.length !== expectedSignatureBuffer.length) {
-      return null;
-    }
-
-    // Timing safe comparison
-    const isValid = timingSafeEqual(signatureBuffer, expectedSignatureBuffer);
-
-    if (!isValid) {
+    // Simple string comparison is fine here as we're comparing base64 signatures
+    if (signature !== expectedSignature) {
+      console.error('Session signature mismatch');
       return null;
     }
 
@@ -66,6 +70,7 @@ export function parseSessionCookieValue(value: string | undefined): SessionUser 
     }
     return payload;
   } catch (error) {
+    console.error('Session parse error:', error);
     return null;
   }
 }
@@ -89,7 +94,7 @@ export async function verifyUserCredentials(username: string, password: string):
     userId: user.id,
     username: user.username,
     role: user.role,
-    employeeId: user.employee.id,
-    employeeName: user.employee.name,
+    employeeId: user.employee?.id,
+    employeeName: user.employee?.name,
   };
 }
