@@ -188,7 +188,7 @@ export default function Sidebar({ locale, currentUser }: SidebarProps) {
               ].join(' ')}
             >
               <span className="flex items-center gap-3">
-                <ModuleIcon className="size-4" />
+                <ModuleIcon className="size-[17px]" />
                 <span>{t.has(module.titleKey) ? t(module.titleKey) : module.titleKey}</span>
               </span>
               <ChevronDown
