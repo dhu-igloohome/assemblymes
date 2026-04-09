@@ -4,7 +4,6 @@ import { prisma } from './prisma';
 export const AUTH_COOKIE_NAME = 'assemblymes_session';
 export const SUPER_ADMIN_ROLE = 'SUPER_ADMIN' as const;
 
-// Environment variable for HMAC signing.
 const AUTH_SECRET = process.env.AUTH_SECRET || 'assemblymes-default-secret-2026-04-09';
 const SESSION_TTL_SECONDS = 60 * 60 * 12;
 
@@ -15,6 +14,16 @@ export interface SessionUser {
   employeeId?: string;
   employeeName?: string;
   exp: number;
+}
+
+// Helper to convert string to base64 (Edge compatible)
+function toBase64(str: string): string {
+  return btoa(unescape(encodeURIComponent(str)));
+}
+
+// Helper to convert base64 to string (Edge compatible)
+function fromBase64(str: string): string {
+  return decodeURIComponent(escape(atob(str)));
 }
 
 /**
@@ -34,6 +43,7 @@ async function sign(payload: string): Promise<string> {
   );
 
   const signature = await crypto.subtle.sign('HMAC', cryptoKey, data);
+  // Convert ArrayBuffer to base64
   return btoa(String.fromCharCode(...new Uint8Array(signature)));
 }
 
@@ -42,7 +52,7 @@ export async function createSessionCookieValue(user: Omit<SessionUser, 'exp'>) {
     ...user,
     exp: Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS,
   };
-  const data = Buffer.from(JSON.stringify(payload), 'utf8').toString('base64');
+  const data = toBase64(JSON.stringify(payload));
   const signature = await sign(data);
   return `${data}.${signature}`;
 }
@@ -55,13 +65,12 @@ export async function parseSessionCookieValue(value: string | undefined): Promis
     const [data, signature] = value.split('.');
     const expectedSignature = await sign(data);
     
-    // Simple string comparison is fine here as we're comparing base64 signatures
     if (signature !== expectedSignature) {
       console.error('Session signature mismatch');
       return null;
     }
 
-    const payload = JSON.parse(Buffer.from(data, 'base64').toString('utf8')) as SessionUser;
+    const payload = JSON.parse(fromBase64(data)) as SessionUser;
     if (!payload?.username || !payload?.role || !payload?.exp || !payload?.userId) {
       return null;
     }
