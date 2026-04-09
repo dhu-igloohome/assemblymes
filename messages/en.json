@@ -710,6 +710,8 @@
     "work_centers_description": "Manage shop floor work cells",
     "employees": "Employees",
     "employees_description": "Maintain crew and skill matrix",
+    "system_users": "User Accounts",
+    "user_management_desc": "Manage system access accounts and employee bindings.",
     "execution": "Reporting",
     "execution_description": "Capture output and andon issues",
     "work_orders": "Work Orders",

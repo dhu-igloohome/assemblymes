@@ -710,6 +710,8 @@
     "work_centers_description": "管理车间物理生产单元",
     "employees": "员工管理",
     "employees_description": "维护班组人员与技能矩阵",
+    "system_users": "账号管理",
+    "user_management_desc": "管理系统访问账号及其绑定的员工身份",
     "execution": "实时报工",
     "execution_description": "采集工序产量与执行异常",
     "work_orders": "生产工单",
