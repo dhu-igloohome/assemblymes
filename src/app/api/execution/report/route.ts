@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { AUTH_COOKIE_NAME, parseSessionCookieValue } from '@/lib/auth';
+import { cookies } from 'next/headers';
 
 function dec(v: number | string | Prisma.Decimal) {
   return new Prisma.Decimal(v);
@@ -9,9 +10,8 @@ function dec(v: number | string | Prisma.Decimal) {
 
 export async function POST(request: Request) {
   try {
-    const cookie = request.headers.get('cookie');
-    const sessionCookie = cookie?.split('; ').find((c) => c.startsWith(`${AUTH_COOKIE_NAME}=`));
-    const session = parseSessionCookieValue(sessionCookie?.split('=')[1]);
+    const cookieStore = await cookies();
+    const session = parseSessionCookieValue(cookieStore.get(AUTH_COOKIE_NAME)?.value);
 
     if (!session) {
       return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
       if (!operation) throw new Error(`OPERATION_NOT_FOUND:${opId}`);
       
       // Skill check (internal helper doesn't return response, just throws)
-      if (session.employeeId) {
+      if (session.employeeId && session.role !== 'SUPER_ADMIN') {
         const employee = await tx.employee.findUnique({ where: { id: session.employeeId } });
         if (employee) {
           const requiredSkill = operation.operationName.includes('测试') ? 'TESTING' : 'ASSEMBLY';

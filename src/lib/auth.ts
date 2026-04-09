@@ -19,6 +19,9 @@ export interface SessionUser {
 }
 
 function sign(payload: string): string {
+  // Use a simple but consistent signing for both Node and Edge if createHmac is tricky,
+  // but actually Next.js 15 supports most crypto APIs. 
+  // Let's ensure length check for timingSafeEqual.
   return createHmac('sha256', AUTH_SECRET).update(payload).digest('base64');
 }
 
@@ -40,14 +43,17 @@ export function parseSessionCookieValue(value: string | undefined): SessionUser 
     const [data, signature] = value.split('.');
     const expectedSignature = sign(data);
     
-    // Timing safe comparison to prevent timing attacks
-    const isValid = timingSafeEqual(
-      Buffer.from(signature),
-      Buffer.from(expectedSignature)
-    );
+    const signatureBuffer = Buffer.from(signature);
+    const expectedSignatureBuffer = Buffer.from(expectedSignature);
+
+    if (signatureBuffer.length !== expectedSignatureBuffer.length) {
+      return null;
+    }
+
+    // Timing safe comparison
+    const isValid = timingSafeEqual(signatureBuffer, expectedSignatureBuffer);
 
     if (!isValid) {
-      console.error('Session signature mismatch');
       return null;
     }
 
@@ -59,7 +65,7 @@ export function parseSessionCookieValue(value: string | undefined): SessionUser 
       return null;
     }
     return payload;
-  } catch {
+  } catch (error) {
     return null;
   }
 }
