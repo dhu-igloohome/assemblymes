@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   parseRecordsFromCsvText,
   validateUniqueRecords,
@@ -75,6 +76,95 @@ export default function ExecutionPage() {
   const [uploadFileRecords, setUploadFileRecords] = useState<TraceRecordInput[] | null>(null);
   const [csvParsedCount, setCsvParsedCount] = useState<number | null>(null);
   const [csvFileName, setCsvFileName] = useState('');
+
+  // -------------------------
+  // WO Operations State
+  // -------------------------
+  const [operations, setOperations] = useState<Record<string, unknown>[]>([]);
+  const [loadingOps, setLoadingOps] = useState(true);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [reportingOp, setReportingOp] = useState<Record<string, unknown> | null>(null);
+  
+  const [reportGoodQty, setReportGoodQty] = useState('');
+  const [reportScrapQty, setReportScrapQty] = useState('0');
+  const [reportReworkQty, setReportReworkQty] = useState('0');
+  const [reportTime, setReportTime] = useState('');
+  const [reportRemarks, setReportRemarks] = useState('');
+  const [isReporting, setIsReporting] = useState(false);
+  const [reportError, setReportError] = useState('');
+
+  const loadOperations = useCallback(async () => {
+    setLoadingOps(true);
+    try {
+      const res = await fetch('/api/execution/operations', { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        setOperations(data);
+      }
+    } catch {
+      setOperations([]);
+    } finally {
+      setLoadingOps(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadOperations();
+  }, [loadOperations]);
+
+  const handleReportProduction = async () => {
+    if (!reportingOp) return;
+    setReportError('');
+    setListMessage('');
+    setIsReporting(true);
+    
+    try {
+      const res = await fetch('/api/execution/report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          workOrderOperationId: reportingOp.id,
+          goodQty: parseInt(reportGoodQty, 10) || 0,
+          scrapQty: parseInt(reportScrapQty, 10) || 0,
+          reworkQty: parseInt(reportReworkQty, 10) || 0,
+          timeSpentSec: parseInt(reportTime, 10) || 0,
+          remarks: reportRemarks.trim()
+        })
+      });
+
+      const payload = await res.json().catch(() => null);
+      if (!res.ok) {
+        const map: Record<string, string> = {
+          INVALID_NUMERIC_VALUES: 'invalid_numeric_values',
+          OPERATION_ID_REQUIRED: 'operation_id_required',
+        };
+        const code = payload?.error ?? '';
+        setReportError(map[code] ? t(map[code]) : t('save_failed'));
+        return;
+      }
+
+      setReportDialogOpen(false);
+      setListMessage(t('report_success'));
+      await loadOperations();
+    } catch {
+      setReportError(t('save_failed'));
+    } finally {
+      setIsReporting(false);
+    }
+  };
+
+  const openReportDialog = (op: Record<string, unknown>) => {
+    setReportingOp(op);
+    const wo = op.workOrder as Record<string, unknown> | undefined;
+    const defaultQty = (wo?.plannedQty as number || 0) - ((op.completedQty as number) || 0);
+    setReportGoodQty(defaultQty > 0 ? String(defaultQty) : '0');
+    setReportScrapQty('0');
+    setReportReworkQty('0');
+    setReportTime(String(((op.standardTimeSec as number) || 0) * (defaultQty > 0 ? defaultQty : 0)));
+    setReportRemarks('');
+    setReportError('');
+    setReportDialogOpen(true);
+  };
 
   const loadRows = useCallback(async () => {
     setIsLoading(true);
@@ -411,301 +501,265 @@ export default function ExecutionPage() {
         </div>
       </div>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Tabs defaultValue="operations" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="operations">{t('work_orders_tab')}</TabsTrigger>
+          <TabsTrigger value="traceability">{t('traceability_tab')}</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="operations" className="space-y-4">
+          <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+            {loadingOps ? (
+              <p className="p-6 text-sm text-gray-500">{t('loading')}</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t('work_order_no')}</TableHead>
+                    <TableHead>{t('sequence')}</TableHead>
+                    <TableHead>{t('operation_name')}</TableHead>
+                    <TableHead>{t('workstation')}</TableHead>
+                    <TableHead>{t('planned_qty')}</TableHead>
+                    <TableHead>{t('completed_qty')}</TableHead>
+                    <TableHead>{t('status')}</TableHead>
+                    <TableHead>{t('actions')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {operations.map((op) => {
+                    const wo = op.workOrder as Record<string, unknown> | undefined;
+                    return (
+                    <TableRow key={String(op.id)}>
+                      <TableCell className="font-medium">{String(wo?.workOrderNo || '')}</TableCell>
+                      <TableCell>{String(op.sequence || '')}</TableCell>
+                      <TableCell>{String(op.operationName || '')}</TableCell>
+                      <TableCell>{String(op.workstation || '')}</TableCell>
+                      <TableCell>{String(wo?.plannedQty || '')}</TableCell>
+                      <TableCell>{String(op.completedQty || '')}</TableCell>
+                      <TableCell>
+                        <span className={['rounded-full px-2 py-1 text-xs font-medium', 
+                          op.status === 'PENDING' ? 'bg-gray-100 text-gray-700' :
+                          op.status === 'STARTED' ? 'bg-blue-100 text-blue-700' :
+                          op.status === 'PAUSED' ? 'bg-amber-100 text-amber-700' :
+                          'bg-emerald-100 text-emerald-700'
+                        ].join(' ')}>
+                          {String(op.status || '')}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          size="xs"
+                          disabled={op.status === 'COMPLETED'}
+                          onClick={() => openReportDialog(op)}
+                        >
+                          {t('report_production')}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  )})}
+                  {operations.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={8} className="py-8 text-center text-gray-500">
+                        {t('empty')}
+                      </TableCell>
+                    </TableRow>
+                  ) : null}
+                </TableBody>
+              </Table>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="traceability" className="space-y-4">
+          <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+            {isLoading ? (
+              <p className="p-6 text-sm text-gray-500">{t('loading')}</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t('serial_no')}</TableHead>
+                    <TableHead>{t('bluetooth_id')}</TableHead>
+                    <TableHead>{t('batch_no')}</TableHead>
+                    <TableHead>{t('task_type')}</TableHead>
+                    <TableHead>{t('stage')}</TableHead>
+                    <TableHead>{t('status')}</TableHead>
+                    <TableHead>{t('actions')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {rows.map((row) => (
+                    <TableRow key={row.id}>
+                      <TableCell className="font-medium">{row.serialNo}</TableCell>
+                      <TableCell>{row.bluetoothId}</TableCell>
+                      <TableCell>{row.batchNo}</TableCell>
+                      <TableCell>{taskTypeLabel(row.taskType)}</TableCell>
+                      <TableCell>{stageLabel(row.stage)}</TableCell>
+                      <TableCell>
+                        <span className={['rounded-full px-2 py-1 text-xs font-medium', statusMeta(row.status).className].join(' ')}>
+                          {statusMeta(row.status).label}
+                        </span>
+                        {row.failReason ? (
+                          <p className="mt-1 text-xs text-red-600">{row.failReason}</p>
+                        ) : null}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            size="xs"
+                            variant="outline"
+                            disabled={isActionSubmitting || row.status === 'IN_PROGRESS' || row.status === 'DONE'}
+                            onClick={() => void runAction(row.id, 'START')}
+                          >
+                            {t('start')}
+                          </Button>
+                          <Button
+                            size="xs"
+                            disabled={isActionSubmitting || row.status !== 'IN_PROGRESS'}
+                            onClick={() => void runAction(row.id, 'COMPLETE')}
+                          >
+                            {t('complete')}
+                          </Button>
+                          <Button
+                            size="xs"
+                            variant="destructive"
+                            disabled={isActionSubmitting}
+                            onClick={() => {
+                              setFailReason('');
+                              setFailDialogTaskId(row.id);
+                            }}
+                          >
+                            {t('mark_failed')}
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {rows.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="py-8 text-center text-gray-500">
+                        {t('empty')}
+                      </TableCell>
+                    </TableRow>
+                  ) : null}
+                </TableBody>
+              </Table>
+            )}
+          </div>
+
+          <div className="rounded-xl border border-slate-200 bg-white shadow-sm mt-6">
+            <div className="border-b bg-gray-50 px-4 py-3 text-sm font-medium text-gray-700">
+              {t('trace_upload_list')}
+            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('batch_no')}</TableHead>
+                  <TableHead>{t('sku_item_code')}</TableHead>
+                  <TableHead>{t('trace_record_count')}</TableHead>
+                  <TableHead>{t('drive_file_url')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {uploads.map((row) => (
+                  <TableRow key={row.id}>
+                    <TableCell>{row.batchNo}</TableCell>
+                    <TableCell>{row.skuItemCode}</TableCell>
+                    <TableCell>{row.recordCount}</TableCell>
+                    <TableCell>
+                      <a
+                        href={row.driveFileUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-blue-600 underline"
+                      >
+                        {t('open_drive_file')}
+                      </a>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {uploads.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="py-6 text-center text-gray-500">
+                      {t('empty')}
+                    </TableCell>
+                  </TableRow>
+                ) : null}
+              </TableBody>
+            </Table>
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      {/* Report Production Dialog */}
+      <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{t('dialog_create')}</DialogTitle>
+            <DialogTitle>{t('report_production')} - {String(reportingOp?.operationName || '')}</DialogTitle>
           </DialogHeader>
           <div className="mt-4 space-y-4">
-            <Input placeholder={t('sku_item_code')} value={skuItemCode} onChange={(e) => setSkuItemCode(e.target.value)} />
-            <Input placeholder={t('batch_no')} value={batchNo} onChange={(e) => setBatchNo(e.target.value)} />
-            <p className="text-xs text-gray-500">{t('serial_range_hint')}</p>
-            <Input
-              placeholder={t('serial_range_start')}
-              value={serialStart}
-              onChange={(e) => setSerialStart(e.target.value)}
-            />
-            <Input
-              placeholder={t('serial_range_end')}
-              value={serialEnd}
-              onChange={(e) => setSerialEnd(e.target.value)}
-            />
-            <p className="text-xs text-gray-500">{t('bluetooth_range_hint')}</p>
-            <Input
-              placeholder={t('bluetooth_range_start')}
-              value={bluetoothStart}
-              onChange={(e) => setBluetoothStart(e.target.value)}
-            />
-            <Input
-              placeholder={t('bluetooth_range_end')}
-              value={bluetoothEnd}
-              onChange={(e) => setBluetoothEnd(e.target.value)}
-            />
-            <Input placeholder={t('assignee')} value={assignee} onChange={(e) => setAssignee(e.target.value)} />
-            <Select value={taskType} onValueChange={(v) => setTaskType((v ?? 'DFU') as ExecutionTaskType)}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={t('task_type')} />
-              </SelectTrigger>
-              <SelectContent>
-                {TASK_TYPES.map((entry) => (
-                  <SelectItem key={entry} value={entry}>
-                    {taskTypeLabel(entry)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={stage} onValueChange={(v) => setStage((v ?? 'ASSEMBLY_EOL') as ExecutionStage)}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={t('stage')} />
-              </SelectTrigger>
-              <SelectContent>
-                {STAGES.map((entry) => (
-                  <SelectItem key={entry} value={entry}>
-                    {stageLabel(entry)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={status} onValueChange={(v) => setStatus((v ?? 'READY') as ExecutionStatus)}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder={t('status')} />
-              </SelectTrigger>
-              <SelectContent>
-                {INITIAL_STATUSES.map((entry) => (
-                  <SelectItem key={entry} value={entry}>
-                    {statusMeta(entry).label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {dialogError ? <p className="text-sm text-red-600">{dialogError}</p> : null}
-            <Button type="button" className="w-full" disabled={isSubmitting} onClick={() => void createTask()}>
-              {isSubmitting ? t('submitting') : t('save')}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={Boolean(failDialogTaskId)} onOpenChange={(open) => !open && setFailDialogTaskId(null)}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>{t('fail_dialog_title')}</DialogTitle>
-          </DialogHeader>
-          <div className="mt-4 space-y-4">
-            <Input placeholder={t('fail_reason')} value={failReason} onChange={(e) => setFailReason(e.target.value)} />
-            <Button
-              type="button"
-              className="w-full"
-              variant="destructive"
-              disabled={isActionSubmitting}
-              onClick={() => {
-                if (!failDialogTaskId) return;
-                void runAction(failDialogTaskId, 'FAIL', failReason.trim());
-                setFailReason('');
-                setFailDialogTaskId(null);
-              }}
-            >
-              {isActionSubmitting ? t('submitting') : t('mark_failed')}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog
-        open={uploadDialogOpen}
-        onOpenChange={(open) => {
-          setUploadDialogOpen(open);
-          if (open) {
-            setUploadError('');
-          }
-        }}
-      >
-        <DialogContent className="sm:max-w-xl">
-          <DialogHeader>
-            <DialogTitle>{t('trace_upload_dialog_title')}</DialogTitle>
-          </DialogHeader>
-          <div className="mt-4 space-y-4">
-            <Input
-              placeholder={t('sku_item_code')}
-              value={uploadSkuItemCode}
-              onChange={(e) => setUploadSkuItemCode(e.target.value)}
-            />
-            <Input
-              placeholder={t('batch_no')}
-              value={uploadBatchNo}
-              onChange={(e) => setUploadBatchNo(e.target.value)}
-            />
-            <Input
-              placeholder={t('drive_file_url')}
-              value={uploadDriveUrl}
-              onChange={(e) => setUploadDriveUrl(e.target.value)}
-            />
-            <input
-              ref={csvFileInputRef}
-              type="file"
-              accept=".csv,text/csv,text/plain"
-              className="hidden"
-              onChange={(e) => handleCsvFileSelected(e.target.files)}
-            />
-            <div className="flex flex-wrap items-center gap-2">
-              <Button type="button" variant="outline" size="sm" onClick={() => csvFileInputRef.current?.click()}>
-                {t('choose_csv_file')}
-              </Button>
-              {csvFileName ? (
-                <span className="text-sm text-gray-600">
-                  {csvFileName}
-                  {csvParsedCount !== null ? ` · ${t('csv_rows_parsed', { count: csvParsedCount })}` : null}
-                </span>
-              ) : null}
-              {uploadFileRecords && uploadFileRecords.length > 0 ? (
-                <Button type="button" variant="ghost" size="sm" onClick={clearCsvSelection}>
-                  {t('clear_csv_file')}
-                </Button>
-              ) : null}
+            <div className="text-sm text-gray-600">
+              {t('work_order_no')}: {String((reportingOp?.workOrder as Record<string, unknown> | undefined)?.workOrderNo || '')} <br/>
+              {t('planned_qty')}: {String((reportingOp?.workOrder as Record<string, unknown> | undefined)?.plannedQty || '')} <br/>
+              {t('completed_qty')}: {String(reportingOp?.completedQty || '0')}
             </div>
-            <textarea
-              className="min-h-36 w-full rounded-xl border border-slate-200 bg-white shadow-sm px-3 py-2 text-sm outline-none focus:border-blue-500 disabled:bg-gray-50"
-              placeholder={t('trace_records_text')}
-              value={uploadRecordsText}
-              disabled={Boolean(uploadFileRecords && uploadFileRecords.length > 0)}
-              onChange={(e) => {
-                setUploadRecordsText(e.target.value);
-                clearCsvSelection();
-              }}
-            />
-            {uploadError ? <p className="text-sm text-red-600">{uploadError}</p> : null}
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('good_qty')}</label>
+              <Input
+                type="number"
+                min="0"
+                value={reportGoodQty}
+                onChange={(e) => setReportGoodQty(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('scrap_qty')}</label>
+              <Input
+                type="number"
+                min="0"
+                value={reportScrapQty}
+                onChange={(e) => setReportScrapQty(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('rework_qty')}</label>
+              <Input
+                type="number"
+                min="0"
+                value={reportReworkQty}
+                onChange={(e) => setReportReworkQty(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('time_spent_sec')}</label>
+              <Input
+                type="number"
+                min="0"
+                value={reportTime}
+                onChange={(e) => setReportTime(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('remarks')}</label>
+              <Input
+                value={reportRemarks}
+                onChange={(e) => setReportRemarks(e.target.value)}
+              />
+            </div>
+
+            {reportError ? <p className="text-sm text-red-600">{reportError}</p> : null}
             <Button
               type="button"
               className="w-full"
-              disabled={isUploading}
-              onClick={() => void uploadTraceFile()}
+              disabled={isReporting}
+              onClick={() => void handleReportProduction()}
             >
-              {isUploading ? t('submitting') : t('upload_trace')}
+              {isReporting ? t('submitting') : t('save')}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
-
-      {listMessage ? <p className="text-sm text-green-600">{listMessage}</p> : null}
-      {listError ? <p className="text-sm text-red-600">{listError}</p> : null}
-
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
-        {isLoading ? (
-          <p className="p-6 text-sm text-gray-500">{t('loading')}</p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('serial_no')}</TableHead>
-                <TableHead>{t('bluetooth_id')}</TableHead>
-                <TableHead>{t('batch_no')}</TableHead>
-                <TableHead>{t('task_type')}</TableHead>
-                <TableHead>{t('stage')}</TableHead>
-                <TableHead>{t('status')}</TableHead>
-                <TableHead>{t('actions')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell className="font-medium">{row.serialNo}</TableCell>
-                  <TableCell>{row.bluetoothId}</TableCell>
-                  <TableCell>{row.batchNo}</TableCell>
-                  <TableCell>{taskTypeLabel(row.taskType)}</TableCell>
-                  <TableCell>{stageLabel(row.stage)}</TableCell>
-                  <TableCell>
-                    <span className={['rounded-full px-2 py-1 text-xs font-medium', statusMeta(row.status).className].join(' ')}>
-                      {statusMeta(row.status).label}
-                    </span>
-                    {row.failReason ? (
-                      <p className="mt-1 text-xs text-red-600">{row.failReason}</p>
-                    ) : null}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button
-                        size="xs"
-                        variant="outline"
-                        disabled={isActionSubmitting || row.status === 'IN_PROGRESS' || row.status === 'DONE'}
-                        onClick={() => void runAction(row.id, 'START')}
-                      >
-                        {t('start')}
-                      </Button>
-                      <Button
-                        size="xs"
-                        disabled={isActionSubmitting || row.status !== 'IN_PROGRESS'}
-                        onClick={() => void runAction(row.id, 'COMPLETE')}
-                      >
-                        {t('complete')}
-                      </Button>
-                      <Button
-                        size="xs"
-                        variant="destructive"
-                        disabled={isActionSubmitting}
-                        onClick={() => {
-                          setFailReason('');
-                          setFailDialogTaskId(row.id);
-                        }}
-                      >
-                        {t('mark_failed')}
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-              {rows.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="py-8 text-center text-gray-500">
-                    {t('empty')}
-                  </TableCell>
-                </TableRow>
-              ) : null}
-            </TableBody>
-          </Table>
-        )}
-      </div>
-
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b bg-gray-50 px-4 py-3 text-sm font-medium text-gray-700">
-          {t('trace_upload_list')}
-        </div>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t('batch_no')}</TableHead>
-              <TableHead>{t('sku_item_code')}</TableHead>
-              <TableHead>{t('trace_record_count')}</TableHead>
-              <TableHead>{t('drive_file_url')}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {uploads.map((row) => (
-              <TableRow key={row.id}>
-                <TableCell>{row.batchNo}</TableCell>
-                <TableCell>{row.skuItemCode}</TableCell>
-                <TableCell>{row.recordCount}</TableCell>
-                <TableCell>
-                  <a
-                    href={row.driveFileUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-blue-600 underline"
-                  >
-                    {t('open_drive_file')}
-                  </a>
-                </TableCell>
-              </TableRow>
-            ))}
-            {uploads.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={4} className="py-6 text-center text-gray-500">
-                  {t('empty')}
-                </TableCell>
-              </TableRow>
-            ) : null}
-          </TableBody>
-        </Table>
-      </div>
     </div>
   );
 }

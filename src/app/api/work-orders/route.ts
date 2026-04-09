@@ -29,9 +29,8 @@ export async function GET() {
   try {
     const rows = await prisma.workOrder.findMany({
       include: {
-        dispatches: {
-          orderBy: [{ createdAt: 'desc' }],
-          take: 1,
+        operations: {
+          orderBy: [{ sequence: 'asc' }],
         },
       },
       orderBy: [{ createdAt: 'desc' }],

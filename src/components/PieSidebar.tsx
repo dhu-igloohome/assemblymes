@@ -140,7 +140,7 @@ export default function PieSidebar({ locale, currentUser }: PieSidebarProps) {
         {navModules.map((module) => {
           // Check role access
           if ('roles' in module && currentUser) {
-            const allowedRoles = (module as any).roles as string[];
+            const allowedRoles = (module as Record<string, unknown>).roles as string[];
             if (!allowedRoles.includes(currentUser.role)) {
               return null;
             }

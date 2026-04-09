@@ -47,6 +47,7 @@ export default function SystemUsersPage() {
 
   useEffect(() => {
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchData = async () => {
@@ -68,8 +69,9 @@ export default function SystemUsersPage() {
 
       setUsers(usersData);
       setEmployees(employeesData);
-    } catch (err: any) {
-      setError(err.message || t('load_failed'));
+    } catch (err: unknown) {
+      const e = err as Error;
+      setError(e.message || t('load_failed'));
     } finally {
       setLoading(false);
     }
@@ -136,7 +138,7 @@ export default function SystemUsersPage() {
         ? `/api/system/users/${editingUserId}` 
         : '/api/system/users';
       
-      const payload: any = {
+      const payload: Record<string, unknown> = {
         role: formData.role,
         isActive: formData.isActive,
       };
@@ -165,8 +167,9 @@ export default function SystemUsersPage() {
         setIsDialogOpen(false);
         fetchData();
       }, 1000);
-    } catch (err: any) {
-      setSubmitError(err.message || (editingUserId ? t('update_failed') : t('create_failed')));
+    } catch (err: unknown) {
+      const e = err as Error;
+      setSubmitError(e.message || (editingUserId ? t('update_failed') : t('create_failed')));
     } finally {
       setSubmitting(false);
     }
@@ -174,8 +177,7 @@ export default function SystemUsersPage() {
 
   const getRoleDisplay = (role: string) => {
     const roleKey = `role_${role.toLowerCase()}`;
-    // @ts-ignore
-    return t(roleKey) || role;
+    return t(roleKey as Parameters<typeof t>[0]) || role;
   };
 
   return (

@@ -305,7 +305,8 @@ model WorkOrder {
   notes         String?         @db.Text
   createdAt     DateTime        @default(now()) @map("created_at")
   updatedAt     DateTime        @updatedAt @map("updated_at")
-  dispatches    WorkOrderDispatch[]
+  
+  operations    WorkOrderOperation[]
   materialTxns  WorkOrderMaterialTxn[]
   costEntries   CostEntry[]
   salesOrder    SalesOrder?     @relation(fields: [salesOrderId], references: [id], onDelete: SetNull)
@@ -315,30 +316,54 @@ model WorkOrder {
   @@map("work_orders")
 }
 
-enum WorkOrderDispatchStatus {
-  ASSIGNED
+enum WorkOrderOperationStatus {
+  PENDING
   STARTED
   PAUSED
   COMPLETED
 }
 
-model WorkOrderDispatch {
-  id             String                  @id @default(uuid())
-  workOrderId    String                  @map("work_order_id")
-  workstation    String                  @db.VarChar(64)
-  assignee       String?                 @db.VarChar(64)
-  status         WorkOrderDispatchStatus @default(ASSIGNED)
-  pauseReason    String?                 @map("pause_reason") @db.Text
-  completedQty   Int                     @default(0) @map("completed_qty")
-  startedAt      DateTime?               @map("started_at")
-  completedAt    DateTime?               @map("completed_at")
-  createdAt      DateTime                @default(now()) @map("created_at")
-  updatedAt      DateTime                @updatedAt @map("updated_at")
-  workOrder      WorkOrder               @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+model WorkOrderOperation {
+  id                 String  @id @default(uuid())
+  workOrderId        String  @map("work_order_id")
+  sequence           Int
+  operationName      String  @map("operation_name")
+  workstation        String
+  standardTimeSec    Int     @map("standard_time_sec")
+  isInspectionPoint  Boolean @default(false) @map("is_inspection_point")
+  inspectionStandard String? @map("inspection_standard") @db.Text
+  
+  status             WorkOrderOperationStatus @default(PENDING)
+  completedQty       Int                      @default(0) @map("completed_qty")
+  startedAt          DateTime?                @map("started_at")
+  completedAt        DateTime?                @map("completed_at")
+  
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
 
-  @@index([workOrderId, status])
-  @@index([workstation, status])
-  @@map("work_order_dispatches")
+  workOrder          WorkOrder          @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
+  productionReports  ProductionReport[]
+
+  @@unique([workOrderId, sequence])
+  @@map("work_order_operations")
+}
+
+model ProductionReport {
+  id                   String             @id @default(uuid())
+  workOrderOperationId String             @map("work_order_operation_id")
+  operator             String             @db.VarChar(64)
+  goodQty              Int                @map("good_qty")
+  scrapQty             Int                @default(0) @map("scrap_qty")
+  reworkQty            Int                @default(0) @map("rework_qty")
+  timeSpentSec         Int                @default(0) @map("time_spent_sec")
+  remarks              String?            @db.Text
+  
+  createdAt            DateTime           @default(now()) @map("created_at")
+
+  operation            WorkOrderOperation @relation(fields: [workOrderOperationId], references: [id], onDelete: Cascade)
+
+  @@index([workOrderOperationId, createdAt])
+  @@map("production_reports")
 }
 
 enum QualityInspectionStage {

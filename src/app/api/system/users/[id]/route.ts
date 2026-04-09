@@ -21,7 +21,7 @@ export async function PUT(
     const body = await request.json();
     const { role, isActive, password } = body;
 
-    const dataToUpdate: any = {};
+    const dataToUpdate: Record<string, unknown> = {};
     if (role) dataToUpdate.role = role;
     if (isActive !== undefined) dataToUpdate.isActive = isActive;
     
@@ -41,9 +41,10 @@ export async function PUT(
       }
     });
 
-    const { passwordHash: _ph, ...userWithoutPassword } = updatedUser;
+    const { passwordHash, ...userWithoutPassword } = updatedUser;
     return NextResponse.json(userWithoutPassword);
-  } catch (error) {
+  } catch (error: unknown) {
+    console.error(error);
     return NextResponse.json({ error: 'FAILED_TO_UPDATE_USER' }, { status: 500 });
   }
 }

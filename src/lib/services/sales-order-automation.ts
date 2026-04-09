@@ -108,6 +108,33 @@ export async function autoIssueMaterialsForWorkOrder(workOrderId: string, operat
   return prisma.$transaction(async (tx) => {
     const wo = await tx.workOrder.findUnique({ where: { id: workOrderId } });
     if (!wo) throw new Error('WORK_ORDER_NOT_FOUND');
+    
+    // Create WorkOrderOperation snapshot when released
+    const routing = await tx.routingHeader.findFirst({
+      where: { itemCode: wo.skuItemCode },
+      include: { operations: true },
+      orderBy: [{ updatedAt: 'desc' }],
+    });
+
+    if (routing && routing.operations.length > 0) {
+      for (const op of routing.operations) {
+        await tx.workOrderOperation.upsert({
+          where: { workOrderId_sequence: { workOrderId: wo.id, sequence: op.sequence } },
+          create: {
+            workOrderId: wo.id,
+            sequence: op.sequence,
+            operationName: op.operationName,
+            workstation: op.workstation,
+            standardTimeSec: op.standardTimeSec,
+            isInspectionPoint: op.isInspectionPoint,
+            inspectionStandard: op.inspectionStandard,
+            status: 'PENDING',
+          },
+          update: {} // do not overwrite if already exists
+        });
+      }
+    }
+
     const bom = await tx.bomHeader.findFirst({
       where: { parentItemCode: wo.skuItemCode, isActive: true },
       include: { lines: true },

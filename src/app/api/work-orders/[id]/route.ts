@@ -74,6 +74,11 @@ export async function PATCH(
       await autoIssueMaterialsForWorkOrder(id, operator || 'system');
     }
     if (statusRaw === 'DONE') {
+      // In the new reporting model, FG is received when the last operation completes
+      // We don't want to double receive here unless it's a manual override.
+      // We'll skip autoFinishWorkOrder since we use the /api/execution/report endpoint.
+      // But we can still support autoFinishWorkOrder for manual override from the Work Orders screen if needed.
+      // For now, if someone clicks Finish from the Work Order list, we'll keep the autoFinish.
       const qty = Number.isInteger(finishedQtyNum) && finishedQtyNum > 0 ? finishedQtyNum : existing.plannedQty;
       await autoFinishWorkOrder(id, qty, operator || 'system');
     }

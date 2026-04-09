@@ -23,7 +23,8 @@ export async function GET(request: Request) {
     });
 
     return NextResponse.json(users);
-  } catch (error) {
+  } catch (error: unknown) {
+    console.error(error);
     return NextResponse.json({ error: 'FAILED_TO_FETCH_USERS' }, { status: 500 });
   }
 }
@@ -76,7 +77,8 @@ export async function POST(request: Request) {
     // Don't send password hash back
     const { passwordHash: _ph, ...userWithoutPassword } = newUser;
     return NextResponse.json(userWithoutPassword, { status: 201 });
-  } catch (error) {
+  } catch (error: unknown) {
+    console.error(error);
     return NextResponse.json({ error: 'FAILED_TO_CREATE_USER' }, { status: 500 });
   }
 }
