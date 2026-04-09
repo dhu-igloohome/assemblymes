@@ -26,65 +26,65 @@ import { Button } from '@/components/ui/button';
 const navModules = [
   {
     id: 'dashboard',
-    titleKey: 'overview',
+    titleKey: 'control_center',
     icon: LayoutDashboard,
     children: [
-      { href: '/dashboard', translationKey: 'overview', icon: BarChart3 },
+      { href: '/dashboard', translationKey: 'control_center', icon: BarChart3 },
     ],
   },
   {
     id: 'engineering',
-    titleKey: 'module_engineering',
+    titleKey: 'engineering',
     icon: Boxes,
     children: [
-      { href: '/pie/items', translationKey: 'items', icon: Package2 },
-      { href: '/pie/boms', translationKey: 'boms', icon: GitBranchPlus },
-      { href: '/pie/routings', translationKey: 'routings', icon: ClipboardList },
-      { href: '/pie/work-centers', translationKey: 'work_centers', icon: Factory },
+      { href: '/pie/items', translationKey: 'items', icon: Package2, ns: 'Items' },
+      { href: '/pie/boms', translationKey: 'title', icon: GitBranchPlus, ns: 'Boms' },
+      { href: '/pie/routings', translationKey: 'title', icon: ClipboardList, ns: 'Routings' },
+      { href: '/pie/work-centers', translationKey: 'title', icon: Factory, ns: 'WorkCenters' },
     ],
   },
   {
     id: 'planning_sales',
-    titleKey: 'module_sales_planning',
+    titleKey: 'orders_planning',
     icon: CalendarClock,
     children: [
-      { href: '/o2c', translationKey: 'o2c_overview', icon: Handshake },
-      { href: '/planning', translationKey: 'planning_overview', icon: CalendarClock },
+      { href: '/o2c', translationKey: 'title', icon: Handshake, ns: 'O2c' },
+      { href: '/planning', translationKey: 'title', icon: CalendarClock, ns: 'Planning' },
     ],
   },
   {
     id: 'supply_inventory',
-    titleKey: 'module_supply_inventory',
+    titleKey: 'supply_inventory',
     icon: ShoppingCart,
     children: [
-      { href: '/procurement', translationKey: 'procurement_overview', icon: ShoppingCart },
-      { href: '/inventory', translationKey: 'inventory_overview', icon: Package2 },
+      { href: '/procurement', translationKey: 'procurement_overview', icon: ShoppingCart, ns: 'Procurement' },
+      { href: '/inventory', translationKey: 'inventory_overview', icon: Package2, ns: 'Inventory' },
     ],
   },
   {
     id: 'manufacturing',
-    titleKey: 'module_manufacturing',
+    titleKey: 'manufacturing',
     icon: Cpu,
     children: [
-      { href: '/execution/work-orders', translationKey: 'work_orders', icon: FileText },
-      { href: '/execution/report', translationKey: 'execution', icon: Cpu },
-      { href: '/quality', translationKey: 'quality_overview', icon: ShieldCheck },
-      { href: '/execution/andon', translationKey: 'andon_board', icon: BarChart3 },
+      { href: '/execution/work-orders', translationKey: 'work_orders', icon: FileText, ns: 'WorkOrders' },
+      { href: '/execution/report', translationKey: 'execution', icon: Cpu, ns: 'Execution' },
+      { href: '/quality', translationKey: 'quality_overview', icon: ShieldCheck, ns: 'Quality' },
+      { href: '/execution/andon', translationKey: 'andon_board', icon: BarChart3, ns: 'Execution' },
     ],
   },
   {
     id: 'costing',
-    titleKey: 'module_costing',
+    titleKey: 'costing',
     icon: Coins,
-    children: [{ href: '/cost', translationKey: 'cost_overview', icon: Coins }],
+    children: [{ href: '/cost', translationKey: 'title', icon: Coins, ns: 'Cost' }],
   },
   {
     id: 'org_access',
-    titleKey: 'module_org_access',
+    titleKey: 'organization',
     icon: Users,
     children: [
-      { href: '/personnel/employees', translationKey: 'employees', icon: Users },
-      { href: '/pie/system/users', translationKey: 'system_users', icon: ShieldCheck, roles: ['SUPER_ADMIN'] },
+      { href: '/personnel/employees', translationKey: 'title', icon: Users, ns: 'Employees' },
+      { href: '/pie/system/users', translationKey: 'system_users', icon: ShieldCheck, roles: ['SUPER_ADMIN'], ns: 'System' },
     ],
   },
 ] as const;
@@ -98,8 +98,23 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ locale, currentUser }: SidebarProps) {
-  const t = useTranslations('Pie');
-  const tCommon = useTranslations(); // Access root for fallback if needed
+  const t = useTranslations('Sidebar');
+  const tPie = useTranslations('Pie');
+  const tItems = useTranslations('Items');
+  const tBoms = useTranslations('Boms');
+  const tRoutings = useTranslations('Routings');
+  const tWC = useTranslations('WorkCenters');
+  const tO2c = useTranslations('O2c');
+  const tPlanning = useTranslations('Planning');
+  const tProc = useTranslations('Procurement');
+  const tInv = useTranslations('Inventory');
+  const tWO = useTranslations('WorkOrders');
+  const tExec = useTranslations('Execution');
+  const tQual = useTranslations('Quality');
+  const tCost = useTranslations('Cost');
+  const tEmp = useTranslations('Employees');
+  const tSys = useTranslations('System');
+
   const pathname = usePathname();
   const [openModules, setOpenModules] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(navModules.map((module) => [module.id, true]))
@@ -123,12 +138,12 @@ export default function Sidebar({ locale, currentUser }: SidebarProps) {
     try {
       const res = await fetch('/api/auth/logout', { method: 'POST' });
       if (!res.ok) {
-        setSignOutError(t('sign_out_failed'));
+        setSignOutError(tPie('sign_out_failed'));
         return;
       }
       window.location.assign(`/${locale}`);
     } catch {
-      setSignOutError(t('sign_out_failed'));
+      setSignOutError(tPie('sign_out_failed'));
     } finally {
       setIsSigningOut(false);
     }
@@ -140,8 +155,8 @@ export default function Sidebar({ locale, currentUser }: SidebarProps) {
         <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-400">
           AssemblyMES
         </p>
-        <h1 className="mt-2 text-xl font-semibold text-white">{t('module_title')}</h1>
-        <p className="mt-1 text-sm text-slate-400">{t('module_description')}</p>
+        <h1 className="mt-2 text-xl font-semibold text-white">{tPie('module_title')}</h1>
+        <p className="mt-1 text-sm text-slate-400">{tPie('module_description')}</p>
       </div>
 
       <nav className="flex flex-1 flex-col gap-2 px-3 py-4">
@@ -202,7 +217,26 @@ export default function Sidebar({ locale, currentUser }: SidebarProps) {
                         ].join(' ')}
                       >
                         <Icon className="size-4" />
-                        <span>{t(item.translationKey)}</span>
+                        <span>
+                          {(() => {
+                            const ns = (item as any).ns;
+                            if (ns === 'Items') return tItems(item.translationKey);
+                            if (ns === 'Boms') return tBoms(item.translationKey);
+                            if (ns === 'Routings') return tRoutings(item.translationKey);
+                            if (ns === 'WorkCenters') return tWC(item.translationKey);
+                            if (ns === 'O2c') return tO2c(item.translationKey);
+                            if (ns === 'Planning') return tPlanning(item.translationKey);
+                            if (ns === 'Procurement') return tProc(item.translationKey);
+                            if (ns === 'Inventory') return tInv(item.translationKey);
+                            if (ns === 'WorkOrders') return tWO(item.translationKey);
+                            if (ns === 'Execution') return tExec(item.translationKey);
+                            if (ns === 'Quality') return tQual(item.translationKey);
+                            if (ns === 'Cost') return tCost(item.translationKey);
+                            if (ns === 'Employees') return tEmp(item.translationKey);
+                            if (ns === 'System') return tSys(item.translationKey);
+                            return t(item.translationKey);
+                          })()}
+                        </span>
                       </Link>
                     );
                   })}
@@ -215,12 +249,12 @@ export default function Sidebar({ locale, currentUser }: SidebarProps) {
 
       <div className="border-t border-slate-800 px-3 py-3">
         <div className="rounded-lg bg-slate-900 p-3">
-          <p className="text-xs font-medium text-slate-400">{t('current_user')}</p>
+          <p className="text-xs font-medium text-slate-400">{tPie('current_user')}</p>
           <p className="mt-1 text-sm font-semibold text-white">
             {currentUser?.username || '—'}
           </p>
           <p className="mt-1 text-xs text-slate-400">
-            {t('role_label')}: {roleLabel}
+            {tPie('role_label')}: {roleLabel}
           </p>
           <Button
             type="button"
@@ -230,7 +264,7 @@ export default function Sidebar({ locale, currentUser }: SidebarProps) {
             disabled={isSigningOut}
             onClick={() => void handleSignOut()}
           >
-            {isSigningOut ? t('signing_out') : t('sign_out')}
+            {isSigningOut ? tPie('signing_out') : tPie('sign_out')}
           </Button>
           {signOutError ? (
             <p className="mt-2 text-xs text-red-400">{signOutError}</p>
