@@ -411,22 +411,7 @@
     "role_super_admin": "超级管理员",
     "sign_out": "退出登录",
     "signing_out": "退出中…",
-    "sign_out_failed": "退出失败，请稍后重试。",
-    "welcome_title": "欢迎进入 PIE Management",
-    "welcome_description": "登录后默认进入 PIE 管理主界面。左侧入口用于维护物料主数据、BOM、工艺路线、工作中心、班组人员与组装执行。",
-    "items_description": "统一维护成品、半成品与原材料的主数据，并以 6 位物料编码作为业务主键。",
-    "boms_description": "按父件展开多层 BOM 结构，维护子件、用量与损耗率等核心装配数据。",
-    "routings_description": "按物料编制工艺路线，管理工序顺序、工作中心与标准工时。",
-    "work_centers_description": "维护组装线、测试区等工作中心编码与类型，作为现场与排产的统一称谓参考。",
-    "employees_description": "维护员工编号、班组与技能矩阵，为工序责任分配与排班打基础。",
-    "execution_description": "通过三色状态与一键操作管理DFU/补烧等现场执行任务，降低一线操作难度。",
-    "work_orders_description": "按 SKU 与批次建立并跟踪工单，把 PIE 基础数据真正落到生产执行。",
-    "inventory_description": "维护仓库/库位，记录收发调拨流水并实时查询库存余额，支撑工单领退料。",
-    "quality_description": "围绕 IQC/IPQC/OQC 建立检验记录与不良处置，打通来料、过程和出货质量闭环。",
-    "procurement_description": "覆盖请购、采购单、收货与对账流程，打通采购到入库的供应链闭环。",
-    "cost_description": "按工单归集材料、人工、制造费用与调整项，形成可追溯的成本分析视图。",
-    "planning_description": "按工单需求、库存可用与工位能力生成缺料与负荷视图，支撑排产决策。",
-    "o2c_description": "从销售订单、发运到开票回款打通经营闭环，并沉淀应收与收入看板。"
+    "sign_out_failed": "退出失败，请稍后重试。"
   },
   "Planning": {
     "title": "计划与排产（MRP/APS）",
@@ -489,6 +474,7 @@
     "role_quality": "品质检验 (QUALITY)",
     "role_finance": "财务销售 (FINANCE)"
   },
+  "O2c": {
     "title": "销售与订单履约（O2C）",
     "description": "打通从销售订单、发货、开票到收款的全链路，并可实时查看应收。",
     "metric_orders": "订单数",

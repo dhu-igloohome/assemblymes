@@ -99,6 +99,7 @@ interface SidebarProps {
 
 export default function Sidebar({ locale, currentUser }: SidebarProps) {
   const t = useTranslations('Pie');
+  const tCommon = useTranslations(); // Access root for fallback if needed
   const pathname = usePathname();
   const [openModules, setOpenModules] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(navModules.map((module) => [module.id, true]))
@@ -171,7 +172,7 @@ export default function Sidebar({ locale, currentUser }: SidebarProps) {
               >
                 <span className="flex items-center gap-3">
                   <ModuleIcon className="size-4" />
-                  <span>{t(module.titleKey)}</span>
+                  <span>{t.has(module.titleKey) ? t(module.titleKey) : module.titleKey}</span>
                 </span>
                 <ChevronDown
                   className={['size-4 transition-transform', isOpen ? 'rotate-180' : ''].join(' ')}
