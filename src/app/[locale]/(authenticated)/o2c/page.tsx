@@ -61,7 +61,7 @@ interface WarehouseOption {
 const STATUS_OPTIONS: SalesOrderStatus[] = ['DRAFT', 'CONFIRMED', 'PARTIALLY_SHIPPED', 'SHIPPED', 'CLOSED', 'CANCELLED'];
 
 export default function O2CPage() {
-  const t = useTranslations('O2C');
+  const t = useTranslations('O2c');
   const [rows, setRows] = useState<SalesOrderRow[]>([]);
   const [dashboard, setDashboard] = useState<DashboardPayload | null>(null);
   const [warehouses, setWarehouses] = useState<WarehouseOption[]>([]);
