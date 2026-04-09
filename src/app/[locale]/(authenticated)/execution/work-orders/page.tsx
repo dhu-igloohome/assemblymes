@@ -175,8 +175,11 @@ export default function WorkOrdersPage() {
       WORKSTATION_REQUIRED: 'workstation_required',
       COMPLETED_QTY_INVALID: 'completed_qty_invalid',
       COMPLETED_QTY_EXCEEDS_PLANNED: 'completed_qty_exceeds_planned',
+      FG_LOCATION_NOT_FOUND: 'fg_location_not_found',
+      INSUFFICIENT_STOCK_FOR_ISSUE: 'insufficient_stock',
     };
-    return m[code] ? t(m[code]) : t('save_failed');
+    const key = m[code] || code.toLowerCase();
+    return t.has(key as any) ? t(key as any) : t('save_failed');
   };
 
   const createWorkOrder = async () => {

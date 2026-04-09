@@ -512,7 +512,9 @@
     "work_order_no_duplicate": "工单号重复",
     "sku_not_found": "未找到该产品",
     "batch_no_required": "批次号必填",
-    "planned_qty_invalid": "计划产量无效"
+    "planned_qty_invalid": "计划产量无效",
+    "fg_location_not_found": "未找到成品库位，请先在库存模块创建仓库库位",
+    "insufficient_stock": "原材料库存不足，无法下达工单"
   },
   "Execution": {
     "title": "生产报工",

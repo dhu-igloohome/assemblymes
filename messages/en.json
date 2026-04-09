@@ -512,7 +512,9 @@
     "work_order_no_duplicate": "Duplicate WO No",
     "sku_not_found": "SKU not found",
     "batch_no_required": "Batch required",
-    "planned_qty_invalid": "Invalid Qty"
+    "planned_qty_invalid": "Invalid Qty",
+    "fg_location_not_found": "FG location not found, please create a storage location first",
+    "insufficient_stock": "Insufficient raw material stock to release work order"
   },
   "Execution": {
     "title": "Production",

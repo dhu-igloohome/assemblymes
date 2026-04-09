@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { autoFinishWorkOrder, autoIssueMaterialsForWorkOrder } from '@/lib/services/sales-order-automation';
 import { AUTH_COOKIE_NAME, parseSessionCookieValue } from '@/lib/auth';
+import { cookies } from 'next/headers';
 
 const WORK_ORDER_STATUS_OPTIONS = [
   'PLANNED',
@@ -22,9 +23,8 @@ export async function PATCH(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const cookie = request.headers.get('cookie');
-    const sessionCookie = cookie?.split('; ').find((c) => c.startsWith(`${AUTH_COOKIE_NAME}=`));
-    const session = await parseSessionCookieValue(sessionCookie?.split('=')[1]);
+    const cookieStore = await cookies();
+    const session = await parseSessionCookieValue(cookieStore.get(AUTH_COOKIE_NAME)?.value);
 
     if (!session) {
       return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
@@ -83,8 +83,13 @@ export async function PATCH(
       await autoFinishWorkOrder(id, qty, operator || 'system');
     }
     return NextResponse.json(updated);
-  } catch {
-    return NextResponse.json({ error: 'WORK_ORDER_UPDATE_FAILED' }, { status: 400 });
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error('Work order update error:', message);
+    return NextResponse.json(
+      { error: 'WORK_ORDER_UPDATE_FAILED', details: message },
+      { status: 400 }
+    );
   }
 }
 
