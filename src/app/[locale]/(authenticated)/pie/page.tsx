@@ -16,6 +16,7 @@ export default async function PieHomePage({
     { titleKey: 'routings', descKey: 'routings_description', href: '/pie/routings' },
     { titleKey: 'work_centers', descKey: 'work_centers_description', href: '/pie/work-centers' },
     { titleKey: 'employees', descKey: 'employees_description', href: '/personnel/employees' },
+    { titleKey: 'system_users', descKey: 'user_management_desc', href: '/pie/system/users' },
     { titleKey: 'execution', descKey: 'execution_description', href: '/execution/report' },
     { titleKey: 'work_orders', descKey: 'work_orders_description', href: '/execution/work-orders' },
     { titleKey: 'inventory', descKey: 'inventory_description', href: '/inventory' },

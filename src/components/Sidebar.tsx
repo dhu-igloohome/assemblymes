@@ -162,47 +162,47 @@ export default function Sidebar({ locale, currentUser }: SidebarProps) {
       <nav className="flex flex-1 flex-col gap-2 px-3 py-4">
         {navModules.map((module) => {
           if ('roles' in module && currentUser) {
-            const allowedRoles = (module as any).roles as string[];
-            if (!allowedRoles.includes(currentUser.role)) {
-              return null;
-            }
+          const allowedRoles = (module as any).roles as string[];
+          if (currentUser && !allowedRoles.includes(currentUser.role)) {
+            return null;
           }
-          
-          const ModuleIcon = module.icon;
-          const isModuleActive = module.children.some(
-            (child) => pathname === child.href || pathname.startsWith(`${child.href}/`)
-          );
-          const isOpen = Boolean(openModules[module.id]);
-          return (
-            <div key={module.id} className="rounded-lg border border-slate-800 bg-slate-900/70">
-              <button
-                type="button"
-                onClick={() => setOpenModules((prev) => ({ ...prev, [module.id]: !isOpen }))}
-                className={[
-                  'flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm transition-colors',
-                  isModuleActive
-                    ? 'bg-indigo-500/15 font-medium text-indigo-200'
-                    : 'text-slate-200 hover:bg-slate-800 hover:text-white',
-                ].join(' ')}
-              >
-                <span className="flex items-center gap-3">
-                  <ModuleIcon className="size-4" />
-                  <span>{t.has(module.titleKey) ? t(module.titleKey) : module.titleKey}</span>
-                </span>
-                <ChevronDown
-                  className={['size-4 transition-transform', isOpen ? 'rotate-180' : ''].join(' ')}
-                />
-              </button>
+        }
+        
+        const ModuleIcon = module.icon;
+        const isModuleActive = module.children.some(
+          (child) => pathname === child.href || pathname.startsWith(`${child.href}/`)
+        );
+        const isOpen = Boolean(openModules[module.id]);
+        return (
+          <div key={module.id} className="rounded-lg border border-slate-800 bg-slate-900/70">
+            <button
+              type="button"
+              onClick={() => setOpenModules((prev) => ({ ...prev, [module.id]: !isOpen }))}
+              className={[
+                'flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm transition-colors',
+                isModuleActive
+                  ? 'bg-indigo-500/15 font-medium text-indigo-200'
+                  : 'text-slate-200 hover:bg-slate-800 hover:text-white',
+              ].join(' ')}
+            >
+              <span className="flex items-center gap-3">
+                <ModuleIcon className="size-4" />
+                <span>{t.has(module.titleKey) ? t(module.titleKey) : module.titleKey}</span>
+              </span>
+              <ChevronDown
+                className={['size-4 transition-transform', isOpen ? 'rotate-180' : ''].join(' ')}
+              />
+            </button>
 
-              <div className={['overflow-hidden transition-all duration-200', isOpen ? 'max-h-96' : 'max-h-0'].join(' ')}>
-                <div className="space-y-1 px-2 pb-2">
-                  {module.children.map((item) => {
-                    if ('roles' in item && currentUser) {
-                      const allowedRoles = (item as any).roles as string[];
-                      if (!allowedRoles.includes(currentUser.role)) {
-                        return null;
-                      }
+            <div className={['overflow-hidden transition-all duration-200', isOpen ? 'max-h-[500px]' : 'max-h-0'].join(' ')}>
+              <div className="space-y-1 px-2 pb-2">
+                {module.children.map((item) => {
+                  if ('roles' in item && currentUser) {
+                    const allowedRoles = (item as any).roles as string[];
+                    if (!allowedRoles.includes(currentUser.role)) {
+                      return null;
                     }
+                  }
                     const Icon = item.icon;
                     const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
                     return (
