@@ -13,7 +13,18 @@
     "demo_description": "本系统是专为智能门锁组装工厂打造的轻量化生产执行系统。我们致力于为中小制造企业提供一个开源、透明且完全免费的数字化管理方案。",
     "demo_status": "🛠️ 当前状态：持续开发迭代中，功能闭环已初步完成。",
     "demo_account": "🔑 测试账号：{username} / 密码：{password}",
-    "demo_welcome": "诚邀您登录测试，您的反馈是我们进步的动力！"
+    "demo_welcome": "诚邀您登录测试，您的反馈是我们进步的动力！",
+    "language": "语言",
+    "language_zh": "简体中文",
+    "language_en": "English",
+    "feedback_title": "访客留言板",
+    "feedback_placeholder": "如果您有任何疑问、建议或合作意向，请在此留言...",
+    "feedback_nickname": "您的昵称 (可选)",
+    "feedback_contact": "联系方式 (手机/微信/邮箱 - 可选)",
+    "feedback_submit": "提交留言",
+    "feedback_success": "感谢您的反馈！我们会尽快阅览。",
+    "feedback_error": "提交失败，请稍后再试。",
+    "feedback_required": "请输入留言内容"
   },
   "Common": {
     "save": "保存",

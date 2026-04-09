@@ -785,3 +785,15 @@ model IssueRecord {
   @@index([workOrderId])
   @@map("issue_records")
 }
+
+model VisitorFeedback {
+  id        String   @id @default(uuid())
+  content   String   @db.Text
+  nickname  String?  @db.VarChar(64)
+  contact   String?  @db.VarChar(128)
+  ip        String?  @db.VarChar(128)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@map("visitor_feedback")
+}

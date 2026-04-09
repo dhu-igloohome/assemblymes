@@ -28,12 +28,12 @@ export default function LanguageSwitcher() {
   return (
     <div className="flex justify-end mb-4">
       <Select defaultValue={locale} onValueChange={(v) => onSelectChange(v ? String(v) : null)} disabled={isPending}>
-        <SelectTrigger className="w-[120px]">
+        <SelectTrigger className="w-[120px] bg-slate-900/50 border-slate-700 text-slate-200 hover:bg-slate-800 hover:text-white transition-colors shadow-lg backdrop-blur-sm">
           <SelectValue placeholder={t('language')} />
         </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="zh">{t('language_zh')}</SelectItem>
-          <SelectItem value="en">{t('language_en')}</SelectItem>
+        <SelectContent className="bg-slate-900 border-slate-700 text-slate-200">
+          <SelectItem value="zh" className="focus:bg-slate-800 focus:text-white cursor-pointer">{t('language_zh')}</SelectItem>
+          <SelectItem value="en" className="focus:bg-slate-800 focus:text-white cursor-pointer">{t('language_en')}</SelectItem>
         </SelectContent>
       </Select>
     </div>

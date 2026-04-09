@@ -13,7 +13,18 @@
     "demo_description": "A lightweight MES solution specifically tailored for Smart Lock Assembly Factories. Our goal is to provide a completely free and efficient digital management platform.",
     "demo_status": "🛠️ Status: Under active development. Core business loops are ready for testing.",
     "demo_account": "🔑 Test Account: {username} / Password: {password}",
-    "demo_welcome": "Feel free to explore and share your valuable feedback!"
+    "demo_welcome": "Feel free to explore and share your valuable feedback!",
+    "language": "Language",
+    "language_zh": "Chinese",
+    "language_en": "English",
+    "feedback_title": "Visitor Feedback",
+    "feedback_placeholder": "Feel free to share your thoughts, questions, or suggestions here...",
+    "feedback_nickname": "Nickname (Optional)",
+    "feedback_contact": "Contact Info (Phone/Email - Optional)",
+    "feedback_submit": "Send Message",
+    "feedback_success": "Thank you! Your feedback has been received.",
+    "feedback_error": "Failed to send, please try again.",
+    "feedback_required": "Message content is required"
   },
   "Common": {
     "save": "Save",
