@@ -575,7 +575,15 @@
     "trace_upload_dialog_title": "Upload Trace File",
     "drive_file_url": "Drive URL",
     "trace_upload_success": "Record created",
-    "trace_upload_failed": "Upload failed"
+    "trace_upload_failed": "Upload failed",
+    "scan_wo_label": "Scan / Enter WO No",
+    "scan_wo_placeholder": "Scan or enter work order number here...",
+    "search": "Search",
+    "current_wo": "Active Work Order",
+    "report_all_ops": "Full-Flow Qty (Good)",
+    "report_confirm": "Batch Report All Ops",
+    "work_order_not_found": "Work order not found or has no operations",
+    "save": "Save"
   },
   "Quality": {
     "title": "Quality Management (QMS)",
@@ -704,7 +712,9 @@
     "save_failed": "Save failed",
     "delete_confirm": "Are you sure to delete this account?",
     "user_or_employee_already_bound": "Username or Employee already bound",
-    "missing_required_fields": "Missing required fields"
+    "missing_required_fields": "Missing required fields",
+    "visitor_feedback": "Visitor Feedback",
+    "visitor_feedback_title": "Visitor Feedback List"
   },
   "Pie": {
     "module_title": "Assembly MES",

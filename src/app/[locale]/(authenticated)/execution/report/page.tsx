@@ -114,6 +114,12 @@ export default function ExecutionPage() {
   const [resolutionText, setResolutionText] = useState('');
   const [activeTab, setActiveTab] = useState('operations');
   const [isActionSubmitting, setIsActionSubmitting] = useState(false);
+  
+  // WO Search/Scan State
+  const [woSearch, setWoSearch] = useState('');
+  const [scannedWo, setScannedWo] = useState<Record<string, any> | null>(null);
+  const [isSearchingWo, setIsSearchingWo] = useState(false);
+  const [batchQty, setBatchQty] = useState('');
 
   const loadOperations = useCallback(async () => {
     setLoadingOps(true);
@@ -352,6 +358,58 @@ export default function ExecutionPage() {
     setIssueDialogOpen(true);
   };
 
+  const handleSearchWo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!woSearch.trim()) return;
+    setIsSearchingWo(true);
+    setScannedWo(null);
+    try {
+      const res = await fetch(`/api/work-orders?workOrderNo=${woSearch.trim()}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.length > 0) {
+          setScannedWo(data[0]);
+          setBatchQty(String(data[0].plannedQty));
+        } else {
+          setListError(t('work_order_not_found'));
+        }
+      }
+    } catch {
+      setListError(t('load_failed'));
+    } finally {
+      setIsSearchingWo(false);
+    }
+  };
+
+  const handleBatchReport = async () => {
+    if (!scannedWo) return;
+    setIsReporting(true);
+    setReportError('');
+    try {
+      const res = await fetch('/api/execution/report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          workOrderId: scannedWo.id,
+          goodQty: parseInt(batchQty, 10) || 0,
+        })
+      });
+      if (res.ok) {
+        setListMessage(t('report_success'));
+        setScannedWo(null);
+        setWoSearch('');
+        await loadOperations();
+      } else {
+        const payload = await res.json().catch(() => null);
+        setReportError(payload?.error || t('save_failed'));
+      }
+    } catch {
+      setReportError(t('save_failed'));
+    } finally {
+      setIsReporting(false);
+    }
+  };
+
   const statusMeta = (value: ExecutionStatus) => {
     if (value === 'READY') return { label: t('status_ready'), className: 'bg-blue-100 text-blue-700' };
     if (value === 'NEED_DFU') return { label: t('status_need_dfu'), className: 'bg-amber-100 text-amber-700' };
@@ -412,7 +470,79 @@ export default function ExecutionPage() {
           </div>
         )}
 
-        <TabsContent value="operations">
+        <TabsContent value="operations" className="space-y-6">
+          {/* WO Search/Scan Section */}
+          <div className="rounded-xl border border-indigo-200 bg-indigo-50/30 p-6 shadow-sm">
+             <div className="flex flex-col gap-4 md:flex-row md:items-end">
+                <form onSubmit={handleSearchWo} className="flex-1 space-y-2">
+                   <label className="text-sm font-semibold text-indigo-900">{t('scan_wo_label') || '扫码/输入工单号'}</label>
+                   <div className="flex gap-2">
+                      <Input 
+                        placeholder={t('scan_wo_placeholder') || '输入工单号...'} 
+                        value={woSearch} 
+                        onChange={e => setWoSearch(e.target.value.toUpperCase())}
+                        className="bg-white border-indigo-300"
+                      />
+                      <Button type="submit" disabled={isSearchingWo}>
+                        {isSearchingWo ? t('loading') : (t('search') || '查询')}
+                      </Button>
+                   </div>
+                </form>
+                {scannedWo && (
+                  <div className="flex flex-col gap-6 rounded-lg bg-white p-6 border border-indigo-200 animate-in fade-in slide-in-from-top-2 shadow-sm">
+                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-slate-100 pb-4">
+                      <div className="space-y-1">
+                        <p className="text-xs text-slate-500 uppercase font-bold tracking-wider">{t('current_wo')}</p>
+                        <p className="text-lg font-bold text-slate-900">{scannedWo.workOrderNo} <span className="text-indigo-600 ml-2">{scannedWo.skuItemCode}</span></p>
+                        <p className="text-sm text-slate-600 font-medium">{t('planned_qty')}: {scannedWo.plannedQty}</p>
+                      </div>
+                      <div className="flex items-center gap-4 bg-indigo-50 p-4 rounded-xl border border-indigo-100">
+                         <div className="space-y-1">
+                            <label className="text-xs font-bold text-indigo-700">{t('report_all_ops')}</label>
+                            <Input 
+                              type="number" 
+                              className="h-9 w-32 bg-white border-indigo-200" 
+                              value={batchQty} 
+                              onChange={e => setBatchQty(e.target.value)} 
+                            />
+                         </div>
+                         <Button 
+                          onClick={handleBatchReport} 
+                          disabled={isReporting || !batchQty}
+                          className="bg-indigo-600 hover:bg-indigo-700 h-9 px-6 mt-5 shadow-md shadow-indigo-200"
+                         >
+                           {isReporting ? t('submitting') : t('report_confirm')}
+                         </Button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                       <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{t('work_orders_tab')}</p>
+                       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                          {scannedWo.operations?.map((op: any) => (
+                             <div key={op.id} className="flex items-center justify-between p-3 rounded-lg border border-slate-100 bg-slate-50/50 hover:bg-white hover:shadow-sm transition-all group">
+                                <div className="space-y-1">
+                                   <p className="text-sm font-bold text-slate-700">#{op.sequence} {op.operationName}</p>
+                                   <p className="text-[10px] text-slate-400">{op.workstation} | {op.completedQty} / {scannedWo.plannedQty}</p>
+                                </div>
+                                <Button 
+                                  size="sm" 
+                                  variant="ghost" 
+                                  className="h-8 text-indigo-600 hover:bg-indigo-50 group-hover:bg-indigo-50"
+                                  onClick={() => openReportDialog({ ...op, workOrder: scannedWo })}
+                                >
+                                   {t('report_production')}
+                                </Button>
+                             </div>
+                          ))}
+                       </div>
+                    </div>
+                  </div>
+                )}
+             </div>
+             {reportError && <p className="mt-3 text-xs text-red-600 font-medium">{reportError}</p>}
+          </div>
+
           <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
             {loadingOps ? (
               <p className="p-6 text-sm text-gray-500">{t('loading')}</p>

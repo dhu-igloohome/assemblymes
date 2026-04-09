@@ -575,7 +575,15 @@
     "trace_upload_dialog_title": "上传追溯文件",
     "drive_file_url": "文件网盘链接",
     "trace_upload_success": "上传记录已创建",
-    "trace_upload_failed": "上传失败"
+    "trace_upload_failed": "上传失败",
+    "scan_wo_label": "扫码/输入工单号报工",
+    "scan_wo_placeholder": "在此扫码或输入工单号...",
+    "search": "查询",
+    "current_wo": "当前待报工单",
+    "report_all_ops": "全工序报工数量 (良品)",
+    "report_confirm": "一键全工序报工",
+    "work_order_not_found": "未找到该工单或工单无工序",
+    "save": "保存"
   },
   "Quality": {
     "title": "质量管理 (QMS)",
@@ -704,7 +712,9 @@
     "save_failed": "保存失败",
     "delete_confirm": "确定要删除该账号吗？",
     "user_or_employee_already_bound": "用户名或员工已占用",
-    "missing_required_fields": "请填写必填项"
+    "missing_required_fields": "请填写必填项",
+    "visitor_feedback": "访客反馈",
+    "visitor_feedback_title": "访客留言反馈"
   },
   "Pie": {
     "module_title": "Assembly MES",

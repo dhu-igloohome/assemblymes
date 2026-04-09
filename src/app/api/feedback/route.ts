@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { parseSessionCookieValue, AUTH_COOKIE_NAME, SUPER_ADMIN_ROLE } from '@/lib/auth';
 
 export async function POST(request: Request) {
   try {
@@ -34,13 +35,22 @@ export async function POST(request: Request) {
   }
 }
 
-export async function GET() {
-  // Only allow public access to see recent feedback count or something simple?
-  // For now, let's just keep GET restricted or simple.
+export async function GET(request: Request) {
   try {
-    const count = await prisma.visitorFeedback.count();
-    return NextResponse.json({ count });
-  } catch {
-    return NextResponse.json({ count: 0 });
+    const cookie = request.headers.get('cookie');
+    const sessionCookie = cookie?.split('; ').find((c) => c.startsWith(`${AUTH_COOKIE_NAME}=`));
+    const session = parseSessionCookieValue(sessionCookie?.split('=')[1]);
+
+    if (!session || session.role !== SUPER_ADMIN_ROLE) {
+      return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
+    }
+
+    const feedbacks = await prisma.visitorFeedback.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+    return NextResponse.json(feedbacks);
+  } catch (error) {
+    console.error('Fetch feedback error:', error);
+    return NextResponse.json({ error: 'FAILED_TO_FETCH' }, { status: 500 });
   }
 }

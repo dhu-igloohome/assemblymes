@@ -25,8 +25,23 @@ function parseOptionalDate(value: unknown): Date | null | undefined {
   return undefined;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const workOrderNo = searchParams.get('workOrderNo');
+
+    if (workOrderNo) {
+      const wo = await prisma.workOrder.findUnique({
+        where: { workOrderNo },
+        include: {
+          operations: {
+            orderBy: [{ sequence: 'asc' }],
+          },
+        },
+      });
+      return NextResponse.json(wo ? [wo] : []);
+    }
+
     const rows = await prisma.workOrder.findMany({
       include: {
         operations: {

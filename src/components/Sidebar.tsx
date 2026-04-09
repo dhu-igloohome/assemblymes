@@ -85,6 +85,7 @@ const navModules = [
     children: [
       { href: '/personnel/employees', translationKey: 'title', icon: Users, ns: 'Employees' },
       { href: '/pie/system/users', translationKey: 'system_users', icon: ShieldCheck, roles: ['SUPER_ADMIN'], ns: 'System' },
+      { href: '/pie/system/feedback', translationKey: 'visitor_feedback', icon: MessageSquare, roles: ['SUPER_ADMIN'], ns: 'System' },
     ],
   },
 ] as const;
