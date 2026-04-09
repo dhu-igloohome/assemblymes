@@ -788,7 +788,7 @@ export default function ExecutionPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIssueDialogOpen(false)}>{t('cancel' as any)}</Button>
+            <Button variant="outline" onClick={() => setIssueDialogOpen(false)}>{t('cancel')}</Button>
             <Button variant="destructive" onClick={handleReportIssue} disabled={isReportingIssue || !issueDesc}>
               {isReportingIssue ? t('submitting') : t('issue_andon')}
             </Button>

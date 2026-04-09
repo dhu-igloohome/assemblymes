@@ -2,12 +2,12 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { AUTH_COOKIE_NAME, parseSessionCookieValue } from '@/lib/auth';
 import { IssueStatus, IssueType } from '@prisma/client';
+import { cookies } from 'next/headers';
 
 export async function GET(request: Request) {
   try {
-    const cookie = request.headers.get('cookie');
-    const sessionCookie = cookie?.split('; ').find((c) => c.startsWith(`${AUTH_COOKIE_NAME}=`));
-    const session = await parseSessionCookieValue(sessionCookie?.split('=')[1]);
+    const cookieStore = await cookies();
+    const session = await parseSessionCookieValue(cookieStore.get(AUTH_COOKIE_NAME)?.value);
 
     if (!session) {
       return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
@@ -55,9 +55,8 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const cookie = request.headers.get('cookie');
-    const sessionCookie = cookie?.split('; ').find((c) => c.startsWith(`${AUTH_COOKIE_NAME}=`));
-    const session = await parseSessionCookieValue(sessionCookie?.split('=')[1]);
+    const cookieStore = await cookies();
+    const session = await parseSessionCookieValue(cookieStore.get(AUTH_COOKIE_NAME)?.value);
 
     if (!session) {
       return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
