@@ -37,7 +37,7 @@ const navModules = [
     titleKey: 'engineering',
     icon: Boxes,
     children: [
-      { href: '/pie/items', translationKey: 'items', icon: Package2, ns: 'Items' },
+      { href: '/pie/items', translationKey: 'title', icon: Package2, ns: 'Items' },
       { href: '/pie/boms', translationKey: 'title', icon: GitBranchPlus, ns: 'Boms' },
       { href: '/pie/routings', translationKey: 'title', icon: ClipboardList, ns: 'Routings' },
       { href: '/pie/work-centers', translationKey: 'title', icon: Factory, ns: 'WorkCenters' },
