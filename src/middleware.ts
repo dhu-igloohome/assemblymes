@@ -10,13 +10,12 @@ function getLocaleFromPath(pathname: string) {
   if (locale === 'zh' || locale === 'en') {
     return locale;
   }
-
   return routing.defaultLocale;
 }
 
 function isProtectedPage(pathname: string) {
   // Protect all internal modules
-  return /^\/(zh|en)\/(pie|execution|personnel)/.test(pathname);
+  return /^\/(zh|en)\/(pie|execution|personnel|inventory|planning|o2c|procurement|quality|cost)/.test(pathname);
 }
 
 function isPublicApi(pathname: string) {
@@ -26,20 +25,28 @@ function isPublicApi(pathname: string) {
          pathname.startsWith('/api/feedback');
 }
 
-export default async function proxy(request: NextRequest) {
+export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const session = await parseSessionCookieValue(request.cookies.get(AUTH_COOKIE_NAME)?.value);
+  
+  // Get session from cookie
+  const sessionToken = request.cookies.get(AUTH_COOKIE_NAME)?.value;
+  const session = parseSessionCookieValue(sessionToken);
   const isLoggedIn = !!session;
 
   // 1. API Protection Logic
   if (pathname.startsWith('/api/')) {
-    // Check system admin routes first
+    // Check if it's a public API
+    if (isPublicApi(pathname)) {
+      return NextResponse.next();
+    }
+
+    // Check system admin routes
     if (pathname.startsWith('/api/system') && session?.role !== SUPER_ADMIN_ROLE) {
       return NextResponse.json({ error: 'Forbidden: Requires Super Admin' }, { status: 403 });
     }
 
-    // Protect all APIs except public ones
-    if (!isPublicApi(pathname) && !isLoggedIn) {
+    // Protect all other APIs
+    if (!isLoggedIn) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
@@ -61,9 +68,11 @@ export default async function proxy(request: NextRequest) {
     }
   }
 
+  // Fallback to internationalization middleware
   return intlMiddleware(request);
 }
 
 export const config = {
+  // Selectively match paths
   matcher: ['/', '/(zh|en)/:path*', '/api/:path*'],
 };
