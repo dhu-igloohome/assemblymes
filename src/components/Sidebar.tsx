@@ -19,6 +19,7 @@ import {
   Users,
   LayoutDashboard,
   BarChart3,
+  MessageSquare,
 } from 'lucide-react';
 import { usePathname, Link } from '@/i18n/routing';
 import { Button } from '@/components/ui/button';

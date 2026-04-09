@@ -41,7 +41,8 @@ export default function FeedbackBoard() {
         setTimeout(() => setIsSuccess(false), 5000);
       } else {
         const data = await res.json().catch(() => ({}));
-        setError(data.details || data.error || t('feedback_error'));
+        const serverError = data.details || data.error;
+        setError(serverError ? `[Server Error] ${serverError}` : t('feedback_error'));
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : t('feedback_error'));
