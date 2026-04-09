@@ -6,7 +6,7 @@ export async function GET(request: Request) {
   try {
     const cookie = request.headers.get('cookie');
     const sessionCookie = cookie?.split('; ').find((c) => c.startsWith(`${AUTH_COOKIE_NAME}=`));
-    const session = parseSessionCookieValue(sessionCookie?.split('=')[1]);
+    const session = await parseSessionCookieValue(sessionCookie?.split('=')[1]);
 
     if (!session) {
       return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });

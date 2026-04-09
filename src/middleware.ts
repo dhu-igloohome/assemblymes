@@ -30,7 +30,7 @@ export default async function middleware(request: NextRequest) {
   
   // Get session from cookie
   const sessionToken = request.cookies.get(AUTH_COOKIE_NAME)?.value;
-  const session = parseSessionCookieValue(sessionToken);
+  const session = await parseSessionCookieValue(sessionToken);
   const isLoggedIn = !!session;
 
   // 1. API Protection Logic
