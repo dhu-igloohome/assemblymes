@@ -29,9 +29,9 @@ export async function POST(request: Request) {
     });
 
     return NextResponse.json({ success: true, id: feedback.id });
-  } catch (error) {
-    console.error('Feedback submission error:', error);
-    return NextResponse.json({ error: 'SUBMISSION_FAILED' }, { status: 500 });
+    } catch (error) {
+    console.error('Feedback submission error detail:', error);
+    return NextResponse.json({ error: 'SUBMISSION_FAILED', details: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 }
 
