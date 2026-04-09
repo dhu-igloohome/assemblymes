@@ -33,11 +33,10 @@ const navModules = [
     ],
   },
   {
-    id: 'pie',
-    titleKey: 'module_pie',
+    id: 'engineering',
+    titleKey: 'module_engineering',
     icon: Boxes,
     children: [
-      { href: '/pie', translationKey: 'overview', icon: LayoutDashboard },
       { href: '/pie/items', translationKey: 'items', icon: Package2 },
       { href: '/pie/boms', translationKey: 'boms', icon: GitBranchPlus },
       { href: '/pie/routings', translationKey: 'routings', icon: ClipboardList },
@@ -45,50 +44,39 @@ const navModules = [
     ],
   },
   {
-    id: 'execution',
-    titleKey: 'module_execution',
+    id: 'planning_sales',
+    titleKey: 'module_sales_planning',
+    icon: CalendarClock,
+    children: [
+      { href: '/o2c', translationKey: 'o2c_overview', icon: Handshake },
+      { href: '/planning', translationKey: 'planning_overview', icon: CalendarClock },
+    ],
+  },
+  {
+    id: 'supply_inventory',
+    titleKey: 'module_supply_inventory',
+    icon: ShoppingCart,
+    children: [
+      { href: '/procurement', translationKey: 'procurement_overview', icon: ShoppingCart },
+      { href: '/inventory', translationKey: 'inventory_overview', icon: Package2 },
+    ],
+  },
+  {
+    id: 'manufacturing',
+    titleKey: 'module_manufacturing',
     icon: Cpu,
     children: [
       { href: '/execution/work-orders', translationKey: 'work_orders', icon: FileText },
       { href: '/execution/report', translationKey: 'execution', icon: Cpu },
+      { href: '/quality', translationKey: 'quality_overview', icon: ShieldCheck },
       { href: '/execution/andon', translationKey: 'andon_board', icon: BarChart3 },
     ],
   },
   {
-    id: 'inventory',
-    titleKey: 'module_inventory',
-    icon: Package2,
-    children: [{ href: '/inventory', translationKey: 'inventory_overview', icon: Package2 }],
-  },
-  {
-    id: 'quality',
-    titleKey: 'module_quality',
-    icon: ShieldCheck,
-    children: [{ href: '/quality', translationKey: 'quality_overview', icon: ShieldCheck }],
-  },
-  {
-    id: 'procurement',
-    titleKey: 'module_procurement',
-    icon: ShoppingCart,
-    children: [{ href: '/procurement', translationKey: 'procurement_overview', icon: ShoppingCart }],
-  },
-  {
-    id: 'cost',
-    titleKey: 'module_cost',
+    id: 'costing',
+    titleKey: 'module_costing',
     icon: Coins,
     children: [{ href: '/cost', translationKey: 'cost_overview', icon: Coins }],
-  },
-  {
-    id: 'planning',
-    titleKey: 'module_planning',
-    icon: CalendarClock,
-    children: [{ href: '/planning', translationKey: 'planning_overview', icon: CalendarClock }],
-  },
-  {
-    id: 'o2c',
-    titleKey: 'module_o2c',
-    icon: Handshake,
-    children: [{ href: '/o2c', translationKey: 'o2c_overview', icon: Handshake }],
   },
   {
     id: 'org_access',
