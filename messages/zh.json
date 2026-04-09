@@ -393,6 +393,7 @@
     "overview": "PIE 总览",
     "module_pie": "PIE 工程管理",
     "module_execution": "生产执行",
+    "module_org_access": "组织与权限",
     "module_personnel": "人员管理",
     "module_inventory": "库存管理",
     "module_quality": "质量管理",

@@ -91,19 +91,13 @@ const navModules = [
     children: [{ href: '/o2c', translationKey: 'o2c_overview', icon: Handshake }],
   },
   {
-    id: 'personnel',
-    titleKey: 'module_personnel',
+    id: 'org_access',
+    titleKey: 'module_org_access',
     icon: Users,
     children: [
       { href: '/personnel/employees', translationKey: 'employees', icon: Users },
+      { href: '/pie/system/users', translationKey: 'system_users', icon: ShieldCheck, roles: ['SUPER_ADMIN'] },
     ],
-  },
-  {
-    id: 'system',
-    titleKey: 'module_system',
-    icon: ShieldCheck,
-    roles: ['SUPER_ADMIN'],
-    children: [{ href: '/pie/system/users', translationKey: 'system_users', icon: Users }],
   },
 ] as const;
 
@@ -199,6 +193,12 @@ export default function Sidebar({ locale, currentUser }: SidebarProps) {
               <div className={['overflow-hidden transition-all duration-200', isOpen ? 'max-h-96' : 'max-h-0'].join(' ')}>
                 <div className="space-y-1 px-2 pb-2">
                   {module.children.map((item) => {
+                    if ('roles' in item && currentUser) {
+                      const allowedRoles = (item as any).roles as string[];
+                      if (!allowedRoles.includes(currentUser.role)) {
+                        return null;
+                      }
+                    }
                     const Icon = item.icon;
                     const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
                     return (
