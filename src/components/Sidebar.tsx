@@ -17,61 +17,86 @@ import {
   CalendarClock,
   Handshake,
   Users,
+  LayoutDashboard,
+  BarChart3,
 } from 'lucide-react';
 import { usePathname, Link } from '@/i18n/routing';
 import { Button } from '@/components/ui/button';
 
 const navModules = [
   {
+    id: 'dashboard',
+    titleKey: 'overview',
+    icon: LayoutDashboard,
+    children: [
+      { href: '/dashboard', translationKey: 'overview', icon: BarChart3 },
+    ],
+  },
+  {
     id: 'pie',
     titleKey: 'module_pie',
     icon: Boxes,
     children: [
-      { href: '/pie', translationKey: 'overview', icon: Boxes },
+      { href: '/pie', translationKey: 'overview', icon: LayoutDashboard },
       { href: '/pie/items', translationKey: 'items', icon: Package2 },
       { href: '/pie/boms', translationKey: 'boms', icon: GitBranchPlus },
       { href: '/pie/routings', translationKey: 'routings', icon: ClipboardList },
       { href: '/pie/work-centers', translationKey: 'work_centers', icon: Factory },
-      { href: '/pie/employees', translationKey: 'employees', icon: Users },
-      { href: '/pie/execution', translationKey: 'execution', icon: Cpu },
-      { href: '/pie/work-orders', translationKey: 'work_orders', icon: FileText },
+    ],
+  },
+  {
+    id: 'execution',
+    titleKey: 'module_execution',
+    icon: Cpu,
+    children: [
+      { href: '/execution/work-orders', translationKey: 'work_orders', icon: FileText },
+      { href: '/execution/report', translationKey: 'execution', icon: Cpu },
+      { href: '/execution/andon', translationKey: 'andon_board', icon: BarChart3 },
     ],
   },
   {
     id: 'inventory',
     titleKey: 'module_inventory',
     icon: Package2,
-    children: [{ href: '/pie/inventory', translationKey: 'inventory_overview', icon: Package2 }],
+    children: [{ href: '/inventory', translationKey: 'inventory_overview', icon: Package2 }],
   },
   {
     id: 'quality',
     titleKey: 'module_quality',
     icon: ShieldCheck,
-    children: [{ href: '/pie/quality', translationKey: 'quality_overview', icon: ShieldCheck }],
+    children: [{ href: '/quality', translationKey: 'quality_overview', icon: ShieldCheck }],
   },
   {
     id: 'procurement',
     titleKey: 'module_procurement',
     icon: ShoppingCart,
-    children: [{ href: '/pie/procurement', translationKey: 'procurement_overview', icon: ShoppingCart }],
+    children: [{ href: '/procurement', translationKey: 'procurement_overview', icon: ShoppingCart }],
   },
   {
     id: 'cost',
     titleKey: 'module_cost',
     icon: Coins,
-    children: [{ href: '/pie/cost', translationKey: 'cost_overview', icon: Coins }],
+    children: [{ href: '/cost', translationKey: 'cost_overview', icon: Coins }],
   },
   {
     id: 'planning',
     titleKey: 'module_planning',
     icon: CalendarClock,
-    children: [{ href: '/pie/planning', translationKey: 'planning_overview', icon: CalendarClock }],
+    children: [{ href: '/planning', translationKey: 'planning_overview', icon: CalendarClock }],
   },
   {
     id: 'o2c',
     titleKey: 'module_o2c',
     icon: Handshake,
-    children: [{ href: '/pie/o2c', translationKey: 'o2c_overview', icon: Handshake }],
+    children: [{ href: '/o2c', translationKey: 'o2c_overview', icon: Handshake }],
+  },
+  {
+    id: 'personnel',
+    titleKey: 'module_personnel',
+    icon: Users,
+    children: [
+      { href: '/personnel/employees', translationKey: 'employees', icon: Users },
+    ],
   },
   {
     id: 'system',
@@ -82,7 +107,7 @@ const navModules = [
   },
 ] as const;
 
-interface PieSidebarProps {
+interface SidebarProps {
   locale: string;
   currentUser: {
     username: string;
@@ -90,7 +115,7 @@ interface PieSidebarProps {
   } | null;
 }
 
-export default function PieSidebar({ locale, currentUser }: PieSidebarProps) {
+export default function Sidebar({ locale, currentUser }: SidebarProps) {
   const t = useTranslations('Pie');
   const pathname = usePathname();
   const [openModules, setOpenModules] = useState<Record<string, boolean>>(() =>
@@ -138,9 +163,8 @@ export default function PieSidebar({ locale, currentUser }: PieSidebarProps) {
 
       <nav className="flex flex-1 flex-col gap-2 px-3 py-4">
         {navModules.map((module) => {
-          // Check role access
           if ('roles' in module && currentUser) {
-            const allowedRoles = (module as Record<string, unknown>).roles as string[];
+            const allowedRoles = (module as any).roles as string[];
             if (!allowedRoles.includes(currentUser.role)) {
               return null;
             }

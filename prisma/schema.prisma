@@ -134,6 +134,7 @@ model RoutingOperation {
   standardTimeSec    Int     @map("standard_time_sec") // 标准工时(秒)
   isInspectionPoint  Boolean @default(false) @map("is_inspection_point")
   inspectionStandard String? @map("inspection_standard") @db.Text
+  sopUrl             String? @map("sop_url") @db.Text
 
   // Relations
   routingHeader RoutingHeader @relation(fields: [routingHeaderId], references: [id], onDelete: Cascade)
@@ -197,6 +198,7 @@ model Employee {
   employeeNo  String      @unique @map("employee_no") @db.VarChar(32)
   name        String
   team        String
+  skills      String[]    @default([])
   skillMatrix String?     @map("skill_matrix") @db.Text
   createdAt   DateTime    @default(now()) @map("created_at")
   updatedAt   DateTime    @updatedAt @map("updated_at")
@@ -309,6 +311,7 @@ model WorkOrder {
   operations    WorkOrderOperation[]
   materialTxns  WorkOrderMaterialTxn[]
   costEntries   CostEntry[]
+  issueRecords  IssueRecord[]
   salesOrder    SalesOrder?     @relation(fields: [salesOrderId], references: [id], onDelete: SetNull)
 
   @@index([skuItemCode, status])
@@ -332,6 +335,7 @@ model WorkOrderOperation {
   standardTimeSec    Int     @map("standard_time_sec")
   isInspectionPoint  Boolean @default(false) @map("is_inspection_point")
   inspectionStandard String? @map("inspection_standard") @db.Text
+  sopUrl             String? @map("sop_url") @db.Text
   
   status             WorkOrderOperationStatus @default(PENDING)
   completedQty       Int                      @default(0) @map("completed_qty")
@@ -343,6 +347,7 @@ model WorkOrderOperation {
 
   workOrder          WorkOrder          @relation(fields: [workOrderId], references: [id], onDelete: Cascade)
   productionReports  ProductionReport[]
+  issueRecords       IssueRecord[]
 
   @@unique([workOrderId, sequence])
   @@map("work_order_operations")
@@ -739,4 +744,44 @@ model PurchaseReceipt {
 
   @@index([purchaseOrderId, createdAt])
   @@map("purchase_receipts")
+}
+
+enum IssueType {
+  MATERIAL   // 缺料
+  QUALITY    // 品质
+  EQUIPMENT  // 设备
+  PROCESS    // 工艺
+  OTHER      // 其他
+}
+
+enum IssueStatus {
+  OPEN       // 待处理
+  IN_PROGRESS // 处理中
+  RESOLVED   // 已解决
+  CLOSED     // 已关闭
+}
+
+model IssueRecord {
+  id              String      @id @default(uuid())
+  issueType       IssueType   @map("issue_type")
+  status          IssueStatus @default(OPEN)
+  description     String      @db.Text
+  workOrderId     String?     @map("work_order_id")
+  operationId     String?     @map("operation_id")
+  workCenterCode  String?     @map("work_center_code") @db.VarChar(16)
+  reporter        String      @db.VarChar(64)
+  responder       String?     @db.VarChar(64)
+  reportedAt      DateTime    @default(now()) @map("reported_at")
+  respondedAt     DateTime?   @map("responded_at")
+  resolvedAt      DateTime?   @map("resolved_at")
+  resolution      String?     @db.Text
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+
+  workOrder       WorkOrder?  @relation(fields: [workOrderId], references: [id], onDelete: SetNull)
+  operation       WorkOrderOperation? @relation(fields: [operationId], references: [id], onDelete: SetNull)
+
+  @@index([status, issueType])
+  @@index([workOrderId])
+  @@map("issue_records")
 }

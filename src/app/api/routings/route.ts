@@ -137,6 +137,10 @@ export async function POST(request: Request) {
         typeof record.inspectionStandard === 'string' && record.inspectionStandard.trim() !== ''
           ? record.inspectionStandard.trim()
           : null,
+      sopUrl:
+        typeof record.sopUrl === 'string' && record.sopUrl.trim() !== ''
+          ? record.sopUrl.trim()
+          : null,
       };
     });
 
@@ -236,6 +240,7 @@ export async function POST(request: Request) {
               standardTimeSec: op.standardTimeSec,
               isInspectionPoint: op.isInspectionPoint,
               inspectionStandard: op.inspectionStandard,
+              sopUrl: op.sopUrl,
             })),
           });
 

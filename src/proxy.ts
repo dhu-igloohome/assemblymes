@@ -15,26 +15,13 @@ function getLocaleFromPath(pathname: string) {
 }
 
 function isProtectedPage(pathname: string) {
-  return pathname.startsWith('/zh/pie') || pathname.startsWith('/en/pie');
+  // Protect all internal modules
+  return /^\/(zh|en)\/(pie|execution|personnel)/.test(pathname);
 }
 
-function isProtectedApi(pathname: string) {
-  return (
-    pathname.startsWith('/api/items') ||
-    pathname.startsWith('/api/boms') ||
-    pathname.startsWith('/api/routings') ||
-    pathname.startsWith('/api/work-centers') ||
-    pathname.startsWith('/api/employees') ||
-    pathname.startsWith('/api/assembly-execution') ||
-    pathname.startsWith('/api/traceability') ||
-    pathname.startsWith('/api/work-orders') ||
-    pathname.startsWith('/api/inventory') ||
-    pathname.startsWith('/api/quality') ||
-    pathname.startsWith('/api/cost') ||
-    pathname.startsWith('/api/planning') ||
-    pathname.startsWith('/api/o2c') ||
-    pathname.startsWith('/api/procurement')
-  );
+function isPublicApi(pathname: string) {
+  // Only auth login and logout are public
+  return pathname.startsWith('/api/auth/login') || pathname.startsWith('/api/auth/logout');
 }
 
 export default async function proxy(request: NextRequest) {
@@ -42,22 +29,22 @@ export default async function proxy(request: NextRequest) {
   const session = await parseSessionCookieValue(request.cookies.get(AUTH_COOKIE_NAME)?.value);
   const isLoggedIn = !!session;
 
-  if (pathname.startsWith('/api/auth/login') || pathname.startsWith('/api/auth/logout')) {
-    return NextResponse.next();
-  }
-
-  if (pathname.startsWith('/api/system') && session?.role !== SUPER_ADMIN_ROLE) {
-     return NextResponse.json({ error: 'Unauthorized: requires super admin' }, { status: 401 });
-  }
-
-  if (isProtectedApi(pathname) && !isLoggedIn) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
+  // 1. API Protection Logic
   if (pathname.startsWith('/api/')) {
+    // Check system admin routes first
+    if (pathname.startsWith('/api/system') && session?.role !== SUPER_ADMIN_ROLE) {
+      return NextResponse.json({ error: 'Forbidden: Requires Super Admin' }, { status: 403 });
+    }
+
+    // Protect all APIs except public ones
+    if (!isPublicApi(pathname) && !isLoggedIn) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
     return NextResponse.next();
   }
 
+  // 2. Page Protection Logic
   if (isProtectedPage(pathname)) {
     if (!isLoggedIn) {
       const locale = getLocaleFromPath(pathname);
@@ -65,8 +52,8 @@ export default async function proxy(request: NextRequest) {
       return NextResponse.redirect(loginUrl);
     }
     
-    // Page level route protection based on roles
-    if (pathname.includes('/pie/system') && session?.role !== SUPER_ADMIN_ROLE) {
+    // RBAC for sensitive pages
+    if (pathname.includes('/system/') && session?.role !== SUPER_ADMIN_ROLE) {
       const locale = getLocaleFromPath(pathname);
       return NextResponse.redirect(new URL(`/${locale}/pie`, request.url));
     }

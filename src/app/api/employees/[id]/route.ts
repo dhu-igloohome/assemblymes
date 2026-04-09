@@ -16,13 +16,14 @@ export async function PATCH(
     const team = typeof body.team === 'string' ? body.team.trim() : undefined;
     const skillMatrix =
       typeof body.skillMatrix === 'string' ? body.skillMatrix.trim() : undefined;
+    const skills = Array.isArray(body.skills) ? body.skills : undefined;
 
     const existing = await prisma.employee.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: 'EMPLOYEE_NOT_FOUND' }, { status: 404 });
     }
 
-    const data: { name?: string; team?: string; skillMatrix?: string | null } = {};
+    const data: { name?: string; team?: string; skills?: string[]; skillMatrix?: string | null } = {};
 
     if (name !== undefined) {
       if (!name) {
@@ -40,6 +41,10 @@ export async function PATCH(
 
     if (skillMatrix !== undefined) {
       data.skillMatrix = skillMatrix || null;
+    }
+
+    if (skills !== undefined) {
+      data.skills = skills;
     }
 
     if (Object.keys(data).length === 0) {

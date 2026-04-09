@@ -27,6 +27,7 @@ export async function POST(request: Request) {
     const team = typeof body.team === 'string' ? body.team.trim() : '';
     const skillMatrix =
       typeof body.skillMatrix === 'string' ? body.skillMatrix.trim() : '';
+    const skills = Array.isArray(body.skills) ? body.skills : [];
 
     if (!/^[A-Z0-9_-]{1,32}$/.test(employeeNo)) {
       return NextResponse.json({ error: 'EMPLOYEE_NO_INVALID' }, { status: 400 });
@@ -43,6 +44,7 @@ export async function POST(request: Request) {
         employeeNo,
         name,
         team,
+        skills,
         skillMatrix: skillMatrix || null,
       },
     });

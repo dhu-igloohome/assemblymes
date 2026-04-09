@@ -12,6 +12,7 @@ interface EmployeeRow {
   employeeNo: string;
   name: string;
   team: string;
+  skills: string[];
   skillMatrix: string | null;
 }
 
@@ -27,6 +28,7 @@ export default function EmployeesPage() {
   const [employeeNo, setEmployeeNo] = useState('');
   const [name, setName] = useState('');
   const [team, setTeam] = useState('');
+  const [skills, setSkills] = useState(''); // Comma separated for input
   const [skillMatrix, setSkillMatrix] = useState('');
   const [dialogError, setDialogError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -59,6 +61,7 @@ export default function EmployeesPage() {
     setEmployeeNo('');
     setName('');
     setTeam('');
+    setSkills('');
     setSkillMatrix('');
     setDialogError('');
     setEditingId(null);
@@ -76,6 +79,7 @@ export default function EmployeesPage() {
     setEmployeeNo(row.employeeNo);
     setName(row.name);
     setTeam(row.team);
+    setSkills(row.skills.join(', '));
     setSkillMatrix(row.skillMatrix ?? '');
     setDialogError('');
     setDialogOpen(true);
@@ -113,6 +117,7 @@ export default function EmployeesPage() {
             employeeNo: employeeNo.trim().toUpperCase(),
             name: name.trim(),
             team: team.trim(),
+            skills: skills.split(',').map(s => s.trim()).filter(Boolean),
             skillMatrix: skillMatrix.trim(),
           }),
         });
@@ -145,6 +150,7 @@ export default function EmployeesPage() {
         body: JSON.stringify({
           name: name.trim(),
           team: team.trim(),
+          skills: skills.split(',').map(s => s.trim()).filter(Boolean),
           skillMatrix: skillMatrix.trim(),
         }),
       });
@@ -254,6 +260,11 @@ export default function EmployeesPage() {
               value={skillMatrix}
               onChange={(e) => setSkillMatrix(e.target.value)}
             />
+            <Input
+              placeholder={t('skills_placeholder')}
+              value={skills}
+              onChange={(e) => setSkills(e.target.value)}
+            />
             {dialogError ? <p className="text-sm text-red-600">{dialogError}</p> : null}
             <Button
               type="button"
@@ -280,6 +291,7 @@ export default function EmployeesPage() {
                 <TableHead>{t('employee_no')}</TableHead>
                 <TableHead>{t('name')}</TableHead>
                 <TableHead>{t('team')}</TableHead>
+                <TableHead>{t('skills')}</TableHead>
                 <TableHead>{t('skill_matrix')}</TableHead>
                 <TableHead className="w-44">{t('actions')}</TableHead>
               </TableRow>
@@ -290,6 +302,18 @@ export default function EmployeesPage() {
                   <TableCell className="font-medium">{row.employeeNo}</TableCell>
                   <TableCell>{row.name}</TableCell>
                   <TableCell>{row.team}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      {row.skills.map((s) => (
+                        <span
+                          key={s}
+                          className="inline-flex items-center rounded bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-600"
+                        >
+                          {s}
+                        </span>
+                      ))}
+                    </div>
+                  </TableCell>
                   <TableCell>{row.skillMatrix || '—'}</TableCell>
                   <TableCell>
                     <div className="flex gap-2">

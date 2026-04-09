@@ -20,6 +20,7 @@ interface OperationLine {
   standardTimeSec: number;
   isInspectionPoint: boolean;
   inspectionStandard: string;
+  sopUrl: string;
 }
 
 interface ExistingRoutingRecord {
@@ -136,6 +137,7 @@ export default function RoutingsPage() {
               standardTimeSec: number;
               isInspectionPoint?: boolean;
               inspectionStandard?: string | null;
+              sopUrl?: string | null;
             }) => ({
               sequence: o.sequence,
               operationName: o.operationName,
@@ -143,6 +145,7 @@ export default function RoutingsPage() {
               standardTimeSec: o.standardTimeSec,
               isInspectionPoint: o.isInspectionPoint ?? false,
               inspectionStandard: o.inspectionStandard ?? '',
+              sopUrl: o.sopUrl ?? '',
             })
           )
         );
@@ -198,6 +201,7 @@ export default function RoutingsPage() {
         standardTimeSec: 60,
         isInspectionPoint: false,
         inspectionStandard: '',
+        sopUrl: '',
       },
     ]);
   };
@@ -394,6 +398,7 @@ export default function RoutingsPage() {
                   <TableHead>{t('standard_time')}</TableHead>
                   <TableHead>{t('inspection_point')}</TableHead>
                   <TableHead>{t('inspection_standard')}</TableHead>
+                  <TableHead>{t('sop_url')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -470,6 +475,13 @@ export default function RoutingsPage() {
                         value={op.inspectionStandard}
                         disabled={!op.isInspectionPoint}
                         onChange={(e) => updateOperation(idx, 'inspectionStandard', e.target.value)}
+                      />
+                    </TableCell>
+                    <TableCell className="min-w-[180px]">
+                      <Input
+                        placeholder={t('sop_url')}
+                        value={op.sopUrl}
+                        onChange={(e) => updateOperation(idx, 'sopUrl', e.target.value)}
                       />
                     </TableCell>
                   </TableRow>

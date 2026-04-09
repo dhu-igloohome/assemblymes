@@ -94,10 +94,10 @@ export async function POST(
         create: {
           itemCode: order.skuItemCode,
           locationId,
-          quantity: current.minus(deduct),
+          quantity: new Prisma.Decimal(0).minus(deduct), // Should not happen in create if checked before, but for consistency
         },
         update: {
-          quantity: current.minus(deduct),
+          quantity: { decrement: deduct },
         },
       });
 

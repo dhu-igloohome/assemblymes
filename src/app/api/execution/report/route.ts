@@ -39,6 +39,28 @@ export async function POST(request: Request) {
 
     const operator = session.employeeName || session.username;
 
+    // 0. 技能校验 (Skill Check)
+    if (session.employeeId) {
+      const employee = await prisma.employee.findUnique({
+        where: { id: session.employeeId },
+        select: { skills: true }
+      });
+      
+      if (employee) {
+        const op = await prisma.workOrderOperation.findUnique({
+          where: { id: workOrderOperationId },
+          select: { operationName: true }
+        });
+        
+        if (op) {
+          const requiredSkill = op.operationName.includes('测试') ? 'TESTING' : 'ASSEMBLY';
+          if (!employee.skills.includes(requiredSkill)) {
+            return NextResponse.json({ error: 'SKILL_DENIED', requiredSkill }, { status: 403 });
+          }
+        }
+      }
+    }
+
     const result = await prisma.$transaction(async (tx) => {
       // 1. 获取工序和工单信息
       const operation = await tx.workOrderOperation.findUnique({
@@ -153,15 +175,11 @@ export async function POST(request: Request) {
          const fgLocation = await tx.storageLocation.findFirst({ where: { isActive: true }, orderBy: [{ createdAt: 'asc' }] });
          if (fgLocation) {
              const qtyToReceive = dec(goodQty);
-             const bal = await tx.inventoryBalance.findUnique({
-               where: { itemCode_locationId: { itemCode: wo.skuItemCode, locationId: fgLocation.id } },
-             });
-             const currentBal = bal?.quantity ?? dec(0);
              
              await tx.inventoryBalance.upsert({
                where: { itemCode_locationId: { itemCode: wo.skuItemCode, locationId: fgLocation.id } },
-               create: { itemCode: wo.skuItemCode, locationId: fgLocation.id, quantity: currentBal.plus(qtyToReceive) },
-               update: { quantity: currentBal.plus(qtyToReceive) },
+               create: { itemCode: wo.skuItemCode, locationId: fgLocation.id, quantity: qtyToReceive },
+               update: { quantity: { increment: qtyToReceive } },
              });
 
              await tx.inventoryTxn.create({

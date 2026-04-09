@@ -1,8 +1,8 @@
-import PieSidebar from '@/components/PieSidebar';
+import Sidebar from '@/components/Sidebar';
 import { cookies } from 'next/headers';
 import { AUTH_COOKIE_NAME, parseSessionCookieValue } from '@/lib/auth';
 
-export default async function PieLayout({
+export default async function AuthenticatedLayout({
   params,
   children,
 }: {
@@ -15,7 +15,7 @@ export default async function PieLayout({
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <PieSidebar
+      <Sidebar
         locale={locale}
         currentUser={session}
       />
