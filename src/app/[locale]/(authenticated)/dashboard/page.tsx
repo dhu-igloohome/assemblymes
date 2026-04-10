@@ -36,19 +36,21 @@ export default function GlobalDashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     fetch('/api/system/dashboard-summary')
       .then(async (res) => {
         if (!res.ok) {
           const err = await res.json().catch(() => ({}));
-          throw new Error(err.message || 'FAILED_TO_LOAD');
+          throw new Error(err.msg || err.message || 'SERVER_ERROR');
         }
         return res.json();
       })
       .then(setData)
       .catch((err) => {
         console.error('Dashboard Error:', err);
-        // 设置一个包含错误信息的默认状态
+        setError(err.message);
         setData({
           activeIssuesCount: 0,
           todayGoodQty: 0,
@@ -69,6 +71,18 @@ export default function GlobalDashboard() {
         <h1 className="text-3xl font-bold tracking-tight text-slate-900">{t('title')}</h1>
         <p className="text-slate-500 mt-1">Digital Factory Control Center - {tPie('module_description')}</p>
       </div>
+
+      {error && (
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded shadow-sm">
+          <div className="flex items-center gap-3">
+            <AlertTriangle className="text-red-500 size-5" />
+            <div>
+              <p className="text-red-800 font-bold">数据同步异常</p>
+              <p className="text-red-700 text-sm">{error} (请检查数据库连接或 Vercel 环境变量)</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* KPI Cards */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
