@@ -184,14 +184,8 @@ export default function GlobalDashboard() {
         </Card>
       </div>
 
-      <div className="text-red-600 font-bold text-center p-4 border-2 border-dashed border-red-500 my-4">
-        DEBUG MODE: {data?.debug?.env || 'WAITING_FOR_DEPLOYMENT'} | 
-        ORDERS: {data?.recentOrders?.length || 0}
-      </div>
-
-      <div className="text-[10px] text-slate-300 text-right mt-4 opacity-50">
-        Data Sync: {(data as any)?.debug?.fetchedAt || 'No Connection'} | DB: {(data as any)?.debug?.dbUrlPreview || 'Unknown'}
-      </div>
     </div>
+  );
+}
   );
 }
