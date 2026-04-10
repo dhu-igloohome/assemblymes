@@ -8,7 +8,7 @@ export async function GET() {
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
 
-    const [activeIssues, todayReports, itemsWithSafety, recentOrders, activeWOs] = await Promise.all([
+    const [activeIssues, todayReports, itemsWithSafety, recentOrders, activeWOs, materialDemandWOs, allBalances] = await Promise.all([
       // 1. 活跃异常明细
       prisma.issueRecord.findMany({
         where: { status: { in: ['OPEN', 'IN_PROGRESS'] } },
@@ -29,8 +29,75 @@ export async function GET() {
         include: { workOrders: { select: { status: true, plannedQty: true } } }
       }),
       // 5. 正在进行的工单 (判断产线是否忙碌)
-      prisma.workOrder.count({ where: { status: 'IN_PROGRESS' } })
+      prisma.workOrder.count({ where: { status: 'IN_PROGRESS' } }),
+      // 6. 获取未完成工单用于物料缺口计算
+      prisma.workOrder.findMany({
+        where: { status: { in: ['RELEASED', 'IN_PROGRESS'] } },
+        select: { skuItemCode: true, plannedQty: true }
+      }),
+      // 7. 获取全库位余额
+      prisma.inventoryBalance.findMany({
+        select: { itemCode: true, quantity: true }
+      })
     ]);
+
+    // 逻辑：计算 3 天内物料缺口 (简化版：计算当前所有未完成工单的总需求)
+    const demandMap = new Map<string, number>();
+    const skuCodes = Array.from(new Set(materialDemandWOs.map(wo => wo.skuItemCode)));
+    
+    // 获取这些 SKU 的活跃 BOM
+    const boms = await prisma.bomHeader.findMany({
+      where: { parentItemCode: { in: skuCodes }, isActive: true },
+      include: { 
+        lines: { select: { componentItemCode: true, quantity: true } },
+        parentItem: { select: { itemName: true } }
+      }
+    });
+
+    // 累加需求
+    for (const wo of materialDemandWOs) {
+      const bom = boms.find(b => b.parentItemCode === wo.skuItemCode);
+      if (bom) {
+        for (const line of bom.lines) {
+          const totalReq = Number(line.quantity) * wo.plannedQty;
+          demandMap.set(line.componentItemCode, (demandMap.get(line.componentItemCode) || 0) + totalReq);
+        }
+      }
+    }
+
+    // 计算库存余量并找出缺口
+    const materialGaps: any[] = [];
+    const inventoryMap = new Map<string, number>();
+    allBalances.forEach(b => {
+      inventoryMap.set(b.itemCode, (inventoryMap.get(b.itemCode) || 0) + Number(b.quantity));
+    });
+
+    // 只展示缺口最大的前 5 个
+    for (const [itemCode, demand] of demandMap.entries()) {
+      const currentInv = inventoryMap.get(itemCode) || 0;
+      if (currentInv < demand) {
+        materialGaps.push({
+          itemCode,
+          demand,
+          inventory: currentInv,
+          gap: demand - currentInv,
+          shortageRate: ((demand - currentInv) / demand * 100).toFixed(1)
+        });
+      }
+    }
+    materialGaps.sort((a, b) => b.gap - a.gap);
+
+    // 获取缺料物料的名称
+    const gapItemCodes = materialGaps.slice(0, 5).map(g => g.itemCode);
+    const gapItems = await prisma.item.findMany({
+      where: { itemCode: { in: gapItemCodes } },
+      select: { itemCode: true, itemName: true }
+    });
+    
+    const finalMaterialGaps = materialGaps.slice(0, 5).map(g => ({
+      ...g,
+      itemName: gapItems.find(i => i.itemCode === g.itemCode)?.itemName || '未知物料'
+    }));
 
     // 计算今日产出
     const todayGoodQty = todayReports.reduce((sum, r) => sum + (r.goodQty || 0), 0);
@@ -59,7 +126,8 @@ export async function GET() {
       todayGoodQty,
       inventoryAlertsCount: itemsWithSafety,
       lineStatus: activeWOs > 0 ? 'RUNNING' : 'IDLE',
-      recentOrders: formattedOrders
+      recentOrders: formattedOrders,
+      materialGaps: finalMaterialGaps
     });
   } catch (error: any) {
     return NextResponse.json({ error: true, msg: error.message }, { status: 500 });

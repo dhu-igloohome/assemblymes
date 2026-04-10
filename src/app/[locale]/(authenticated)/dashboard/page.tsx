@@ -26,6 +26,7 @@ interface DashboardData {
   inventoryAlertsCount: number;
   lineStatus: 'RUNNING' | 'IDLE';
   recentOrders: any[];
+  materialGaps: any[];
 }
 
 export default function GlobalDashboard() {
@@ -216,11 +217,43 @@ export default function GlobalDashboard() {
               {data?.activeIssuesList?.map(issue => (
                 <div key={issue.id} className="p-2 bg-red-50 rounded-lg border border-red-100">
                   <p className="font-bold text-red-800 line-clamp-1">{issue.description}</p>
-                  <p className="text-[10px] text-red-600 font-medium mt-1">{issue.reportedAt}</p>
+                  <p className="text-[10px] text-red-600 font-medium mt-1">{new Date(issue.reportedAt).toLocaleString()}</p>
                 </div>
               ))}
               {(!data?.activeIssuesList || data.activeIssuesList.length === 0) && (
                 <p className="text-slate-400 italic py-4 text-center">暂无待处理异常</p>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-none shadow-md overflow-hidden">
+            <CardHeader className="pb-2 bg-slate-900 text-white">
+              <CardTitle className="text-sm font-bold flex items-center gap-2">
+                <Boxes className="size-4 text-amber-400" />
+                3天内生产缺料预测
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0 text-sm">
+              {(data?.materialGaps || []).map((gap) => (
+                <div key={gap.itemCode} className="p-3 border-b border-slate-50 hover:bg-slate-50 transition-colors">
+                  <div className="flex justify-between mb-1">
+                    <span className="font-bold text-slate-700">{gap.itemName}</span>
+                    <span className="text-xs font-black text-red-600">缺 {gap.gap}</span>
+                  </div>
+                  <div className="flex justify-between text-[10px] text-slate-400 mb-2">
+                    <span>{gap.itemCode}</span>
+                    <span>需求: {gap.demand} / 在库: {gap.inventory}</span>
+                  </div>
+                  <div className="h-1 bg-slate-100 rounded-full">
+                    <div 
+                      className="h-full bg-red-500 rounded-full" 
+                      style={{ width: `${Math.min(100, (gap.inventory / gap.demand) * 100)}%` }} 
+                    />
+                  </div>
+                </div>
+              ))}
+              {(!data?.materialGaps || data.materialGaps.length === 0) && (
+                <p className="text-slate-400 italic py-8 text-center text-xs">库存充足，无生产缺口</p>
               )}
             </CardContent>
           </Card>
