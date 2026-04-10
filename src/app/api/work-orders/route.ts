@@ -42,21 +42,6 @@ export async function GET(request: Request) {
       return NextResponse.json(wo ? [wo] : []);
     }
 
-    const { searchParams } = new URL(request.url);
-    const workOrderNo = searchParams.get('workOrderNo');
-
-    if (workOrderNo) {
-      const wo = await prisma.workOrder.findUnique({
-        where: { workOrderNo },
-        include: {
-          operations: {
-            orderBy: [{ sequence: 'asc' }],
-          },
-        },
-      });
-      return NextResponse.json(wo ? [wo] : []);
-    }
-
     const rows = await prisma.workOrder.findMany({
       include: {
         operations: {

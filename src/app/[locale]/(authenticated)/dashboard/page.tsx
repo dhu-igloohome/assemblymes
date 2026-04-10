@@ -22,6 +22,12 @@ interface DashboardData {
   todayGoodQty: number;
   lowStockCount: number;
   recentOrders: any[];
+  debug?: {
+    env?: string;
+    time?: string;
+    fetchedAt?: string;
+    dbUrlPreview?: string;
+  };
 }
 
 export default function GlobalDashboard() {
