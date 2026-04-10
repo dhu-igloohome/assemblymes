@@ -245,8 +245,10 @@ export default function ItemsPage() {
     !(isEditing && watchedItemCode === editingItemCode);
   const boolBadgeClass = (v: boolean) =>
     v
-      ? 'inline-flex rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700'
-      : 'inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600';
+      ? 'inline-flex rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-bold text-indigo-700 uppercase tracking-tighter'
+      : 'inline-flex rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-medium text-gray-500 uppercase tracking-tighter';
+
+  const [labelPreviewItem, setLabelPreviewItem] = useState<Item | null>(null);
 
   const fetchItemsDirect = useCallback(async (active = true) => {
     try {
@@ -1130,90 +1132,76 @@ export default function ItemsPage() {
 
       <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-slate-50/50">
             <TableRow>
+              <TableHead className="w-[80px]">预览</TableHead>
               <TableHead>{t('item_code')}</TableHead>
-              <TableHead>{t('item_name')}</TableHead>
+              <TableHead className="min-w-[200px]">{t('item_name')}</TableHead>
               <TableHead>{t('item_type')}</TableHead>
-              <TableHead>{t('item_group')}</TableHead>
-              <TableHead>{t('source_type')}</TableHead>
+              <TableHead>核心配置</TableHead>
               <TableHead>{t('status')}</TableHead>
               <TableHead>{t('unit')}</TableHead>
               <TableHead>{t('safety_stock')}</TableHead>
-              <TableHead>{t('is_purchasable')}</TableHead>
-              <TableHead>{t('requires_flashing')}</TableHead>
-              <TableHead>{t('requires_traceability')}</TableHead>
-              <TableHead>{t('requires_dfu')}</TableHead>
-              <TableHead>{t('specification')}</TableHead>
-              <TableHead>{t('reference_status')}</TableHead>
-              <TableHead>{t('actions')}</TableHead>
+              <TableHead className="text-right">{t('actions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {items.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell className="font-medium">{item.itemCode}</TableCell>
-                <TableCell>{item.itemName}</TableCell>
-                <TableCell>{t(`type_${item.itemType.toLowerCase()}` as Parameters<typeof t>[0])}</TableCell>
+              <TableRow key={item.id} className="hover:bg-slate-50/50 transition-colors">
                 <TableCell>
-                  {item.itemGroup
-                    ? t(`group_${item.itemGroup.toLowerCase()}` as Parameters<typeof t>[0])
-                    : '-'}
+                  <div className="size-12 rounded-lg border border-slate-100 bg-slate-50 overflow-hidden flex items-center justify-center">
+                    {item.imageUrl ? (
+                      <img src={item.imageUrl} alt={item.itemName} className="object-cover size-full" />
+                    ) : (
+                      <Package className="size-5 text-slate-300" />
+                    )}
+                  </div>
                 </TableCell>
-                <TableCell>{t(`source_${item.sourceType.toLowerCase()}` as Parameters<typeof t>[0])}</TableCell>
-                <TableCell>{t(`status_${item.status.toLowerCase()}` as Parameters<typeof t>[0])}</TableCell>
-                <TableCell>{item.unit}</TableCell>
-                <TableCell>{item.safetyStock}</TableCell>
+                <TableCell className="font-mono font-bold text-slate-900">{item.itemCode}</TableCell>
                 <TableCell>
-                  <span className={boolBadgeClass(item.isPurchasable)}>
-                    {item.isPurchasable ? t('yes') : t('no')}
+                  <div className="space-y-1">
+                    <p className="font-bold text-slate-800">{item.itemName}</p>
+                    <p className="text-[10px] text-slate-400 font-medium truncate max-w-[200px]">{item.specification || '-'}</p>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-black ${
+                    item.itemType === 'PRODUCT' ? 'bg-purple-100 text-purple-700' : 
+                    item.itemType === 'ASSEMBLY' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-700'
+                  }`}>
+                    {t(`type_${item.itemType.toLowerCase()}` as any)}
                   </span>
                 </TableCell>
                 <TableCell>
-                  <span className={boolBadgeClass(item.requiresFlashing)}>
-                    {item.requiresFlashing ? t('yes') : t('no')}
-                  </span>
+                  <div className="flex flex-wrap gap-1">
+                    {item.requiresFlashing && <span className="bg-amber-50 text-amber-600 border border-amber-100 px-1.5 py-0.5 rounded text-[10px] font-bold">烧录</span>}
+                    {item.requiresTraceability && <span className="bg-indigo-50 text-indigo-600 border border-indigo-100 px-1.5 py-0.5 rounded text-[10px] font-bold">追溯</span>}
+                    {item.isPurchasable && <span className="bg-emerald-50 text-emerald-600 border border-emerald-100 px-1.5 py-0.5 rounded text-[10px] font-bold">外购</span>}
+                  </div>
                 </TableCell>
                 <TableCell>
-                  <span className={boolBadgeClass(item.requiresTraceability)}>
-                    {item.requiresTraceability ? t('yes') : t('no')}
-                  </span>
+                  <span className={`size-2 inline-block rounded-full mr-2 ${item.status === 'ENABLED' ? 'bg-emerald-500' : 'bg-red-400'}`} />
+                  <span className="text-xs font-medium text-slate-600">{t(`status_${item.status.toLowerCase()}` as any)}</span>
                 </TableCell>
+                <TableCell className="text-xs font-bold text-slate-500">{item.unit}</TableCell>
                 <TableCell>
-                  <span className={boolBadgeClass(item.requiresDfu)}>
-                    {item.requiresDfu ? t('yes') : t('no')}
-                  </span>
-                </TableCell>
-                <TableCell>{item.specification || '-'}</TableCell>
-                <TableCell>
-                  {item.usage.totalReferences === 0 ? (
-                    <span className="text-green-600">{t('unused')}</span>
-                  ) : (
-                    <div className="text-xs text-amber-700">
-                      <div>{t('bom_parent_refs', { count: item.usage.bomParentCount })}</div>
-                      <div>{t('bom_component_refs', { count: item.usage.bomComponentCount })}</div>
-                      <div>{t('routing_refs', { count: item.usage.routingCount })}</div>
+                  <div className="space-y-1">
+                    <span className="text-xs font-black text-slate-900">{item.safetyStock}</span>
+                    <div className="w-12 h-1 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-full bg-amber-400 w-1/3" />
                     </div>
-                  )}
+                  </div>
                 </TableCell>
-                <TableCell>
-                  <div className="flex gap-2">
-                    <Button size="xs" variant="outline" onClick={() => openEditDialog(item)}>
+                <TableCell className="text-right">
+                  <div className="flex justify-end gap-2">
+                    <Button size="xs" variant="ghost" className="h-7 w-7 p-0" onClick={() => setLabelPreviewItem(item)}>
+                      <Scan className="size-3.5 text-slate-400 hover:text-indigo-600" />
+                    </Button>
+                    <Button size="xs" variant="outline" className="font-bold h-7" onClick={() => openEditDialog(item)}>
                       {t('edit')}
                     </Button>
-                    <Button size="xs" variant="ghost" onClick={() => openCopyDialog(item)}>
-                      {t('copy')}
-                    </Button>
-                    <Button size="xs" variant="secondary" onClick={() => void openReferenceDialog(item)}>
-                      {t('view_references')}
-                    </Button>
-                    <Button
-                      size="xs"
-                      variant="destructive"
-                      disabled={!item.usage.canDelete}
-                      onClick={() => void handleDeleteItem(item)}
-                    >
-                      {t('delete')}
+                    <Button size="xs" variant="secondary" className="h-7" onClick={() => void openReferenceDialog(item)}>
+                      引用
                     </Button>
                   </div>
                 </TableCell>
@@ -1229,6 +1217,23 @@ export default function ItemsPage() {
           </TableBody>
         </Table>
       </div>
+
+      {/* 物料标签预览 - 小厂落地的“最后一公里” */}
+      <Dialog open={!!labelPreviewItem} onOpenChange={(open) => !open && setLabelPreviewItem(null)}>
+        <DialogContent className="sm:max-w-xs p-6 flex flex-col items-center gap-4">
+          <div className="border-2 border-slate-900 p-4 rounded-lg w-full bg-white flex flex-col items-center">
+            <h3 className="font-black text-xl mb-1">{labelPreviewItem?.itemCode}</h3>
+            <p className="text-sm font-bold text-slate-700 mb-4">{labelPreviewItem?.itemName}</p>
+            <div className="size-32 bg-slate-100 rounded flex items-center justify-center border-2 border-slate-900">
+              <Scan className="size-16 text-slate-900" />
+            </div>
+            <p className="text-[10px] text-slate-400 mt-4 uppercase">Generated by Assembly MES</p>
+          </div>
+          <Button className="w-full bg-slate-900 text-white font-bold" onClick={() => window.print()}>
+            打印此标签
+          </Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
