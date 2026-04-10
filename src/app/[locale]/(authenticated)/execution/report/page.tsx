@@ -474,6 +474,26 @@ export default function ExecutionPage() {
                     <Input type="number" value={reportScrapQty} onChange={(e) => setReportScrapQty(e.target.value)} className="h-14 text-2xl font-black border-slate-200 focus:border-red-500 focus:ring-4 focus:ring-red-50 text-red-600" />
                   </div>
                 </div>
+
+                {/* 不良原因快选 - 针对无专职质检员的工厂，由工人录入原因 */}
+                {parseInt(reportScrapQty) > 0 && (
+                  <div className="space-y-3 animate-in fade-in zoom-in-95">
+                    <label className="text-[10px] font-black uppercase text-red-500 tracking-widest">请点选不良原因 (必选)</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {['外观划伤', '尺寸超差', '功能失效', '物料损耗', '人为失误', '其他'].map(reason => (
+                        <Button 
+                          key={reason} 
+                          variant="outline" 
+                          size="sm" 
+                          className={`text-[10px] font-bold h-10 ${reportRemarks.includes(reason) ? 'border-red-500 bg-red-50 text-red-700' : 'border-slate-100'}`}
+                          onClick={() => setReportRemarks(prev => prev.includes(reason) ? prev.replace(reason, '').trim() : `${prev} ${reason}`.trim())}
+                        >
+                          {reason}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 
                 <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">备注 (Remarks)</label>

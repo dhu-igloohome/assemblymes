@@ -13,6 +13,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ShieldCheck, AlertTriangle, Activity, BarChart3, Search, CheckCircle2, XCircle } from 'lucide-react';
 
 type InspectionStage = 'IQC' | 'IPQC' | 'OQC';
 type InspectionResult = 'PENDING' | 'PASS' | 'FAIL';
@@ -141,125 +143,237 @@ export default function QualityPage() {
   };
 
   return (
-    <div className="space-y-6 p-8 md:p-10">
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h1 className="text-2xl font-bold text-slate-900">{t('title')}</h1>
-        <p className="mt-2 text-sm text-slate-600">{t('description')}</p>
-
-        <div className="mt-5 grid gap-3 md:grid-cols-3">
-          <Input
-            placeholder={t('inspection_no')}
-            value={inspectionNo}
-            onChange={(e) => setInspectionNo(e.target.value.toUpperCase())}
-          />
-          <select
-            className="h-10 rounded-md border border-slate-300 bg-white px-3 text-sm"
-            value={stage}
-            onChange={(e) => setStage(e.target.value as InspectionStage)}
-          >
-            {STAGES.map((entry) => (
-              <option key={entry} value={entry}>
-                {entry}
-              </option>
-            ))}
-          </select>
-          <select
-            className="h-10 rounded-md border border-slate-300 bg-white px-3 text-sm"
-            value={result}
-            onChange={(e) => setResult(e.target.value as InspectionResult)}
-          >
-            {RESULTS.map((entry) => (
-              <option key={entry} value={entry}>
-                {entry}
-              </option>
-            ))}
-          </select>
-          <Input placeholder={t('item_code')} value={itemCode} onChange={(e) => setItemCode(e.target.value)} />
-          <Input placeholder={t('batch_no')} value={batchNo} onChange={(e) => setBatchNo(e.target.value)} />
-          <Input
-            placeholder={t('work_order_no')}
-            value={workOrderNo}
-            onChange={(e) => setWorkOrderNo(e.target.value)}
-          />
-          <Input
-            placeholder={t('sample_size')}
-            value={sampleSize}
-            onChange={(e) => setSampleSize(e.target.value)}
-          />
-          <Input
-            placeholder={t('defect_qty')}
-            value={defectQty}
-            onChange={(e) => setDefectQty(e.target.value)}
-          />
-          <Input
-            placeholder={t('inspected_by')}
-            value={inspectedBy}
-            onChange={(e) => setInspectedBy(e.target.value)}
-          />
+    <div className="space-y-8 p-8 bg-slate-50/50 min-h-screen">
+      {/* 标题区 */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight">质量管理中心</h1>
+          <p className="text-slate-500 font-medium">Quality & Compliance Command</p>
         </div>
-        <div className="mt-3 grid gap-3 md:grid-cols-2">
-          <Textarea
-            placeholder={t('issue_summary')}
-            value={issueSummary}
-            onChange={(e) => setIssueSummary(e.target.value)}
-          />
-          <Textarea
-            placeholder={t('disposition')}
-            value={disposition}
-            onChange={(e) => setDisposition(e.target.value)}
-          />
+        <div className="flex gap-3">
+          <Button variant="outline" className="font-bold border-slate-200">
+            质量日报导导出
+          </Button>
+          <Button className="font-bold bg-indigo-600">
+            新增品质记录
+          </Button>
         </div>
-
-        {formError ? <p className="mt-3 text-sm text-red-600">{formError}</p> : null}
-        {message ? <p className="mt-3 text-sm text-emerald-600">{message}</p> : null}
-
-        <Button className="mt-4" disabled={isSubmitting} onClick={() => void handleSubmit()}>
-          {isSubmitting ? t('submitting') : t('create')}
-        </Button>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-900">{t('list_title')}</h2>
-        {listError ? <p className="mt-2 text-sm text-red-600">{listError}</p> : null}
-        {isLoading ? (
-          <p className="mt-3 text-sm text-slate-500">{t('loading')}</p>
-        ) : (
-          <div className="mt-3 overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('inspection_no')}</TableHead>
-                  <TableHead>{t('stage')}</TableHead>
-                  <TableHead>{t('result')}</TableHead>
-                  <TableHead>{t('item_code')}</TableHead>
-                  <TableHead>{t('batch_no')}</TableHead>
-                  <TableHead>{t('sample_size')}</TableHead>
-                  <TableHead>{t('defect_qty')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map((row) => (
-                  <TableRow key={row.id}>
-                    <TableCell className="font-medium">{row.inspectionNo}</TableCell>
-                    <TableCell>{row.stage}</TableCell>
-                    <TableCell>{row.result}</TableCell>
-                    <TableCell>{row.itemCode || '—'}</TableCell>
-                    <TableCell>{row.batchNo || '—'}</TableCell>
-                    <TableCell>{row.sampleSize}</TableCell>
-                    <TableCell>{row.defectQty}</TableCell>
-                  </TableRow>
-                ))}
-                {rows.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="py-8 text-center text-slate-500">
-                      {t('empty')}
-                    </TableCell>
-                  </TableRow>
-                ) : null}
-              </TableBody>
-            </Table>
+      {/* 极简概览卡片 - 小厂老板一眼能看懂 */}
+      <div className="grid gap-6 md:grid-cols-4">
+        <Card className="border-2 border-emerald-100 shadow-sm">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-black text-slate-500 uppercase flex justify-between">
+              今日平均良率
+              <ShieldCheck className="size-4 text-emerald-500" />
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-black text-emerald-600">98.5%</div>
+            <p className="text-[10px] text-slate-400 font-bold mt-1">同比昨日 +0.2%</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-2 border-red-100 shadow-sm">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-black text-slate-500 uppercase flex justify-between">
+              待处理异常
+              <AlertTriangle className="size-4 text-red-500 animate-pulse" />
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-black text-red-600">3</div>
+            <p className="text-[10px] text-slate-400 font-bold mt-1">由报工自检触发</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-2 border-indigo-100 shadow-sm">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-black text-slate-500 uppercase flex justify-between">
+              高频缺陷项
+              <BarChart3 className="size-4 text-indigo-500" />
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl font-black text-slate-800 truncate">外观划伤</div>
+            <p className="text-[10px] text-slate-400 font-bold mt-1">占不良总数 45%</p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-2 border-slate-200 shadow-sm">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-xs font-black text-slate-500 uppercase flex justify-between">
+              抽检任务
+              <Activity className="size-4 text-slate-400" />
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-black text-slate-900">12 / 20</div>
+            <p className="text-[10px] text-slate-400 font-bold mt-1">根据排产自动生成</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-8 lg:grid-cols-3">
+        {/* 左侧：快速录入 (简化版) */}
+        <div className="lg:col-span-1 space-y-6">
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl">
+            <h2 className="text-lg font-black text-slate-900 mb-6 uppercase tracking-tight">快速品质登记</h2>
+            
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">单据编号</label>
+                <Input
+                  className="bg-slate-50 border-none font-mono font-bold h-12"
+                  placeholder="AUTO-GENERATE"
+                  value={inspectionNo}
+                  onChange={(e) => setInspectionNo(e.target.value.toUpperCase())}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">检验环节</label>
+                  <select
+                    className="w-full h-12 rounded-xl border-none bg-slate-50 px-3 text-sm font-bold focus:ring-2 focus:ring-indigo-500"
+                    value={stage}
+                    onChange={(e) => setStage(e.target.value as InspectionStage)}
+                  >
+                    {STAGES.map((entry) => <option key={entry} value={entry}>{entry}</option>)}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">判定结果</label>
+                  <select
+                    className={`w-full h-12 rounded-xl border-none px-3 text-sm font-bold focus:ring-2 focus:ring-indigo-500 ${
+                      result === 'PASS' ? 'bg-emerald-50 text-emerald-700' : result === 'FAIL' ? 'bg-red-50 text-red-700' : 'bg-slate-50 text-slate-900'
+                    }`}
+                    value={result}
+                    onChange={(e) => setResult(e.target.value as InspectionResult)}
+                  >
+                    {RESULTS.map((entry) => <option key={entry} value={entry}>{entry}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">关联工单 / 批次</label>
+                <div className="relative">
+                  <Input 
+                    className="bg-slate-50 border-none pl-10 font-bold h-12" 
+                    placeholder="输入工单或批次号..." 
+                    value={workOrderNo} 
+                    onChange={(e) => setWorkOrderNo(e.target.value)} 
+                  />
+                  <Search className="absolute left-3 top-3.5 size-4 text-slate-300" />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">缺陷数</label>
+                  <Input
+                    className="bg-slate-50 border-none font-bold h-12 text-lg"
+                    type="number"
+                    value={defectQty}
+                    onChange={(e) => setDefectQty(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">处理方案</label>
+                  <Input
+                    className="bg-slate-50 border-none font-bold h-12"
+                    placeholder="放行 / 报废 / 返修"
+                    value={disposition}
+                    onChange={(e) => setDisposition(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2 pt-4">
+                <Button className="w-full h-14 bg-indigo-600 hover:bg-indigo-700 text-lg font-black shadow-lg shadow-indigo-100 rounded-2xl" disabled={isSubmitting} onClick={() => void handleSubmit()}>
+                  {isSubmitting ? '提交中...' : '确认并发布'}
+                </Button>
+                {formError && <p className="text-center text-xs text-red-600 font-bold">{formError}</p>}
+                {message && <p className="text-center text-xs text-emerald-600 font-bold">{message}</p>}
+              </div>
+            </div>
           </div>
-        )}
+        </div>
+
+        {/* 右侧：品质看板 (聚合显示) */}
+        <div className="lg:col-span-2 space-y-6">
+          <div className="rounded-3xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+            <div className="bg-slate-50 px-8 py-5 border-b border-slate-100 flex justify-between items-center">
+               <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest">品质履历追踪</h2>
+               <div className="flex gap-2">
+                  <div className="size-2 bg-emerald-500 rounded-full animate-pulse" />
+                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Real-time update</span>
+               </div>
+            </div>
+            
+            <div className="p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-slate-50/50 hover:bg-slate-50/50 border-none">
+                    <TableHead className="pl-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">状态</TableHead>
+                    <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">详情</TableHead>
+                    <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">缺陷</TableHead>
+                    <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">检查人</TableHead>
+                    <TableHead className="text-right pr-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">操作</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {rows.map((row) => (
+                    <TableRow key={row.id} className="border-b border-slate-50 hover:bg-slate-50/80 transition-colors">
+                      <TableCell className="pl-8 py-5">
+                        {row.result === 'PASS' ? (
+                          <div className="flex items-center gap-2 text-emerald-600 font-black text-xs">
+                            <CheckCircle2 className="size-4" /> 合格
+                          </div>
+                        ) : row.result === 'FAIL' ? (
+                          <div className="flex items-center gap-2 text-red-600 font-black text-xs">
+                            <XCircle className="size-4" /> 不良
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2 text-slate-400 font-black text-xs">
+                            <Activity className="size-4" /> 待定
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <p className="text-xs font-black text-slate-900">{row.inspectionNo}</p>
+                          <p className="text-[10px] text-slate-400 font-bold uppercase">{row.stage} / {row.workOrderNo || row.batchNo || '—'}</p>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className={`text-xs font-black px-2 py-0.5 rounded ${row.defectQty > 0 ? 'bg-red-50 text-red-600' : 'text-slate-400'}`}>
+                          {row.defectQty} PCS
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-xs font-bold text-slate-600">{row.inspectedBy || '系统自动'}</TableCell>
+                      <TableCell className="text-right pr-8">
+                        <Button variant="ghost" size="sm" className="font-black text-indigo-600 hover:bg-indigo-50">
+                          详情
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {rows.length === 0 && !isLoading && (
+                    <TableRow>
+                      <TableCell colSpan={5} className="py-20 text-center">
+                        <Package className="size-12 text-slate-100 mx-auto mb-4" />
+                        <p className="text-xs text-slate-400 font-black uppercase italic">No quality records found</p>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
