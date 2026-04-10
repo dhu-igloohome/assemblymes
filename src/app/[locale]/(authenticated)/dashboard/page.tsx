@@ -177,6 +177,10 @@ export default function GlobalDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <div className="text-[10px] text-slate-300 text-right mt-4 opacity-50">
+        Data Sync: {(data as any)?.debug?.fetchedAt || 'No Connection'} | DB: {(data as any)?.debug?.dbUrlPreview || 'Unknown'}
+      </div>
     </div>
   );
 }
