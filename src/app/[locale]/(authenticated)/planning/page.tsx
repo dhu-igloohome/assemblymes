@@ -5,7 +5,6 @@ import { useTranslations } from 'next-intl';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { 
   Calendar, 
   ListTodo, 
@@ -122,7 +121,7 @@ export default function PlanningPage() {
                   <ListTodo className="size-5 text-indigo-400" />
                   待排产订单池
                 </CardTitle>
-                <Badge className="bg-indigo-500 text-white border-none">{pendingOrders.length}</Badge>
+                <span className="bg-indigo-500 text-white border-none px-2 py-0.5 rounded-full text-[10px] font-bold">{pendingOrders.length}</span>
               </div>
               <CardDescription className="text-slate-400 font-medium">点击订单快速下达生产工单</CardDescription>
             </CardHeader>
@@ -193,13 +192,13 @@ export default function PlanningPage() {
                         </TableCell>
                         <TableCell>
                           {row.shortageQty > 0 ? (
-                            <Badge variant="outline" className="border-red-100 bg-red-50 text-red-600 font-black text-[10px] uppercase">
+                            <span className="inline-flex items-center border border-red-100 bg-red-50 text-red-600 font-black text-[10px] uppercase px-2 py-0.5 rounded-full">
                               <AlertTriangle className="size-3 mr-1" /> 缺料 {row.shortageQty}
-                            </Badge>
+                            </span>
                           ) : (
-                            <Badge variant="outline" className="border-emerald-100 bg-emerald-50 text-emerald-600 font-black text-[10px] uppercase">
+                            <span className="inline-flex items-center border border-emerald-100 bg-emerald-50 text-emerald-600 font-black text-[10px] uppercase px-2 py-0.5 rounded-full">
                               <CheckCircle2 className="size-3 mr-1" /> 物料齐套
-                            </Badge>
+                            </span>
                           )}
                         </TableCell>
                         <TableCell>
@@ -241,9 +240,9 @@ export default function PlanningPage() {
                     <CardHeader className="pb-4 border-b border-slate-50">
                       <div className="flex justify-between items-center">
                         <CardTitle className="text-sm font-black text-slate-900 uppercase tracking-tight">{row.name}</CardTitle>
-                        <Badge className={`${row.utilizationPct > 100 ? 'bg-red-500' : 'bg-emerald-500'} text-white border-none text-[10px]`}>
+                        <span className={`${row.utilizationPct > 100 ? 'bg-red-500' : 'bg-emerald-500'} text-white border-none text-[10px] px-2 py-0.5 rounded-full font-bold`}>
                           {row.utilizationPct}% 负载
-                        </Badge>
+                        </span>
                       </div>
                     </CardHeader>
                     <CardContent className="pt-6">
