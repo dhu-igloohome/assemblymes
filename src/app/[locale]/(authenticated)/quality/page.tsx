@@ -14,7 +14,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ShieldCheck, AlertTriangle, Activity, BarChart3, Search, CheckCircle2, XCircle } from 'lucide-react';
+import { ShieldCheck, AlertTriangle, Activity, BarChart3, Search, CheckCircle2, XCircle, Package } from 'lucide-react';
 
 type InspectionStage = 'IQC' | 'IPQC' | 'OQC';
 type InspectionResult = 'PENDING' | 'PASS' | 'FAIL';
