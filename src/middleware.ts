@@ -40,8 +40,10 @@ export default async function middleware(request: NextRequest) {
       return NextResponse.next();
     }
 
-    // Check system admin routes
-    if (pathname.startsWith('/api/system') && session?.role !== SUPER_ADMIN_ROLE) {
+    // Check system admin routes (except dashboard summary which is visible to all logged users)
+    if (pathname.startsWith('/api/system') && 
+        !pathname.includes('dashboard-summary') && 
+        session?.role !== SUPER_ADMIN_ROLE) {
       return NextResponse.json({ error: 'Forbidden: Requires Super Admin' }, { status: 403 });
     }
 
