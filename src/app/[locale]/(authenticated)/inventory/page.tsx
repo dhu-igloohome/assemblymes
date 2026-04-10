@@ -6,6 +6,20 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { 
+  Search, 
+  Package, 
+  MapPin, 
+  ArrowRightLeft, 
+  History, 
+  AlertTriangle, 
+  ArrowUpRight, 
+  ArrowDownLeft,
+  Filter,
+  LayoutGrid
+} from 'lucide-react';
 
 type TxnType = 'IN' | 'OUT' | 'TRANSFER' | 'ADJUST';
 
@@ -58,407 +72,219 @@ export default function InventoryPage() {
   const [balances, setBalances] = useState<BalanceRow[]>([]);
   const [txns, setTxns] = useState<TxnRow[]>([]);
   const [warnings, setWarnings] = useState<WarningRow[]>([]);
-  const [woRows, setWoRows] = useState<WoMaterialRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
-
-  const [warehouseCode, setWarehouseCode] = useState('');
-  const [warehouseName, setWarehouseName] = useState('');
-  const [locationCode, setLocationCode] = useState('');
-  const [locationName, setLocationName] = useState('');
-
-  const [txnType, setTxnType] = useState<TxnType>('IN');
-  const [itemCode, setItemCode] = useState('');
-  const [qty, setQty] = useState('');
-  const [fromLocationId, setFromLocationId] = useState('');
-  const [toLocationId, setToLocationId] = useState('');
-  const [operator, setOperator] = useState('');
-  const [remarks, setRemarks] = useState('');
-  const [workOrderId, setWorkOrderId] = useState('');
-  const [materialMode, setMaterialMode] = useState<'ISSUE' | 'RETURN'>('ISSUE');
-  const [batchNo, setBatchNo] = useState('');
-
-  const locationOptions = useMemo(
-    () =>
-      warehouses.flatMap((w) =>
-        w.locations.map((l) => ({
-          id: l.id,
-          label: `${w.warehouseCode}/${l.locationCode}${l.name ? ` - ${l.name}` : ''}`,
-        }))
-      ),
-    [warehouses]
-  );
+  const [searchQuery, setSearchQuery] = useState('');
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
-    setError('');
     try {
-      const [wRes, bRes, tRes] = await Promise.all([
+      const [wRes, bRes, tRes, warnRes] = await Promise.all([
         fetch('/api/inventory/warehouses', { cache: 'no-store' }),
         fetch('/api/inventory/balances', { cache: 'no-store' }),
         fetch('/api/inventory/transactions', { cache: 'no-store' }),
+        fetch('/api/inventory/warnings', { cache: 'no-store' }),
       ]);
-      if (!wRes.ok || !bRes.ok || !tRes.ok) {
-        setError(t('load_failed'));
-        return;
-      }
-      setWarehouses((await wRes.json()) as WarehouseRow[]);
-      setBalances((await bRes.json()) as BalanceRow[]);
-      setTxns((await tRes.json()) as TxnRow[]);
-      const warnRes = await fetch('/api/inventory/warnings', { cache: 'no-store' });
-      if (warnRes.ok) {
-        setWarnings((await warnRes.json()) as WarningRow[]);
-      } else {
-        setWarnings([]);
-      }
-    } catch {
-      setError(t('load_failed'));
+      
+      if (wRes.ok) setWarehouses(await wRes.json());
+      if (bRes.ok) setBalances(await bRes.json());
+      if (tRes.ok) setTxns(await tRes.json());
+      if (warnRes.ok) setWarnings(await warnRes.json());
+    } catch (e) {
+      console.error(e);
     } finally {
       setIsLoading(false);
     }
-  }, [t]);
+  }, []);
 
   useEffect(() => {
     void loadData();
   }, [loadData]);
 
-  const mapError = (code?: string) => {
-    const map: Record<string, string> = {
-      WAREHOUSE_CODE_INVALID: 'warehouse_code_invalid',
-      WAREHOUSE_NAME_REQUIRED: 'warehouse_name_required',
-      LOCATION_CODE_INVALID: 'location_code_invalid',
-      WAREHOUSE_CODE_DUPLICATE: 'warehouse_code_duplicate',
-      INVENTORY_TXN_TYPE_INVALID: 'txn_type_invalid',
-      SKU_ITEM_CODE_INVALID: 'sku_item_code_invalid',
-      INVENTORY_QTY_INVALID: 'qty_invalid',
-      FROM_LOCATION_REQUIRED: 'from_location_required',
-      TO_LOCATION_REQUIRED: 'to_location_required',
-      INSUFFICIENT_STOCK: 'insufficient_stock',
-      MATERIAL_MODE_INVALID: 'material_mode_invalid',
-      LOCATION_REQUIRED: 'location_required',
-      WORK_ORDER_NOT_FOUND: 'work_order_not_found',
-    };
-    return code && map[code] ? t(map[code]) : t('save_failed');
-  };
-
-  const createWarehouse = async () => {
-    setIsSubmitting(true);
-    setMessage('');
-    setError('');
-    try {
-      const res = await fetch('/api/inventory/warehouses', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          warehouseCode: warehouseCode.trim(),
-          name: warehouseName.trim(),
-          locationCode: locationCode.trim(),
-          locationName: locationName.trim(),
-        }),
-      });
-      const payload = (await res.json().catch(() => null)) as { error?: string } | null;
-      if (!res.ok) {
-        setError(mapError(payload?.error));
-        return;
-      }
-      setMessage(t('warehouse_create_success'));
-      setWarehouseCode('');
-      setWarehouseName('');
-      setLocationCode('');
-      setLocationName('');
-      await loadData();
-    } catch {
-      setError(t('save_failed'));
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const createTxn = async () => {
-    setIsSubmitting(true);
-    setMessage('');
-    setError('');
-    try {
-      const res = await fetch('/api/inventory/transactions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          txnType,
-          itemCode: itemCode.trim(),
-          quantity: qty.trim(),
-          batchNo: batchNo.trim(),
-          fromLocationId,
-          toLocationId,
-          operator: operator.trim(),
-          remarks: remarks.trim(),
-        }),
-      });
-      const payload = (await res.json().catch(() => null)) as { error?: string } | null;
-      if (!res.ok) {
-        setError(mapError(payload?.error));
-        return;
-      }
-      setMessage(t('txn_create_success'));
-      setQty('');
-      setBatchNo('');
-      setRemarks('');
-      await loadData();
-    } catch {
-      setError(t('save_failed'));
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const submitWorkOrderMaterial = async () => {
-    setIsSubmitting(true);
-    setMessage('');
-    setError('');
-    try {
-      const res = await fetch(`/api/inventory/work-orders/${workOrderId.trim()}/materials`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          mode: materialMode,
-          itemCode: itemCode.trim(),
-          locationId: materialMode === 'ISSUE' ? fromLocationId : toLocationId,
-          quantity: qty.trim(),
-          batchNo: batchNo.trim(),
-          operator: operator.trim(),
-          remarks: remarks.trim(),
-        }),
-      });
-      const payload = (await res.json().catch(() => null)) as { error?: string } | null;
-      if (!res.ok) {
-        setError(mapError(payload?.error));
-        return;
-      }
-      setMessage(t('material_txn_success'));
-      if (workOrderId.trim()) {
-        const hisRes = await fetch(`/api/inventory/work-orders/${workOrderId.trim()}/materials`, {
-          cache: 'no-store',
-        });
-        if (hisRes.ok) {
-          setWoRows((await hisRes.json()) as WoMaterialRow[]);
-        }
-      }
-      await loadData();
-    } catch {
-      setError(t('save_failed'));
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const filteredBalances = useMemo(() => {
+    if (!searchQuery.trim()) return balances;
+    const q = searchQuery.toLowerCase();
+    return balances.filter(b => 
+      b.item.itemCode.toLowerCase().includes(q) || 
+      b.item.itemName.toLowerCase().includes(q) ||
+      b.location.locationCode.toLowerCase().includes(q)
+    );
+  }, [balances, searchQuery]);
 
   return (
-    <div className="mx-auto max-w-6xl space-y-6 p-8">
-      <h1 className="text-2xl font-bold text-slate-900">{t('title')}</h1>
-
-      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <h2 className="text-base font-semibold text-slate-900">{t('warehouse_section')}</h2>
-        <div className="mt-3 grid gap-3 md:grid-cols-4">
-          <Input placeholder={t('warehouse_code')} value={warehouseCode} onChange={(e) => setWarehouseCode(e.target.value.toUpperCase())} />
-          <Input placeholder={t('warehouse_name')} value={warehouseName} onChange={(e) => setWarehouseName(e.target.value)} />
-          <Input placeholder={t('location_code')} value={locationCode} onChange={(e) => setLocationCode(e.target.value.toUpperCase())} />
-          <Input placeholder={t('location_name_optional')} value={locationName} onChange={(e) => setLocationName(e.target.value)} />
+    <div className="p-8 space-y-8 bg-slate-50/50 min-h-screen">
+      {/* 标题与全局搜索 */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+        <div>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase">智能库存浏览器</h1>
+          <p className="text-slate-500 font-medium">Visual Inventory Management</p>
         </div>
-        <Button type="button" className="mt-3" disabled={isSubmitting} onClick={() => void createWarehouse()}>
-          {isSubmitting ? t('submitting') : t('create_warehouse')}
-        </Button>
-      </section>
-
-      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <h2 className="text-base font-semibold text-slate-900">{t('txn_section')}</h2>
-        <div className="mt-3 grid gap-3 md:grid-cols-4">
-          <Select value={txnType} onValueChange={(v) => setTxnType((v || 'IN') as TxnType)}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="IN">IN</SelectItem>
-              <SelectItem value="OUT">OUT</SelectItem>
-              <SelectItem value="TRANSFER">TRANSFER</SelectItem>
-              <SelectItem value="ADJUST">ADJUST</SelectItem>
-            </SelectContent>
-          </Select>
-          <Input placeholder={t('sku_item_code')} value={itemCode} onChange={(e) => setItemCode(e.target.value)} />
-          <Input placeholder={t('quantity')} value={qty} onChange={(e) => setQty(e.target.value)} />
-          <Input placeholder={t('batch_no_optional')} value={batchNo} onChange={(e) => setBatchNo(e.target.value)} />
-          <Input placeholder={t('operator_optional')} value={operator} onChange={(e) => setOperator(e.target.value)} />
-          <Select value={fromLocationId || undefined} onValueChange={(v) => setFromLocationId(v || '')}>
-            <SelectTrigger><SelectValue placeholder={t('from_location')} /></SelectTrigger>
-            <SelectContent>
-              {locationOptions.map((l) => <SelectItem key={l.id} value={l.id}>{l.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Select value={toLocationId || undefined} onValueChange={(v) => setToLocationId(v || '')}>
-            <SelectTrigger><SelectValue placeholder={t('to_location')} /></SelectTrigger>
-            <SelectContent>
-              {locationOptions.map((l) => <SelectItem key={l.id} value={l.id}>{l.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-          <Input placeholder={t('remarks_optional')} value={remarks} onChange={(e) => setRemarks(e.target.value)} />
+        <div className="w-full md:w-96 relative">
+          <Input 
+            className="h-14 pl-12 pr-4 bg-white border-none shadow-xl rounded-2xl text-lg font-bold placeholder:text-slate-300"
+            placeholder="搜索物料名称、编码或仓位..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <Search className="absolute left-4 top-4.5 size-5 text-slate-400" />
         </div>
-        <Button type="button" className="mt-3" disabled={isSubmitting} onClick={() => void createTxn()}>
-          {isSubmitting ? t('submitting') : t('create_txn')}
-        </Button>
-      </section>
+      </div>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <h2 className="text-base font-semibold text-slate-900">{t('work_order_material_section')}</h2>
-        <div className="mt-3 grid gap-3 md:grid-cols-5">
-          <Input placeholder={t('work_order_id')} value={workOrderId} onChange={(e) => setWorkOrderId(e.target.value)} />
-          <Select value={materialMode} onValueChange={(v) => setMaterialMode((v || 'ISSUE') as 'ISSUE' | 'RETURN')}>
-            <SelectTrigger><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ISSUE">{t('mode_issue')}</SelectItem>
-              <SelectItem value="RETURN">{t('mode_return')}</SelectItem>
-            </SelectContent>
-          </Select>
-          <Input placeholder={t('sku_item_code')} value={itemCode} onChange={(e) => setItemCode(e.target.value)} />
-          <Input placeholder={t('quantity')} value={qty} onChange={(e) => setQty(e.target.value)} />
-          <Input placeholder={t('batch_no_optional')} value={batchNo} onChange={(e) => setBatchNo(e.target.value)} />
-          <Select
-            value={(materialMode === 'ISSUE' ? fromLocationId : toLocationId) || undefined}
-            onValueChange={(v) => (materialMode === 'ISSUE' ? setFromLocationId(v || '') : setToLocationId(v || ''))}
-          >
-            <SelectTrigger><SelectValue placeholder={t('location')} /></SelectTrigger>
-            <SelectContent>
-              {locationOptions.map((l) => <SelectItem key={l.id} value={l.id}>{l.label}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
-        <Button type="button" className="mt-3" disabled={isSubmitting} onClick={() => void submitWorkOrderMaterial()}>
-          {isSubmitting ? t('submitting') : t('submit_material_txn')}
-        </Button>
-      </section>
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList className="bg-slate-100 p-1 rounded-2xl">
+          <TabsTrigger value="overview" className="rounded-xl px-8 font-black text-xs uppercase tracking-widest">
+            <LayoutGrid className="size-4 mr-2" /> 库存概览
+          </TabsTrigger>
+          <TabsTrigger value="history" className="rounded-xl px-8 font-black text-xs uppercase tracking-widest">
+            <History className="size-4 mr-2" /> 变动履历
+          </TabsTrigger>
+          <TabsTrigger value="settings" className="rounded-xl px-8 font-black text-xs uppercase tracking-widest">
+            <MapPin className="size-4 mr-2" /> 仓位设置
+          </TabsTrigger>
+        </TabsList>
 
-      {message ? <p className="text-sm text-green-600">{message}</p> : null}
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
-
-      <section className="rounded-xl border bg-white p-4">
-        <h2 className="text-base font-semibold text-gray-900">{t('warnings')}</h2>
-        {warnings.length === 0 ? (
-          <p className="p-4 text-sm text-gray-500">{t('no_warnings')}</p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('sku_item_code')}</TableHead>
-                <TableHead>{t('item_name')}</TableHead>
-                <TableHead>{t('safety_stock')}</TableHead>
-                <TableHead>{t('on_hand')}</TableHead>
-                <TableHead>{t('shortage')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {warnings.map((row) => (
-                <TableRow key={row.itemCode}>
-                  <TableCell>{row.itemCode}</TableCell>
-                  <TableCell>{row.itemName}</TableCell>
-                  <TableCell>{row.safetyStock}</TableCell>
-                  <TableCell>{row.onHand}</TableCell>
-                  <TableCell className="text-red-600">{row.shortage}</TableCell>
-                </TableRow>
+        <TabsContent value="overview" className="space-y-8">
+          {/* 异常警报卡片 */}
+          {warnings.length > 0 && (
+            <div className="grid gap-4 md:grid-cols-3">
+              {warnings.slice(0, 3).map(warn => (
+                <div key={warn.itemCode} className="bg-red-50 border-2 border-red-100 p-4 rounded-2xl flex items-center gap-4 animate-in fade-in zoom-in-95">
+                  <div className="bg-red-500 text-white p-2 rounded-xl">
+                    <AlertTriangle className="size-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-black text-red-700 uppercase">{warn.itemName}</h4>
+                    <p className="text-lg font-black text-red-900">缺口 {warn.shortage} PCS</p>
+                  </div>
+                </div>
               ))}
-            </TableBody>
-          </Table>
-        )}
-      </section>
+            </div>
+          )}
 
-      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <h2 className="text-base font-semibold text-slate-900">{t('balances')}</h2>
-        {isLoading ? (
-          <p className="p-4 text-sm text-gray-500">{t('loading')}</p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('sku_item_code')}</TableHead>
-                <TableHead>{t('item_name')}</TableHead>
-                <TableHead>{t('warehouse')}</TableHead>
-                <TableHead>{t('location')}</TableHead>
-                <TableHead>{t('quantity')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {balances.map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell>{row.item.itemCode}</TableCell>
-                  <TableCell>{row.item.itemName}</TableCell>
-                  <TableCell>{row.location.warehouse.warehouseCode}</TableCell>
-                  <TableCell>{row.location.locationCode}</TableCell>
-                  <TableCell>{row.quantity}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </section>
+          {/* 库存网格 - 视觉化核心 */}
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
+            {filteredBalances.map((row) => (
+              <Card key={row.id} className="group border-none shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all rounded-3xl overflow-hidden bg-white">
+                <CardHeader className="pb-3 border-b border-slate-50">
+                   <div className="flex justify-between items-start">
+                     <span className="text-[10px] font-black px-2 py-0.5 bg-slate-100 text-slate-500 rounded uppercase tracking-tighter">
+                       {row.location.warehouse.warehouseCode} / {row.location.locationCode}
+                     </span>
+                     <Package className="size-4 text-slate-200 group-hover:text-indigo-400 transition-colors" />
+                   </div>
+                </CardHeader>
+                <CardContent className="pt-5 space-y-4">
+                  <div>
+                    <h4 className="font-black text-slate-800 line-clamp-1">{row.item.itemName}</h4>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{row.item.itemCode}</p>
+                  </div>
+                  <div className="flex justify-between items-end">
+                    <span className="text-3xl font-black text-slate-900">{Number(row.quantity)}</span>
+                    <div className="flex gap-1">
+                       <Button size="xs" variant="ghost" className="size-8 p-0 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg">
+                         <ArrowDownLeft className="size-4" />
+                       </Button>
+                       <Button size="xs" variant="ghost" className="size-8 p-0 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg">
+                         <ArrowUpRight className="size-4" />
+                       </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            {filteredBalances.length === 0 && (
+              <div className="col-span-full py-20 text-center">
+                 <Search className="size-16 text-slate-100 mx-auto mb-4" />
+                 <p className="text-sm font-black text-slate-300 uppercase italic">没有找到相关库存项</p>
+              </div>
+            )}
+          </div>
+        </TabsContent>
 
-      <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <h2 className="text-base font-semibold text-slate-900">{t('txns')}</h2>
-        {isLoading ? (
-          <p className="p-4 text-sm text-gray-500">{t('loading')}</p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('txn_type')}</TableHead>
-                <TableHead>{t('sku_item_code')}</TableHead>
-                <TableHead>{t('quantity')}</TableHead>
-                <TableHead>{t('batch_no_optional')}</TableHead>
-                <TableHead>{t('reference')}</TableHead>
-                <TableHead>{t('time')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {txns.map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell>{row.txnType}</TableCell>
-                  <TableCell>{row.itemCode}</TableCell>
-                  <TableCell>{row.quantity}</TableCell>
-                  <TableCell>{row.batchNo || '—'}</TableCell>
-                  <TableCell>{row.refType && row.refNo ? `${row.refType}:${row.refNo}` : '—'}</TableCell>
-                  <TableCell>{new Date(row.createdAt).toLocaleString()}</TableCell>
+        <TabsContent value="history">
+          <Card className="border-none shadow-sm rounded-3xl overflow-hidden bg-white">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-slate-50/50 hover:bg-slate-50/50 border-none">
+                  <TableHead className="pl-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">变动类型</TableHead>
+                  <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">物料信息</TableHead>
+                  <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">变动数量</TableHead>
+                  <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">关联单号</TableHead>
+                  <TableHead className="text-right pr-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">时间</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </section>
+              </TableHeader>
+              <TableBody>
+                {txns.map((row) => (
+                  <TableRow key={row.id} className="border-b border-slate-50 hover:bg-slate-50/80 transition-colors">
+                    <TableCell className="pl-8 py-5">
+                      <span className={`text-[10px] font-black px-2 py-0.5 rounded uppercase ${
+                        row.txnType === 'IN' ? 'bg-emerald-100 text-emerald-700' : 
+                        row.txnType === 'OUT' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-700'
+                      }`}>
+                        {row.txnType}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <div className="space-y-1">
+                        <p className="text-xs font-black text-slate-900">{row.itemCode}</p>
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">BATCH: {row.batchNo || '—'}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-xs font-black text-slate-700">
+                      {row.txnType === 'OUT' ? '-' : '+'}{row.quantity}
+                    </TableCell>
+                    <TableCell className="text-xs font-bold text-slate-400">
+                      {row.refNo || '—'}
+                    </TableCell>
+                    <TableCell className="text-right pr-8 text-xs font-bold text-slate-500">
+                      {new Date(row.createdAt).toLocaleString()}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        </TabsContent>
 
-      <section className="rounded-xl border bg-white p-4">
-        <h2 className="text-base font-semibold text-gray-900">{t('work_order_material_history')}</h2>
-        {woRows.length === 0 ? (
-          <p className="p-4 text-sm text-gray-500">{t('work_order_material_history_hint')}</p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('mode')}</TableHead>
-                <TableHead>{t('sku_item_code')}</TableHead>
-                <TableHead>{t('quantity')}</TableHead>
-                <TableHead>{t('batch_no_optional')}</TableHead>
-                <TableHead>{t('location')}</TableHead>
-                <TableHead>{t('time')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {woRows.map((row) => (
-                <TableRow key={row.id}>
-                  <TableCell>{row.mode}</TableCell>
-                  <TableCell>{row.itemCode}</TableCell>
-                  <TableCell>{row.quantity}</TableCell>
-                  <TableCell>{row.batchNo || '—'}</TableCell>
-                  <TableCell>{row.location.warehouse.warehouseCode}/{row.location.locationCode}</TableCell>
-                  <TableCell>{new Date(row.createdAt).toLocaleString()}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </section>
+        <TabsContent value="settings">
+          {/* 仓位设置保留之前的逻辑，但使用新 UI 包装 */}
+          <div className="grid gap-8 lg:grid-cols-3">
+             <Card className="lg:col-span-1 border-none shadow-xl rounded-3xl p-6 bg-white">
+                <h3 className="text-lg font-black text-slate-900 mb-6 uppercase tracking-tight">新增仓位</h3>
+                <div className="space-y-4">
+                  <Input placeholder={t('warehouse_code')} value={warehouseCode} onChange={(e) => setWarehouseCode(e.target.value.toUpperCase())} className="h-12 bg-slate-50 border-none font-bold" />
+                  <Input placeholder={t('warehouse_name')} value={warehouseName} onChange={(e) => setWarehouseName(e.target.value)} className="h-12 bg-slate-50 border-none font-bold" />
+                  <Input placeholder={t('location_code')} value={locationCode} onChange={(e) => setLocationCode(e.target.value.toUpperCase())} className="h-12 bg-slate-50 border-none font-bold" />
+                  <Button className="w-full h-14 bg-indigo-600 font-black rounded-2xl shadow-lg shadow-indigo-100 mt-4">确认创建</Button>
+                </div>
+             </Card>
+
+             <Card className="lg:col-span-2 border-none shadow-sm rounded-3xl bg-white overflow-hidden">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="bg-slate-50 border-none">
+                      <TableHead className="pl-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">仓库编码</TableHead>
+                      <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">名称</TableHead>
+                      <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">仓位数</TableHead>
+                      <TableHead className="text-right pr-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">操作</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {warehouses.map(w => (
+                      <TableRow key={w.id} className="border-b border-slate-50">
+                        <TableCell className="pl-8 py-5 font-black text-slate-900">{w.warehouseCode}</TableCell>
+                        <TableCell className="text-xs font-bold text-slate-600">{w.name}</TableCell>
+                        <TableCell><span className="bg-slate-100 px-2 py-0.5 rounded text-[10px] font-black text-slate-500">{w.locations.length}</span></TableCell>
+                        <TableCell className="text-right pr-8">
+                          <Button variant="ghost" size="sm" className="font-black text-indigo-600">管理仓位</Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+             </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
