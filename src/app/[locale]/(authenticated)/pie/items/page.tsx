@@ -30,6 +30,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Link } from '@/i18n/routing';
+import { Package, Scan } from 'lucide-react';
 import {
   DEFAULT_UNIT_BY_TYPE,
   ITEM_GROUP_OPTIONS,
