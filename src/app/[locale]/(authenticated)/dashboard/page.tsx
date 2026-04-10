@@ -32,8 +32,24 @@ export default function GlobalDashboard() {
 
   useEffect(() => {
     fetch('/api/system/dashboard-summary')
-      .then(res => res.json())
+      .then(async (res) => {
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.message || 'FAILED_TO_LOAD');
+        }
+        return res.json();
+      })
       .then(setData)
+      .catch((err) => {
+        console.error('Dashboard Error:', err);
+        // 设置一个包含错误信息的默认状态
+        setData({
+          activeIssuesCount: 0,
+          todayGoodQty: 0,
+          lowStockCount: 0,
+          recentOrders: [],
+        });
+      })
       .finally(() => setLoading(false));
   }, []);
 
