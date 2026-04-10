@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { AlertCircle, CheckCircle2, Clock, MessageSquare, PhoneCall, Scan, Search, ArrowRight, FileText, Activity } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Clock, MessageSquare, PhoneCall, Scan, Search, ArrowRight, FileText, Activity, Package } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 export default function ExecutionPage() {
