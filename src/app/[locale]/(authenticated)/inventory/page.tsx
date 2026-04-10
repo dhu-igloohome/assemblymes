@@ -74,6 +74,12 @@ export default function InventoryPage() {
   const [warnings, setWarnings] = useState<WarningRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Warehouse Creation State
+  const [warehouseCode, setWarehouseCode] = useState('');
+  const [warehouseName, setWarehouseName] = useState('');
+  const [locationCode, setLocationCode] = useState('');
+  const [locationName, setLocationName] = useState('');
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
@@ -99,6 +105,30 @@ export default function InventoryPage() {
   useEffect(() => {
     void loadData();
   }, [loadData]);
+
+  const createWarehouse = async () => {
+    try {
+      const res = await fetch('/api/inventory/warehouses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          warehouseCode: warehouseCode.trim(),
+          name: warehouseName.trim(),
+          locationCode: locationCode.trim(),
+          locationName: locationName.trim(),
+        }),
+      });
+      if (res.ok) {
+        setWarehouseCode('');
+        setWarehouseName('');
+        setLocationCode('');
+        setLocationName('');
+        await loadData();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   const filteredBalances = useMemo(() => {
     if (!searchQuery.trim()) return balances;
@@ -254,7 +284,12 @@ export default function InventoryPage() {
                   <Input placeholder={t('warehouse_code')} value={warehouseCode} onChange={(e) => setWarehouseCode(e.target.value.toUpperCase())} className="h-12 bg-slate-50 border-none font-bold" />
                   <Input placeholder={t('warehouse_name')} value={warehouseName} onChange={(e) => setWarehouseName(e.target.value)} className="h-12 bg-slate-50 border-none font-bold" />
                   <Input placeholder={t('location_code')} value={locationCode} onChange={(e) => setLocationCode(e.target.value.toUpperCase())} className="h-12 bg-slate-50 border-none font-bold" />
-                  <Button className="w-full h-14 bg-indigo-600 font-black rounded-2xl shadow-lg shadow-indigo-100 mt-4">确认创建</Button>
+                  <Button 
+                    className="w-full h-14 bg-indigo-600 font-black rounded-2xl shadow-lg shadow-indigo-100 mt-4"
+                    onClick={() => void createWarehouse()}
+                  >
+                    确认创建
+                  </Button>
                 </div>
              </Card>
 
