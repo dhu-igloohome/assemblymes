@@ -4,6 +4,7 @@ import { prisma } from '@/lib/prisma';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
+  try {
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
 
@@ -83,11 +84,8 @@ export async function GET() {
 
     // 计算库存余量并找出缺口
     const materialGaps: any[] = [];
-    const inventoryMap = new Map<string, number>();
-    allBalances.forEach(b => {
-      inventoryMap.set(b.itemCode, (inventoryMap.get(b.itemCode) || 0) + Number(b.quantity));
-    });
-
+    // Reuse inventoryMap from step 3
+    
     // 只展示缺口最大的前 5 个
     for (const [itemCode, demand] of demandMap.entries()) {
       const currentInv = inventoryMap.get(itemCode) || 0;

@@ -303,3 +303,5 @@ export default function GlobalDashboard() {
         )}
       </div>
     </div>
+  );
+}

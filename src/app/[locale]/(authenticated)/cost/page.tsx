@@ -441,7 +441,7 @@ export default function CostPage() {
                   <select
                     className="w-full h-12 rounded-xl border-none bg-slate-50 px-3 text-sm font-bold"
                     value={entryType}
-                    onChange={(e) => setentryType(e.target.value as CostEntryType)}
+                    onChange={(e) => setEntryType(e.target.value as CostEntryType)}
                   >
                     {ENTRY_TYPES.map((type) => (
                       <option key={type} value={type}>

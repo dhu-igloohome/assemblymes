@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { ItemType } from '@prisma/client';
 
 export async function POST() {
   try {
@@ -7,11 +8,11 @@ export async function POST() {
 
     // 1. Items
     const items = [
-      { itemCode: '800001', itemName: '智能锁成品-旗舰款', itemType: 'PRODUCT', unit: 'PCS', safetyStock: 100 },
-      { itemCode: '100001', itemName: '主控板 PCBA', itemType: 'ASSEMBLY', unit: 'PCS', safetyStock: 200 },
-      { itemCode: '100002', itemName: '锁体总成', itemType: 'ASSEMBLY', unit: 'PCS', safetyStock: 150 },
-      { itemCode: '200001', itemName: '锂电池 5000mAh', itemType: 'MATERIAL', unit: 'PCS', safetyStock: 500 },
-      { itemCode: '200002', itemName: '面壳组件', itemType: 'MATERIAL', unit: 'PCS', safetyStock: 300 },
+      { itemCode: '800001', itemName: '智能锁成品-旗舰款', itemType: 'PRODUCT' as ItemType, unit: 'PCS', safetyStock: 100 },
+      { itemCode: '100001', itemName: '主控板 PCBA', itemType: 'ASSEMBLY' as ItemType, unit: 'PCS', safetyStock: 200 },
+      { itemCode: '100002', itemName: '锁体总成', itemType: 'ASSEMBLY' as ItemType, unit: 'PCS', safetyStock: 150 },
+      { itemCode: '200001', itemName: '锂电池 5000mAh', itemType: 'MATERIAL' as ItemType, unit: 'PCS', safetyStock: 500 },
+      { itemCode: '200002', itemName: '面壳组件', itemType: 'MATERIAL' as ItemType, unit: 'PCS', safetyStock: 300 },
     ];
 
     for (const item of items) {
