@@ -70,6 +70,8 @@ export default function ProcurementPage() {
   const [itemCode, setItemCode] = useState('');
   const [orderedQty, setOrderedQty] = useState('1');
   const [unitPrice, setUnitPrice] = useState('0');
+  const [currency, setCurrency] = useState('CNY');
+  const [expectedDate, setExpectedDate] = useState('');
   const [createdBy, setCreatedBy] = useState('');
 
   const [receiveQty, setReceiveQty] = useState('1');
@@ -556,6 +558,30 @@ export default function ProcurementPage() {
                    placeholder="经办人员名称..."
                  />
               </div>
+              <div className="space-y-2">
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">预期到货日期</label>
+                 <Input 
+                   type="date"
+                   value={expectedDate} 
+                   onChange={(e) => setExpectedDate(e.target.value)}
+                   className="h-12 bg-slate-50 border-none font-bold"
+                 />
+              </div>
+              <div className="space-y-2">
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">币种</label>
+                 <Input 
+                   value={currency} 
+                   onChange={(e) => setCurrency(e.target.value.toUpperCase())}
+                   className="h-12 bg-slate-50 border-none font-bold text-center"
+                   placeholder="CNY"
+                 />
+              </div>
+              <div className="md:col-span-2 p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100 flex justify-between items-center">
+                 <span className="text-xs font-black text-indigo-400 uppercase">订单预计总额</span>
+                 <span className="text-xl font-black text-indigo-600">
+                    {currency} {(Number(orderedQty) * Number(unitPrice)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                 </span>
+              </div>
            </div>
            {error && <p className="text-xs font-bold text-red-500 bg-red-50 p-3 rounded-xl mt-4">{error}</p>}
            <div className="flex gap-4 mt-8">
@@ -581,6 +607,8 @@ export default function ProcurementPage() {
                         orderedQty: Number.parseFloat(orderedQty),
                         unitPrice: Number.parseFloat(unitPrice),
                       },
+                      currency,
+                      expectedDate: expectedDate || null,
                     },
                     t('create_success')
                   )
