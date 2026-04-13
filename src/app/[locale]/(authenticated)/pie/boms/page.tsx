@@ -151,7 +151,264 @@ export default function BomsPage() {
   const [activeTab, setActiveTab] = useState('lines');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // ... (previous load functions remain same)
+  const loadVersions = useCallback(async (code: string) => {
+    try {
+      const res = await fetch(`/api/boms?parentItemCode=${code}&mode=versions`, {
+        cache: 'no-store',
+      });
+      if (!res.ok) {
+        setVersions([]);
+        return;
+      }
+
+      const data = (await res.json()) as BomVersion[];
+      setVersions(data);
+      const activeVersion = data.find((entry) => entry.isActive);
+      const resolvedVersion = activeVersion?.version ?? data[0]?.version ?? null;
+      setSelectedVersion(resolvedVersion);
+      setCompareVersion((current) => current ?? data.find((entry) => entry.version !== resolvedVersion)?.version ?? null);
+      return resolvedVersion;
+    } catch (error) {
+      console.error(error);
+      setVersions([]);
+      return null;
+    }
+  }, []);
+
+  const loadExistingBoms = useCallback(async () => {
+    setIsLoadingExistingList(true);
+    try {
+      const res = await fetch('/api/boms?mode=list', { cache: 'no-store' });
+      if (!res.ok) {
+        setExistingBoms([]);
+        return;
+      }
+      const data = (await res.json()) as ExistingBomRecord[];
+      setExistingBoms(data);
+    } catch (error) {
+      console.error(error);
+      setExistingBoms([]);
+    } finally {
+      setIsLoadingExistingList(false);
+    }
+  }, []);
+
+  const loadTree = useCallback(async (code: string) => {
+    try {
+      const res = await fetch(`/api/boms?parentItemCode=${code}&mode=tree`, {
+        cache: 'no-store',
+      });
+      if (!res.ok) {
+        setTree([]);
+        return;
+      }
+
+      const data = await res.json();
+      setTree(data.children ?? []);
+    } catch (error) {
+      console.error(error);
+      setTree([]);
+    }
+  }, []);
+
+  const loadBom = useCallback(async (code: string | null) => {
+    if (!code) return;
+    setParentItemCode(code);
+    try {
+      const resolvedVersion = await loadVersions(code);
+      await loadTree(code);
+
+      const res = await fetch(
+        `/api/boms?parentItemCode=${code}${resolvedVersion ? `&version=${resolvedVersion}` : ''}`,
+        { cache: 'no-store' }
+      );
+      if (res.ok) {
+        const data = await res.json();
+        setVersion(data.version);
+        setEffectiveDate(data.effectiveDate ? String(data.effectiveDate).slice(0, 10) : '');
+        setChangeNote(data.changeNote ?? '');
+        setCreatedBy(data.createdBy ?? '');
+        setSelectedVersion(data.version);
+        setLines(data.lines.map((l: { componentItemCode: string, quantity: string | number, scrapRate: string | number }) => ({
+          componentItemCode: l.componentItemCode,
+          quantity: Number(l.quantity),
+          scrapRate: Number(l.scrapRate)
+        })));
+      } else {
+        setLines([]);
+      }
+    } catch (error) {
+      console.error(error);
+      setLines([]);
+    }
+  }, [loadTree, loadVersions]);
+
+  const handleAddLine = () => {
+    setLines([...lines, { componentItemCode: null, quantity: 1, scrapRate: 0 }]);
+  };
+
+  const moveLine = (index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= lines.length) {
+      return;
+    }
+
+    const newLines = [...lines];
+    const [currentLine] = newLines.splice(index, 1);
+    newLines.splice(targetIndex, 0, currentLine);
+    setLines(newLines);
+  };
+
+  const removeLine = (index: number) => {
+    setLines(lines.filter((_, currentIndex) => currentIndex !== index));
+  };
+
+  const updateLine = (index: number, field: keyof BomLine, value: string | number | null) => {
+    const newLines = [...lines];
+    newLines[index] = { ...newLines[index], [field]: value };
+    setLines(newLines);
+  };
+
+  const handleSave = async () => {
+    try {
+      setSubmitError('');
+      setSubmitMessage('');
+      const res = await fetch('/api/boms', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          parentItemCode,
+          version,
+          effectiveDate,
+          changeNote,
+          createdBy,
+          lines,
+        })
+      });
+      if (!res.ok) {
+        const payload = await res.json().catch(() => null);
+        setSubmitError(payload?.details ?? payload?.error ?? t('save_failed'));
+        return;
+      }
+      setSubmitMessage(t('save_success'));
+      if (parentItemCode) {
+        await loadVersions(parentItemCode);
+        await loadTree(parentItemCode);
+      }
+      await loadExistingBoms();
+    } catch (error) {
+      console.error(error);
+      setSubmitError(error instanceof Error ? `${t('save_failed')}: ${error.message}` : t('save_failed'));
+    }
+  };
+
+  const handleActivateVersion = async (nextVersion: string | null) => {
+    if (!parentItemCode || !nextVersion) {
+      return;
+    }
+
+    try {
+      setSubmitError('');
+      setSubmitMessage('');
+      const res = await fetch('/api/boms', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          parentItemCode,
+          version: nextVersion,
+        }),
+      });
+
+      if (!res.ok) {
+        const payload = await res.json().catch(() => null);
+        setSubmitError(payload?.details ?? payload?.error ?? t('activate_failed'));
+        return;
+      }
+
+      setSelectedVersion(nextVersion);
+      setSubmitMessage(t('activate_success'));
+      await loadVersions(parentItemCode);
+      await loadTree(parentItemCode);
+      await loadExistingBoms();
+    } catch (error) {
+      console.error(error);
+      setSubmitError(
+        error instanceof Error ? `${t('activate_failed')}: ${error.message}` : t('activate_failed')
+      );
+    }
+  };
+
+  useEffect(() => {
+    void loadExistingBoms();
+  }, [loadExistingBoms]);
+
+  useEffect(() => {
+    fetch('/api/items')
+      .then((res) => res.json())
+      .then((data: Item[]) => {
+        setItems(data);
+      })
+      .catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    const initialParentItemCode = searchParams.get('parentItemCode');
+    if (!initialParentItemCode || items.length === 0) {
+      return;
+    }
+    const exists = items.some((item) => item.itemCode === initialParentItemCode);
+    if (!exists) {
+      return;
+    }
+    void loadBom(initialParentItemCode);
+  }, [searchParams, items, loadBom]);
+
+  useEffect(() => {
+    if (!parentItemCode || !selectedVersion) {
+      return;
+    }
+
+    fetch(`/api/boms?parentItemCode=${parentItemCode}&version=${selectedVersion}`, {
+      cache: 'no-store',
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (!data) {
+          return;
+        }
+        setVersion(data.version);
+        setEffectiveDate(data.effectiveDate ? String(data.effectiveDate).slice(0, 10) : '');
+        setChangeNote(data.changeNote ?? '');
+        setCreatedBy(data.createdBy ?? '');
+        setLines(
+          data.lines.map((line: { componentItemCode: string; quantity: string | number; scrapRate: string | number }) => ({
+            componentItemCode: line.componentItemCode,
+            quantity: Number(line.quantity),
+            scrapRate: Number(line.scrapRate),
+          }))
+        );
+      })
+      .catch(console.error);
+  }, [parentItemCode, selectedVersion]);
+
+  useEffect(() => {
+    if (!parentItemCode || !selectedVersion || !compareVersion || selectedVersion === compareVersion) {
+      return;
+    }
+
+    fetch(
+      `/api/boms?parentItemCode=${parentItemCode}&mode=diff&version=${selectedVersion}&compareVersion=${compareVersion}`,
+      { cache: 'no-store' }
+    )
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        setDiffLines(data?.diff ?? []);
+      })
+      .catch((error) => {
+        console.error(error);
+        setDiffLines([]);
+      });
+  }, [compareVersion, parentItemCode, selectedVersion]);
 
   const filteredExisting = existingBoms.filter(b => 
     b.parentItemCode.includes(searchQuery) || 
