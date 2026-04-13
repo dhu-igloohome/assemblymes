@@ -7,6 +7,24 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { 
+  GitBranch, 
+  Workflow, 
+  Plus, 
+  Save, 
+  CheckCircle2, 
+  History, 
+  ArrowRight, 
+  Trash2, 
+  Search,
+  Monitor,
+  ShieldCheck,
+  Clock,
+  Zap,
+  ArrowDown
+} from 'lucide-react';
 
 interface Item {
   itemCode: string;
@@ -68,6 +86,8 @@ export default function RoutingsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
   const [submitError, setSubmitError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState('operations');
 
   const loadExistingRoutings = useCallback(async () => {
     setIsLoadingExistingList(true);
@@ -206,6 +226,10 @@ export default function RoutingsPage() {
     ]);
   };
 
+  const removeOperation = (index: number) => {
+    setOperations(operations.filter((_, i) => i !== index));
+  };
+
   const updateOperation = (
     index: number,
     field: keyof OperationLine,
@@ -251,8 +275,6 @@ export default function RoutingsPage() {
       }
       setSubmitMessage(t('save_success'));
       await loadExistingRoutings();
-      await loadSuggestions();
-      await loadWorkCenters();
     } catch (error) {
       console.error(error);
       setSubmitError(error instanceof Error ? `${t('save_failed')} ${error.message}` : t('save_failed'));
@@ -261,243 +283,262 @@ export default function RoutingsPage() {
     }
   };
 
+  const filteredRoutings = existingRoutings.filter(r => 
+    r.itemCode.includes(searchQuery) || 
+    r.item.itemName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <div className="mx-auto max-w-6xl space-y-6 p-8">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-slate-900">{t('title')}</h1>
-        <Button onClick={() => void handleSave()} disabled={!itemCode || isSubmitting}>
-          {isSubmitting ? t('submitting') : t('save')}
-        </Button>
-      </div>
-
-      {submitMessage ? <p className="text-sm text-green-600">{submitMessage}</p> : null}
-      {submitError ? <p className="text-sm text-red-600">{submitError}</p> : null}
-
-      <div className="space-y-4 rounded-xl border border-slate-200 bg-white shadow-sm p-4">
-        <div className="flex justify-between">
-          <h2 className="text-lg font-semibold text-gray-900">{t('existing_routings')}</h2>
+    <div className="p-8 space-y-8 bg-slate-50/50 min-h-screen">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase tracking-tighter">工艺路线设计中心</h1>
+          <p className="text-slate-500 font-medium">Production Routing & Process Designer</p>
         </div>
-        {isLoadingExistingList ? (
-          <p className="text-sm text-gray-500">{t('loading_records')}</p>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('select_item')}</TableHead>
-                <TableHead>{t('version')}</TableHead>
-                <TableHead>{t('effective_date')}</TableHead>
-                <TableHead>{t('created_by')}</TableHead>
-                <TableHead>{t('operation_count')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {existingRoutings.map((record) => (
-                <TableRow
-                  key={record.id}
-                  className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => void loadRouting(record.itemCode)}
-                >
-                  <TableCell>{`${record.itemCode} - ${record.item.itemName}`}</TableCell>
-                  <TableCell>{record.version}</TableCell>
-                  <TableCell>{record.effectiveDate ? String(record.effectiveDate).slice(0, 10) : '-'}</TableCell>
-                  <TableCell>{record.createdBy || '-'}</TableCell>
-                  <TableCell>{record._count.operations}</TableCell>
-                </TableRow>
-              ))}
-              {existingRoutings.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={5} className="py-6 text-center text-gray-500">
-                    {t('no_existing_routings')}
-                  </TableCell>
-                </TableRow>
-              ) : null}
-            </TableBody>
-          </Table>
-        )}
-      </div>
-
-      <div className="flex flex-wrap gap-4">
-        <div className="min-w-[200px] flex-1">
-          <Select onValueChange={(v) => loadRouting(v ? String(v) : null)} value={itemCode}>
-            <SelectTrigger>
-              <SelectValue placeholder={t('select_item')} />
-            </SelectTrigger>
-            <SelectContent>
-              {items.map((item) => (
-                <SelectItem key={item.itemCode} value={item.itemCode}>
-                  {item.itemCode} - {item.itemName}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="min-w-[120px] w-40">
-          <datalist id="routing-version-options">
-            {Array.from(
-              new Set(
-                existingRoutings
-                  .filter((r) => r.itemCode === itemCode)
-                  .map((r) => r.version)
-                  .filter(Boolean)
-              )
-            )
-              .sort()
-              .map((v) => (
-                <option key={v} value={v} />
-              ))}
-          </datalist>
-          <Input
-            placeholder={t('version')}
-            list="routing-version-options"
-            value={version}
-            onChange={(e) => setVersion(e.target.value)}
-          />
-        </div>
-        <div className="min-w-[160px] w-44">
-          <Input
-            type="date"
-            placeholder={t('effective_date')}
-            value={effectiveDate}
-            onChange={(e) => setEffectiveDate(e.target.value)}
-          />
-        </div>
-        <div className="min-w-[180px] flex-1">
-          <Input
-            placeholder={t('created_by')}
-            value={createdBy}
-            onChange={(e) => setCreatedBy(e.target.value)}
-          />
-        </div>
-        <div className="min-w-[260px] flex-1">
-          <Input
-            placeholder={t('change_note')}
-            value={changeNote}
-            onChange={(e) => setChangeNote(e.target.value)}
-          />
+        <div className="flex gap-3">
+          <Button variant="outline" className="font-bold border-slate-200" onClick={() => loadExistingRoutings()}>
+            刷新列表
+          </Button>
+          <Button className="font-bold bg-indigo-600 shadow-lg shadow-indigo-100" onClick={() => void handleSave()} disabled={!itemCode || isSubmitting}>
+            <Save className="size-4 mr-2" /> {isSubmitting ? '保存中...' : '发布当前工艺'}
+          </Button>
         </div>
       </div>
 
-      {itemCode && (
-        <div className="space-y-4 rounded-xl border border-slate-200 bg-white shadow-sm p-4">
-          <div className="flex justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">{t('operations_panel')}</h2>
-            <Button variant="outline" onClick={handleAddOperation}>{t('add_operation')}</Button>
-          </div>
-          <div className="overflow-x-auto">
-            <datalist id="routing-operation-name-options">
-              {suggestions.operationNames.map((name) => (
-                <option key={name} value={name} />
-              ))}
-            </datalist>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{t('sequence')}</TableHead>
-                  <TableHead>{t('operation_name')}</TableHead>
-                  <TableHead>{t('workstation')}</TableHead>
-                  <TableHead>{t('standard_time')}</TableHead>
-                  <TableHead>{t('inspection_point')}</TableHead>
-                  <TableHead>{t('inspection_standard')}</TableHead>
-                  <TableHead>{t('sop_url')}</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {operations.map((op, idx) => (
-                  <TableRow key={idx}>
-                    <TableCell className="min-w-[88px]">
-                      <Input
-                        type="number"
-                        placeholder={t('sequence')}
-                        value={op.sequence}
-                        onChange={(e) => updateOperation(idx, 'sequence', Number(e.target.value))}
-                      />
-                    </TableCell>
-                    <TableCell className="min-w-[140px]">
-                      <Input
-                        placeholder={t('operation_name')}
-                        value={op.operationName}
-                        list="routing-operation-name-options"
-                        onChange={(e) => updateOperation(idx, 'operationName', e.target.value)}
-                      />
-                    </TableCell>
-                    <TableCell className="min-w-[140px]">
-                      <Select
-                        value={op.workstation || null}
-                        onValueChange={(value) =>
-                          updateOperation(idx, 'workstation', value ? String(value) : '')
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder={t('workstation')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {workCenters.map((wc) => (
-                            <SelectItem key={wc.id} value={wc.workCenterCode}>
-                              {wc.workCenterCode} - {wc.name}
-                            </SelectItem>
-                          ))}
-                          {op.workstation &&
-                          !workCenters.some((wc) => wc.workCenterCode === op.workstation) ? (
-                            <SelectItem value={op.workstation}>
-                              {`${op.workstation} (legacy)`}
-                            </SelectItem>
-                          ) : null}
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell className="min-w-[100px]">
-                      <Input
-                        type="number"
-                        placeholder={t('standard_time')}
-                        value={op.standardTimeSec}
-                        onChange={(e) => updateOperation(idx, 'standardTimeSec', Number(e.target.value))}
-                      />
-                    </TableCell>
-                    <TableCell className="min-w-[120px]">
-                      <Select
-                        value={op.isInspectionPoint ? 'true' : 'false'}
-                        onValueChange={(value) =>
-                          updateOperation(idx, 'isInspectionPoint', value === 'true')
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder={t('inspection_point')} />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="false">{t('no')}</SelectItem>
-                          <SelectItem value="true">{t('yes')}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-                    <TableCell className="min-w-[180px]">
-                      <Input
-                        placeholder={t('inspection_standard')}
-                        value={op.inspectionStandard}
-                        disabled={!op.isInspectionPoint}
-                        onChange={(e) => updateOperation(idx, 'inspectionStandard', e.target.value)}
-                      />
-                    </TableCell>
-                    <TableCell className="min-w-[180px]">
-                      <Input
-                        placeholder={t('sop_url')}
-                        value={op.sopUrl}
-                        onChange={(e) => updateOperation(idx, 'sopUrl', e.target.value)}
-                      />
-                    </TableCell>
-                  </TableRow>
+      <div className="grid gap-8 lg:grid-cols-12">
+        {/* 左侧：工艺档案库 */}
+        <div className="lg:col-span-4 space-y-6">
+          <Card className="border-none shadow-xl rounded-3xl overflow-hidden bg-white">
+            <CardHeader className="bg-slate-900 text-white pb-6">
+              <CardTitle className="text-lg font-black flex items-center gap-2">
+                <Workflow className="size-5 text-indigo-400" />
+                产品工艺档案
+              </CardTitle>
+              <div className="relative mt-4">
+                <Input 
+                  className="bg-white/10 border-none text-white placeholder:text-slate-500 h-10 rounded-xl pl-10"
+                  placeholder="搜索产品名称或编码..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <Search className="absolute left-3 top-3 size-4 text-slate-500" />
+              </div>
+            </CardHeader>
+            <CardContent className="p-0 max-h-[600px] overflow-y-auto">
+              <div className="divide-y divide-slate-50">
+                {isLoadingExistingList ? (
+                   <div className="p-12 text-center text-slate-400 italic">加载中...</div>
+                ) : filteredRoutings.map((record) => (
+                  <div 
+                    key={record.id} 
+                    className={`p-5 hover:bg-slate-50 transition-colors group cursor-pointer border-l-4 ${itemCode === record.itemCode ? 'border-indigo-600 bg-indigo-50/30' : 'border-transparent'}`}
+                    onClick={() => void loadRouting(record.itemCode)}
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="text-[10px] font-black px-2 py-0.5 bg-slate-100 text-slate-600 rounded uppercase tracking-tighter">
+                        {record.itemCode}
+                      </span>
+                      <span className="text-[10px] font-black px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded uppercase tracking-tighter flex items-center gap-1">
+                        <GitBranch className="size-3" /> {record.version}
+                      </span>
+                    </div>
+                    <h4 className="font-bold text-slate-800 mb-1">{record.item.itemName}</h4>
+                    <div className="flex justify-between items-end mt-4">
+                      <p className="text-[10px] text-slate-400 font-bold uppercase flex items-center gap-1">
+                        <Monitor className="size-3" /> {record._count.operations} 工序
+                      </p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase">更新: {new Date(record.updatedAt).toLocaleDateString()}</p>
+                    </div>
+                  </div>
                 ))}
-                {operations.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={6} className="py-6 text-center text-gray-500">
-                      {t('no_routing')}
-                    </TableCell>
-                  </TableRow>
+                {filteredRoutings.length === 0 && !isLoadingExistingList && (
+                   <div className="p-12 text-center text-slate-300 italic text-xs uppercase font-black tracking-widest">No matching routings</div>
                 )}
-              </TableBody>
-            </Table>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      )}
+
+        {/* 右侧：工艺设计器 */}
+        <div className="lg:col-span-8 space-y-8">
+          {itemCode ? (
+            <>
+              {/* 配置区域 */}
+              <div className="grid gap-4 md:grid-cols-3 bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">当前设计产品</label>
+                  <p className="text-sm font-bold text-slate-900">{items.find(i => i.itemCode === itemCode)?.itemName}</p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">版本号</label>
+                  <Input 
+                    value={version} 
+                    onChange={(e) => setVersion(e.target.value)}
+                    className="h-10 bg-slate-50 border-none font-bold text-indigo-600"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">生效日期</label>
+                  <Input 
+                    type="date"
+                    value={effectiveDate} 
+                    onChange={(e) => setEffectiveDate(e.target.value)}
+                    className="h-10 bg-slate-50 border-none font-bold"
+                  />
+                </div>
+              </div>
+
+              {submitError && <div className="p-4 bg-red-50 text-red-600 rounded-2xl text-xs font-bold border border-red-100">{submitError}</div>}
+              {submitMessage && <div className="p-4 bg-emerald-50 text-emerald-600 rounded-2xl text-xs font-bold border border-emerald-100">{submitMessage}</div>}
+
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+                <TabsList className="bg-slate-100 p-1 rounded-2xl">
+                  <TabsTrigger value="operations" className="rounded-xl px-8 font-black text-xs uppercase tracking-widest">
+                    <Monitor className="size-4 mr-2" /> 工序明细
+                  </TabsTrigger>
+                  <TabsTrigger value="visual" className="rounded-xl px-8 font-black text-xs uppercase tracking-widest">
+                    <Workflow className="size-4 mr-2" /> 流程预览
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="operations" className="space-y-6">
+                  <Card className="border-none shadow-sm rounded-3xl overflow-hidden bg-white">
+                    <div className="bg-slate-50 px-8 py-4 border-b border-slate-100 flex justify-between items-center">
+                       <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">PROCESS STEPS</h3>
+                       <Button size="sm" variant="ghost" className="text-indigo-600 font-bold" onClick={handleAddOperation}>
+                         <Plus className="size-4 mr-1" /> 添加工序
+                       </Button>
+                    </div>
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="hover:bg-transparent border-none">
+                          <TableHead className="pl-8 text-[10px] font-black uppercase text-slate-400 tracking-widest w-20">序号</TableHead>
+                          <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">工序名称</TableHead>
+                          <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">工作中心</TableHead>
+                          <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest w-32">标准工时(s)</TableHead>
+                          <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">QC点</TableHead>
+                          <TableHead className="text-right pr-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">操作</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {operations.map((op, idx) => (
+                          <TableRow key={idx} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                            <TableCell className="pl-8 py-4">
+                               <Input 
+                                 type="number" 
+                                 value={op.sequence} 
+                                 onChange={(e) => updateOperation(idx, 'sequence', Number(e.target.value))}
+                                 className="w-16 h-9 bg-slate-50 border-none font-black text-center"
+                               />
+                            </TableCell>
+                            <TableCell>
+                              <div className="space-y-1 min-w-[160px]">
+                                <datalist id={`op-name-${idx}`}>
+                                  {suggestions.operationNames.map(n => <option key={n} value={n} />)}
+                                </datalist>
+                                <Input 
+                                  list={`op-name-${idx}`}
+                                  value={op.operationName}
+                                  onChange={(e) => updateOperation(idx, 'operationName', e.target.value)}
+                                  className="bg-slate-50 border-none font-bold text-xs h-9"
+                                  placeholder="如：半成品组装"
+                                />
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Select
+                                value={op.workstation || null}
+                                onValueChange={(v) => updateOperation(idx, 'workstation', v || '')}
+                              >
+                                <SelectTrigger className="h-9 bg-slate-50 border-none text-[10px] font-black uppercase w-40">
+                                  <SelectValue placeholder="选择工位" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {workCenters.map((wc) => (
+                                    <SelectItem key={wc.id} value={wc.workCenterCode} className="text-xs font-bold uppercase">
+                                      {wc.workCenterCode}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </TableCell>
+                            <TableCell>
+                               <Input 
+                                 type="number" 
+                                 value={op.standardTimeSec} 
+                                 onChange={(e) => updateOperation(idx, 'standardTimeSec', Number(e.target.value))}
+                                 className="w-20 h-9 bg-slate-50 border-none font-black text-center"
+                               />
+                            </TableCell>
+                            <TableCell>
+                               <button 
+                                 onClick={() => updateOperation(idx, 'isInspectionPoint', !op.isInspectionPoint)}
+                                 className={`size-8 rounded-xl flex items-center justify-center transition-all ${op.isInspectionPoint ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-100' : 'bg-slate-100 text-slate-300'}`}
+                               >
+                                 <ShieldCheck className="size-4" />
+                               </button>
+                            </TableCell>
+                            <TableCell className="text-right pr-8">
+                               <Button variant="ghost" size="sm" className="text-red-400 hover:text-red-600" onClick={() => removeOperation(idx)}>
+                                 <Trash2 className="size-4" />
+                               </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </Card>
+                </TabsContent>
+
+                <TabsContent value="visual">
+                   <Card className="border-none shadow-sm rounded-[40px] p-12 bg-white overflow-hidden">
+                      <div className="flex flex-col items-center space-y-8">
+                         {operations.length === 0 ? (
+                            <div className="py-20 text-center">
+                               <Zap className="size-16 text-slate-100 mx-auto mb-4" />
+                               <p className="text-sm font-black text-slate-300 uppercase italic">未配置工序流程</p>
+                            </div>
+                         ) : operations.sort((a, b) => a.sequence - b.sequence).map((op, i) => (
+                            <div key={i} className="flex flex-col items-center space-y-8 w-full max-w-md">
+                               <div className="relative group w-full">
+                                  <div className="bg-slate-900 text-white rounded-3xl p-6 shadow-xl border-4 border-slate-800 transition-all hover:scale-105 hover:bg-indigo-900 hover:border-indigo-800">
+                                     <div className="flex justify-between items-start mb-4">
+                                        <span className="text-[10px] font-black px-2 py-0.5 bg-white/10 rounded uppercase">Step {i + 1}</span>
+                                        <div className="flex gap-2">
+                                          <Clock className="size-4 text-slate-500" />
+                                          <span className="text-xs font-black">{op.standardTimeSec}s</span>
+                                        </div>
+                                     </div>
+                                     <h4 className="text-lg font-black uppercase tracking-tight">{op.operationName || '未命名工序'}</h4>
+                                     <p className="text-[10px] text-slate-500 font-bold uppercase mt-1 tracking-widest">{op.workstation || '未分配工位'}</p>
+                                     
+                                     {op.isInspectionPoint && (
+                                       <div className="mt-4 flex items-center gap-2 text-[10px] font-black text-emerald-400 uppercase">
+                                          <ShieldCheck className="size-3" /> QUALITY INSPECTION POINT
+                                       </div>
+                                     )}
+                                  </div>
+                               </div>
+                               {i < operations.length - 1 && (
+                                 <ArrowDown className="size-6 text-slate-200 animate-bounce" />
+                               )}
+                            </div>
+                         ))}
+                      </div>
+                   </Card>
+                </TabsContent>
+              </Tabs>
+            </>
+          ) : (
+            <div className="h-full flex flex-col items-center justify-center bg-white rounded-[40px] border-2 border-dashed border-slate-100 min-h-[500px]">
+               <Workflow className="size-20 text-slate-50 mb-6" />
+               <h3 className="text-xl font-black text-slate-300 uppercase tracking-tighter">请从左侧选择一个产品开始工艺设计</h3>
+               <p className="text-slate-400 text-sm mt-2">只有定义了工艺路线的产品才能下达生产任务</p>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
