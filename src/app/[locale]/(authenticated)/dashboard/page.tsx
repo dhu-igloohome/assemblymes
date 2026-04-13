@@ -284,7 +284,7 @@ export default function GlobalDashboard() {
                 <AlertTriangle className="size-4" />
               </div>
               <div>
-                <p className="text-xs font-black text-red-800 uppercase tracking-tight">{t('composition_alert')}: DATA_SILO_EMPTY</p>
+                <p className="text-xs font-black text-red-800 uppercase tracking-tight">{t('composition_alert')}</p>
                 <p className="text-[10px] font-medium text-red-600/70">{t('select_detail_desc')}</p>
               </div>
             </div>
