@@ -58,7 +58,7 @@ export default function ExecutionPage() {
         const data = await res.json();
         setOperations(data);
         
-        // 模拟计算个人今日战报 (实际应从后端获取)
+        // Mock personal report calculation (should be from backend)
         const today = new Date().toDateString();
         const personalTotal = data.reduce((sum: number, op: any) => sum + (op.completedQty || 0), 0);
         setPersonalStats(prev => ({ ...prev, todayQty: personalTotal }));
@@ -202,18 +202,18 @@ export default function ExecutionPage() {
           </div>
         </div>
 
-        {/* 个人计件战报 - 小厂落地的核心驱动力 */}
+        {/* {t('personal_report')} */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
           <div className="bg-white border-2 border-indigo-600 rounded-2xl p-3 shadow-sm flex flex-col items-center min-w-[120px]">
-            <span className="text-[10px] font-black text-indigo-400 uppercase tracking-tighter">今日产出 (PCS)</span>
+            <span className="text-[10px] font-black text-indigo-400 uppercase tracking-tighter">{t('daily_output_pcs')}</span>
             <span className="text-2xl font-black text-indigo-900">{personalStats.todayQty}</span>
           </div>
           <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm flex flex-col items-center min-w-[120px]">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">今日达成率</span>
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">{t('daily_target_rate')}</span>
             <span className="text-2xl font-black text-slate-900">{Math.round((personalStats.todayQty / personalStats.target) * 100)}%</span>
           </div>
           <div className="hidden sm:flex bg-emerald-50 border border-emerald-100 rounded-2xl p-3 shadow-sm flex flex-col items-center min-w-[120px]">
-            <span className="text-[10px] font-black text-emerald-600 uppercase tracking-tighter">质量合格率</span>
+            <span className="text-[10px] font-black text-emerald-600 uppercase tracking-tighter">{t('quality_yield')}</span>
             <span className="text-2xl font-black text-emerald-700">99.8%</span>
           </div>
         </div>
@@ -226,18 +226,18 @@ export default function ExecutionPage() {
         </TabsList>
 
         <TabsContent value="operations" className="space-y-6">
-          {/* Scan Zone */}
+          {/* {t('scan_zone')} */}
           <Card className="border-indigo-200 bg-indigo-50/30 shadow-sm overflow-hidden">
             <CardContent className="p-6">
               <form onSubmit={handleSearchWo} className="flex flex-col md:flex-row gap-4 items-end">
                 <div className="flex-1 space-y-2">
                   <label className="text-sm font-bold text-indigo-900 flex items-center gap-2">
                     <Scan className="size-4" />
-                    {t('scan_wo_label') || '扫码/输入工单号'}
+                    {t('scan_wo_label')}
                   </label>
                   <div className="relative">
                     <Input 
-                      placeholder={t('scan_wo_placeholder') || '在此扫码或输入工单号...'} 
+                      placeholder={t('scan_wo_placeholder')} 
                       value={woSearch} 
                       onChange={e => setWoSearch(e.target.value.toUpperCase())}
                       className="h-12 bg-white border-indigo-200 pl-10 text-lg font-mono focus:ring-indigo-500"
@@ -246,14 +246,14 @@ export default function ExecutionPage() {
                   </div>
                 </div>
                 <Button type="submit" size="lg" disabled={isSearchingWo} className="h-12 px-8 bg-indigo-600 hover:bg-indigo-700 shadow-md">
-                  {isSearchingWo ? t('loading') : (t('search') || '查询')}
+                  {isSearchingWo ? t('Common.loading') : t('Common.search')}
                 </Button>
               </form>
 
               {listError && <p className="text-red-500 text-sm mt-2 font-medium">{listError}</p>}
               {listMessage && <p className="text-emerald-600 text-sm mt-2 font-medium">{listMessage}</p>}
 
-              {/* Scanned WO Details & Batch Action */}
+              {/* {t('scanned_wo_details')} */}
               {scannedWo && (
                 <div className="mt-6 bg-white rounded-xl border border-indigo-100 p-6 shadow-sm animate-in fade-in slide-in-from-top-4 duration-300">
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border-b border-slate-100 pb-6 mb-6">
@@ -345,7 +345,7 @@ export default function ExecutionPage() {
                <h3 className="text-sm font-bold text-slate-700 uppercase tracking-widest">{t('overview')}</h3>
                <Button variant="ghost" size="sm" onClick={loadOperations} className="text-slate-400 hover:text-indigo-600">
                  <Clock className="size-4 mr-2" />
-                 Refresh List
+                 {t('Common.refresh')}
                </Button>
             </div>
             <Table>
@@ -408,27 +408,27 @@ export default function ExecutionPage() {
           </div>
         </TabsContent>
         
-        {/* Issues Tab Content Placeholder (Logic remains from previous version) */}
+        {/* {t('issues_tab_placeholder')} */}
         <TabsContent value="issues">
            <div className="p-12 text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200 text-slate-400">
-             Use the "Andon Board" for detailed issue management.
+             {t('andon_board_hint')}
            </div>
         </TabsContent>
       </Tabs>
 
-      {/* Report Dialog */}
+      {/* {t('report_dialog')} */}
       <Dialog open={reportDialogOpen} onOpenChange={setReportDialogOpen}>
         <DialogContent className="sm:max-w-2xl overflow-hidden p-0 rounded-3xl border-none shadow-2xl">
           <div className="flex flex-col md:flex-row h-full">
-            {/* 左侧：SOP 视觉引导 (如果是小厂，这就是最实用的防呆措施) */}
+            {/* {t('left_sop_guide')} */}
             <div className="w-full md:w-1/2 bg-slate-900 flex flex-col p-6 text-white border-r border-slate-800">
                <div className="flex items-center gap-3 mb-6">
                  <div className="bg-indigo-600 p-2 rounded-xl">
                    <FileText className="size-5" />
                  </div>
                  <div>
-                   <h3 className="text-lg font-black uppercase">SOP 指引</h3>
-                   <p className="text-[10px] text-slate-400 font-bold">请确认作业动作符合标准</p>
+                   <h3 className="text-lg font-black uppercase">{t('sop_guide')}</h3>
+                   <p className="text-[10px] text-slate-400 font-bold">{t('sop_standard_confirm')}</p>
                  </div>
                </div>
                <div className="flex-1 bg-slate-800 rounded-2xl border-2 border-dashed border-slate-700 overflow-hidden flex items-center justify-center relative group">
@@ -437,24 +437,24 @@ export default function ExecutionPage() {
                  ) : (
                    <div className="text-center p-8">
                      <Package className="size-12 text-slate-700 mx-auto mb-4" />
-                     <p className="text-xs text-slate-500 font-bold uppercase">暂无工艺图纸预览</p>
+                     <p className="text-xs text-slate-500 font-bold uppercase">{t('no_drawing')}</p>
                    </div>
                  )}
                  <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                    <Button variant="outline" size="sm" className="bg-white text-slate-900 font-bold" onClick={() => window.open(reportingOp?.sopUrl, '_blank')}>
-                     查看完整文件
+                     {t('view_full_file')}
                    </Button>
                  </div>
                </div>
                <div className="mt-6 space-y-2">
                  <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-500">
-                    <span>标准工时 (ST)</span>
+                    <span>{t('standard_time_st')}</span>
                     <span className="text-indigo-400">{reportingOp?.standardTimeSec || 0}s / PCS</span>
                  </div>
                </div>
             </div>
 
-            {/* 右侧：报工表单 */}
+            {/* {t('right_report_form')} */}
             <div className="flex-1 p-8 bg-white">
               <DialogHeader className="mb-8">
                 <DialogTitle className="text-2xl font-black text-slate-900 uppercase tracking-tight">{t('report_production')}</DialogTitle>
@@ -466,29 +466,36 @@ export default function ExecutionPage() {
               <div className="space-y-6">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">良品报工数 (Good)</label>
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('good_qty_label')}</label>
                     <Input type="number" value={reportGoodQty} onChange={(e) => setReportGoodQty(e.target.value)} className="h-14 text-2xl font-black border-slate-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50" />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest text-red-400">不良报工数 (Scrap)</label>
+                    <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest text-red-400">{t('scrap_qty_label')}</label>
                     <Input type="number" value={reportScrapQty} onChange={(e) => setReportScrapQty(e.target.value)} className="h-14 text-2xl font-black border-slate-200 focus:border-red-500 focus:ring-4 focus:ring-red-50 text-red-600" />
                   </div>
                 </div>
 
-                {/* 不良原因快选 - 针对无专职质检员的工厂，由工人录入原因 */}
+                {/* {t('defect_reason_select')} */}
                 {parseInt(reportScrapQty) > 0 && (
                   <div className="space-y-3 animate-in fade-in zoom-in-95">
-                    <label className="text-[10px] font-black uppercase text-red-500 tracking-widest">请点选不良原因 (必选)</label>
+                    <label className="text-[10px] font-black uppercase text-red-500 tracking-widest">{t('scrap_reason_label')}</label>
                     <div className="grid grid-cols-3 gap-2">
-                      {['外观划伤', '尺寸超差', '功能失效', '物料损耗', '人为失误', '其他'].map(reason => (
+                      {[
+                        { key: 'appearance', label: t('scrap_reason_appearance') },
+                        { key: 'dimension', label: t('scrap_reason_dimension') },
+                        { key: 'function', label: t('scrap_reason_function') },
+                        { key: 'material', label: t('scrap_reason_material') },
+                        { key: 'human', label: t('scrap_reason_human') },
+                        { key: 'other', label: t('scrap_reason_other') },
+                      ].map(item => (
                         <Button 
-                          key={reason} 
+                          key={item.key} 
                           variant="outline" 
                           size="sm" 
-                          className={`text-[10px] font-bold h-10 ${reportRemarks.includes(reason) ? 'border-red-500 bg-red-50 text-red-700' : 'border-slate-100'}`}
-                          onClick={() => setReportRemarks(prev => prev.includes(reason) ? prev.replace(reason, '').trim() : `${prev} ${reason}`.trim())}
+                          className={`text-[10px] font-bold h-10 ${reportRemarks.includes(item.label) ? 'border-red-500 bg-red-50 text-red-700' : 'border-slate-100'}`}
+                          onClick={() => setReportRemarks(prev => prev.includes(item.label) ? prev.replace(item.label, '').trim() : `${prev} ${item.label}`.trim())}
                         >
-                          {reason}
+                          {item.label}
                         </Button>
                       ))}
                     </div>
@@ -496,9 +503,9 @@ export default function ExecutionPage() {
                 )}
                 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">备注 (Remarks)</label>
+                  <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('remarks')}</label>
                   <Textarea 
-                    placeholder="选填：记录异常原因或作业说明..." 
+                    placeholder={t('remarks_placeholder')} 
                     value={reportRemarks} 
                     onChange={(e) => setReportRemarks(e.target.value)}
                     className="border-slate-200 min-h-[100px]"
@@ -508,9 +515,9 @@ export default function ExecutionPage() {
                 {reportError && <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-xs text-red-600 font-bold animate-shake">{reportError}</div>}
 
                 <div className="flex gap-3 pt-4">
-                  <Button variant="ghost" className="flex-1 h-14 font-bold text-slate-400" onClick={() => setReportDialogOpen(false)}>{t('cancel')}</Button>
+                  <Button variant="ghost" className="flex-1 h-14 font-bold text-slate-400" onClick={() => setReportDialogOpen(false)}>{t('Common.cancel')}</Button>
                   <Button onClick={handleReportProduction} disabled={isReporting} className="flex-[2] h-14 bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-100 font-black text-lg">
-                    {isReporting ? '提交中...' : '确认报工'}
+                    {isReporting ? t('Common.submitting') : t('btn_confirm_report')}
                   </Button>
                 </div>
               </div>

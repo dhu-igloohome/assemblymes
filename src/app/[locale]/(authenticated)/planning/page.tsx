@@ -79,7 +79,7 @@ export default function PlanningPage() {
       
       if (ordersRes.ok) {
         const orders = await ordersRes.json();
-        // 过滤掉已经完全下达工单的订单
+        // Filter out orders that have fully released work orders
         setPendingOrders(orders.filter((o: any) => !o.workOrders || o.workOrders.length === 0));
       }
     } catch {
@@ -95,35 +95,35 @@ export default function PlanningPage() {
 
   return (
     <div className="p-8 space-y-8 bg-slate-50/50 min-h-screen">
-      {/* Header */}
+      {/* {t('Header')} */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase">生产排产中心</h1>
-          <p className="text-slate-500 font-medium">Production Scheduling & MRP</p>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase">{t('center_title')}</h1>
+          <p className="text-slate-500 font-medium">{t('center_desc')}</p>
         </div>
         <div className="flex gap-3">
           <Button variant="outline" className="font-bold border-slate-200">
-            物料齐套性检查
+            {t('btn_check_material')}
           </Button>
           <Button className="font-bold bg-indigo-600 shadow-lg shadow-indigo-100">
-            自动排产建议
+            {t('btn_auto_suggest')}
           </Button>
         </div>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-12">
-        {/* 左侧：待排产订单池 - 小厂生产的源头 */}
+        {/* {t('left_order_pool')} */}
         <div className="lg:col-span-4 space-y-6">
           <Card className="border-none shadow-xl rounded-3xl overflow-hidden">
             <CardHeader className="bg-slate-900 text-white pb-6">
               <div className="flex justify-between items-center">
                 <CardTitle className="text-lg font-black flex items-center gap-2">
                   <ListTodo className="size-5 text-indigo-400" />
-                  待排产订单池
+                  {t('card_order_pool')}
                 </CardTitle>
                 <span className="bg-indigo-500 text-white border-none px-2 py-0.5 rounded-full text-[10px] font-bold">{pendingOrders.length}</span>
               </div>
-              <CardDescription className="text-slate-400 font-medium">点击订单快速下达生产工单</CardDescription>
+              <CardDescription className="text-slate-400 font-medium">{t('card_order_pool_desc')}</CardDescription>
             </CardHeader>
             <CardContent className="p-0">
               <div className="divide-y divide-slate-50">
@@ -139,14 +139,14 @@ export default function PlanningPage() {
                     <p className="text-[10px] text-slate-400 font-bold uppercase mb-4 tracking-widest">SKU: {order.skuItemCode}</p>
                     
                     <Button size="sm" className="w-full bg-white text-indigo-600 border border-indigo-100 hover:bg-indigo-600 hover:text-white font-black text-[10px] uppercase h-8 shadow-sm">
-                      转为工单并下达 <ArrowRight className="ml-2 size-3" />
+                      {t('btn_convert_to_wo')} <ArrowRight className="ml-2 size-3" />
                     </Button>
                   </div>
                 ))}
                 {pendingOrders.length === 0 && (
                   <div className="p-12 text-center text-slate-400 italic">
                     <CheckCircle2 className="size-12 mx-auto mb-4 text-slate-100" />
-                    <p className="text-xs uppercase font-black">所有订单已完成排产</p>
+                    <p className="text-xs uppercase font-black">{t('all_orders_scheduled')}</p>
                   </div>
                 )}
               </div>
@@ -154,15 +154,15 @@ export default function PlanningPage() {
           </Card>
         </div>
 
-        {/* 右侧：主排产计划与资源分析 */}
+        {/* {t('right_planning')} */}
         <div className="lg:col-span-8 space-y-8">
           <Tabs defaultValue="schedule" className="space-y-6">
             <TabsList className="bg-slate-100 p-1 rounded-2xl">
               <TabsTrigger value="schedule" className="rounded-xl px-8 font-black text-xs uppercase tracking-widest">
-                <Calendar className="size-4 mr-2" /> 生产任务计划
+                <Calendar className="size-4 mr-2" /> {t('tab_schedule')}
               </TabsTrigger>
               <TabsTrigger value="capacity" className="rounded-xl px-8 font-black text-xs uppercase tracking-widest">
-                <LayoutGrid className="size-4 mr-2" /> 产能负载分析
+                <LayoutGrid className="size-4 mr-2" /> {t('tab_capacity')}
               </TabsTrigger>
             </TabsList>
 
@@ -171,11 +171,11 @@ export default function PlanningPage() {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-slate-50/50 hover:bg-slate-50/50">
-                      <TableHead className="pl-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">工单信息</TableHead>
-                      <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">计划产出</TableHead>
-                      <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">物料状态</TableHead>
-                      <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">当前进度</TableHead>
-                      <TableHead className="text-right pr-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">操作</TableHead>
+                      <TableHead className="pl-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_wo_info')}</TableHead>
+                      <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_planned_output')}</TableHead>
+                      <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_material_status')}</TableHead>
+                      <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_current_progress')}</TableHead>
+                      <TableHead className="text-right pr-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('Common.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -193,11 +193,11 @@ export default function PlanningPage() {
                         <TableCell>
                           {row.shortageQty > 0 ? (
                             <span className="inline-flex items-center border border-red-100 bg-red-50 text-red-600 font-black text-[10px] uppercase px-2 py-0.5 rounded-full">
-                              <AlertTriangle className="size-3 mr-1" /> 缺料 {row.shortageQty}
+                              <AlertTriangle className="size-3 mr-1" /> {t('status_shortage', { qty: row.shortageQty })}
                             </span>
                           ) : (
                             <span className="inline-flex items-center border border-emerald-100 bg-emerald-50 text-emerald-600 font-black text-[10px] uppercase px-2 py-0.5 rounded-full">
-                              <CheckCircle2 className="size-3 mr-1" /> 物料齐套
+                              <CheckCircle2 className="size-3 mr-1" /> {t('status_ready')}
                             </span>
                           )}
                         </TableCell>
@@ -216,7 +216,7 @@ export default function PlanningPage() {
                           </div>
                         </TableCell>
                         <TableCell className="text-right pr-8">
-                           <Button variant="ghost" size="sm" className="font-black text-indigo-600 text-[10px] uppercase">调整</Button>
+                           <Button variant="ghost" size="sm" className="font-black text-indigo-600 text-[10px] uppercase">{t('btn_adjust')}</Button>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -224,7 +224,7 @@ export default function PlanningPage() {
                       <TableRow>
                         <TableCell colSpan={5} className="py-20 text-center">
                            <Zap className="size-12 text-slate-100 mx-auto mb-4" />
-                           <p className="text-xs text-slate-400 font-black uppercase italic">No active production tasks</p>
+                           <p className="text-xs text-slate-400 font-black uppercase italic">{t('no_active_tasks')}</p>
                         </TableCell>
                       </TableRow>
                     )}
@@ -241,7 +241,7 @@ export default function PlanningPage() {
                       <div className="flex justify-between items-center">
                         <CardTitle className="text-sm font-black text-slate-900 uppercase tracking-tight">{row.name}</CardTitle>
                         <span className={`${row.utilizationPct > 100 ? 'bg-red-500' : 'bg-emerald-500'} text-white border-none text-[10px] px-2 py-0.5 rounded-full font-bold`}>
-                          {row.utilizationPct}% 负载
+                          {row.utilizationPct}% {t('label_load')}
                         </span>
                       </div>
                     </CardHeader>
@@ -249,7 +249,7 @@ export default function PlanningPage() {
                       <div className="space-y-4">
                         <div className="flex justify-between items-end">
                            <div className="space-y-1">
-                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">能力 / 计划 (Hrs)</p>
+                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('label_capacity_planned')}</p>
                              <p className="text-2xl font-black text-slate-900">{row.dailyCapacityHours} <span className="text-slate-300 font-medium">/</span> {row.plannedLoadHours}</p>
                            </div>
                            <Package className="size-8 text-slate-100" />

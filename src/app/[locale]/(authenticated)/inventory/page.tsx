@@ -142,16 +142,16 @@ export default function InventoryPage() {
 
   return (
     <div className="p-8 space-y-8 bg-slate-50/50 min-h-screen">
-      {/* 标题与全局搜索 */}
+      {/* {t('header_search')} */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase">智能库存浏览器</h1>
-          <p className="text-slate-500 font-medium">Visual Inventory Management</p>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase">{t('browser_title')}</h1>
+          <p className="text-slate-500 font-medium">{t('browser_desc')}</p>
         </div>
         <div className="w-full md:w-96 relative">
           <Input 
             className="h-14 pl-12 pr-4 bg-white border-none shadow-xl rounded-2xl text-lg font-bold placeholder:text-slate-300"
-            placeholder="搜索物料名称、编码或仓位..."
+            placeholder={t('search_placeholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -162,18 +162,18 @@ export default function InventoryPage() {
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList className="bg-slate-100 p-1 rounded-2xl">
           <TabsTrigger value="overview" className="rounded-xl px-8 font-black text-xs uppercase tracking-widest">
-            <LayoutGrid className="size-4 mr-2" /> 库存概览
+            <LayoutGrid className="size-4 mr-2" /> {t('tab_overview')}
           </TabsTrigger>
           <TabsTrigger value="history" className="rounded-xl px-8 font-black text-xs uppercase tracking-widest">
-            <History className="size-4 mr-2" /> 变动履历
+            <History className="size-4 mr-2" /> {t('tab_history')}
           </TabsTrigger>
           <TabsTrigger value="settings" className="rounded-xl px-8 font-black text-xs uppercase tracking-widest">
-            <MapPin className="size-4 mr-2" /> 仓位设置
+            <MapPin className="size-4 mr-2" /> {t('tab_settings')}
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-8">
-          {/* 异常警报卡片 */}
+          {/* {t('anomaly_alerts')} */}
           {warnings.length > 0 && (
             <div className="grid gap-4 md:grid-cols-3">
               {warnings.slice(0, 3).map(warn => (
@@ -183,14 +183,14 @@ export default function InventoryPage() {
                   </div>
                   <div>
                     <h4 className="text-xs font-black text-red-700 uppercase">{warn.itemName}</h4>
-                    <p className="text-lg font-black text-red-900">缺口 {warn.shortage} PCS</p>
+                    <p className="text-lg font-black text-red-900">{t('alert_gap', { qty: warn.shortage })}</p>
                   </div>
                 </div>
               ))}
             </div>
           )}
 
-          {/* 库存网格 - 视觉化核心 */}
+          {/* {t('inventory_grid')} */}
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5">
             {filteredBalances.map((row) => (
               <Card key={row.id} className="group border-none shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all rounded-3xl overflow-hidden bg-white">
@@ -224,7 +224,7 @@ export default function InventoryPage() {
             {filteredBalances.length === 0 && (
               <div className="col-span-full py-20 text-center">
                  <Search className="size-16 text-slate-100 mx-auto mb-4" />
-                 <p className="text-sm font-black text-slate-300 uppercase italic">没有找到相关库存项</p>
+                 <p className="text-sm font-black text-slate-300 uppercase italic">{t('empty_balances')}</p>
               </div>
             )}
           </div>
@@ -235,11 +235,11 @@ export default function InventoryPage() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-slate-50/50 hover:bg-slate-50/50 border-none">
-                  <TableHead className="pl-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">变动类型</TableHead>
-                  <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">物料信息</TableHead>
-                  <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">变动数量</TableHead>
-                  <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">关联单号</TableHead>
-                  <TableHead className="text-right pr-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">时间</TableHead>
+                  <TableHead className="pl-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_txn_type')}</TableHead>
+                  <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_item_info')}</TableHead>
+                  <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_txn_qty')}</TableHead>
+                  <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_ref_no')}</TableHead>
+                  <TableHead className="text-right pr-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_time')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -276,10 +276,10 @@ export default function InventoryPage() {
         </TabsContent>
 
         <TabsContent value="settings">
-          {/* 仓位设置保留之前的逻辑，但使用新 UI 包装 */}
+          {/* Location settings with new UI wrapper */}
           <div className="grid gap-8 lg:grid-cols-3">
              <Card className="lg:col-span-1 border-none shadow-xl rounded-3xl p-6 bg-white">
-                <h3 className="text-lg font-black text-slate-900 mb-6 uppercase tracking-tight">新增仓位</h3>
+                <h3 className="text-lg font-black text-slate-900 mb-6 uppercase tracking-tight">{t('card_add_location')}</h3>
                 <div className="space-y-4">
                   <Input placeholder={t('warehouse_code')} value={warehouseCode} onChange={(e) => setWarehouseCode(e.target.value.toUpperCase())} className="h-12 bg-slate-50 border-none font-bold" />
                   <Input placeholder={t('warehouse_name')} value={warehouseName} onChange={(e) => setWarehouseName(e.target.value)} className="h-12 bg-slate-50 border-none font-bold" />
@@ -288,7 +288,7 @@ export default function InventoryPage() {
                     className="w-full h-14 bg-indigo-600 font-black rounded-2xl shadow-lg shadow-indigo-100 mt-4"
                     onClick={() => void createWarehouse()}
                   >
-                    确认创建
+                    {t('btn_confirm_create')}
                   </Button>
                 </div>
              </Card>
@@ -297,10 +297,10 @@ export default function InventoryPage() {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-slate-50 border-none">
-                      <TableHead className="pl-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">仓库编码</TableHead>
-                      <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">名称</TableHead>
-                      <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">仓位数</TableHead>
-                      <TableHead className="text-right pr-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">操作</TableHead>
+                      <TableHead className="pl-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_wh_code')}</TableHead>
+                      <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_wh_name')}</TableHead>
+                      <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_loc_count')}</TableHead>
+                      <TableHead className="text-right pr-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('Common.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -310,7 +310,7 @@ export default function InventoryPage() {
                         <TableCell className="text-xs font-bold text-slate-600">{w.name}</TableCell>
                         <TableCell><span className="bg-slate-100 px-2 py-0.5 rounded text-[10px] font-black text-slate-500">{w.locations.length}</span></TableCell>
                         <TableCell className="text-right pr-8">
-                          <Button variant="ghost" size="sm" className="font-black text-indigo-600">管理仓位</Button>
+                          <Button variant="ghost" size="sm" className="font-black text-indigo-600">{t('btn_manage_loc')}</Button>
                         </TableCell>
                       </TableRow>
                     ))}

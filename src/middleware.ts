@@ -14,8 +14,8 @@ function getLocaleFromPath(pathname: string) {
 }
 
 function isProtectedPage(pathname: string) {
-  // Protect all internal modules
-  return /^\/(zh|en)\/(pie|execution|personnel|inventory|planning|o2c|procurement|quality|cost)/.test(pathname);
+  // Protect all internal modules including dashboard
+  return /^\/(zh|en)\/(dashboard|pie|execution|personnel|inventory|planning|o2c|procurement|quality|cost)/.test(pathname);
 }
 
 function isPublicApi(pathname: string) {

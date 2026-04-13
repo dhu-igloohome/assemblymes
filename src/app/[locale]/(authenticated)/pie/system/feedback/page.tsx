@@ -53,12 +53,12 @@ export default function VisitorFeedbackPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase tracking-tighter">访客留言大厅</h1>
-          <p className="text-slate-500 font-medium">Visitor Suggestions & Feedback Hall</p>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase tracking-tighter">{t('feedback_hall')}</h1>
+          <p className="text-slate-500 font-medium">{t('feedback_hall_desc')}</p>
         </div>
         <div className="flex gap-3">
           <Button variant="outline" className="font-bold border-slate-200" onClick={() => window.location.reload()}>
-            刷新
+            {t('Common.refresh')}
           </Button>
         </div>
       </div>
@@ -67,12 +67,12 @@ export default function VisitorFeedbackPage() {
         <CardHeader className="bg-slate-900 text-white pb-6">
           <CardTitle className="text-lg font-black flex items-center gap-2">
             <MessageSquare className="size-5 text-indigo-400" />
-            留言记录流水
+            {t('feedback_stream')}
           </CardTitle>
           <div className="relative mt-4">
             <Input 
               className="bg-white/10 border-none text-white placeholder:text-slate-500 h-10 rounded-xl pl-10"
-              placeholder="搜索留言内容或访客姓名..."
+              placeholder={t('feedback_search_placeholder')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -81,17 +81,17 @@ export default function VisitorFeedbackPage() {
         </CardHeader>
         <CardContent className="p-0">
           {isLoading ? (
-            <div className="p-20 text-center text-slate-400 italic">正在加载中...</div>
+            <div className="p-20 text-center text-slate-400 italic">{t('Common.loading')}</div>
           ) : error ? (
             <div className="p-20 text-center text-red-500 font-bold uppercase tracking-widest">{error}</div>
           ) : (
             <Table>
               <TableHeader className="bg-slate-50 hover:bg-slate-50">
                 <TableRow className="border-none">
-                  <TableHead className="pl-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">留言内容</TableHead>
-                  <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">访客身份</TableHead>
-                  <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">提交时间</TableHead>
-                  <TableHead className="pr-8 text-right text-[10px] font-black uppercase text-slate-400 tracking-widest">来源追踪</TableHead>
+                  <TableHead className="pl-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('feedback_content')}</TableHead>
+                  <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('feedback_visitor')}</TableHead>
+                  <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('feedback_time')}</TableHead>
+                  <TableHead className="pr-8 text-right text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('feedback_source')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -106,7 +106,7 @@ export default function VisitorFeedbackPage() {
                       <div className="space-y-1">
                         <div className="flex items-center gap-1.5 text-xs font-black text-slate-900 uppercase">
                           <User className="size-3.5 text-indigo-400" />
-                          {item.nickname || '匿名访客'}
+                          {item.nickname || t('feedback_anonymous')}
                         </div>
                         {item.contact && (
                           <div className="flex items-center gap-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -133,7 +133,7 @@ export default function VisitorFeedbackPage() {
                   <TableRow>
                     <TableCell colSpan={4} className="py-32 text-center">
                        <LayoutGrid className="size-12 text-slate-50 mx-auto mb-4" />
-                       <p className="text-xs font-black text-slate-300 uppercase tracking-widest">目前暂无留言记录</p>
+                       <p className="text-xs font-black text-slate-300 uppercase tracking-widest">{t('feedback_no_records')}</p>
                     </TableCell>
                   </TableRow>
                 )}

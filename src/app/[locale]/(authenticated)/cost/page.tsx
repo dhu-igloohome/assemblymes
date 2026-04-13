@@ -186,35 +186,35 @@ export default function CostPage() {
 
   return (
     <div className="p-8 space-y-8 bg-slate-50/50 min-h-screen">
-      {/* Header */}
+      {/* {t('header_archive')} */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase tracking-tighter">产品成本控制中心</h1>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase tracking-tighter">{t('title')}</h1>
           <p className="text-slate-500 font-medium">Cost Analysis & Financial Control</p>
         </div>
         <div className="flex gap-3">
           <Button variant="outline" className="font-bold border-slate-200" onClick={() => void loadData()}>
-            刷新
+            {t('Common.refresh')}
           </Button>
           <Button className="font-bold bg-indigo-600 shadow-lg shadow-indigo-100" onClick={() => setIsCreateDialogOpen(true)}>
-            <Plus className="size-4 mr-2" /> 录入调整费用
+            <Plus className="size-4 mr-2" /> {t('btn_add_adjustment')}
           </Button>
         </div>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-12">
-        {/* 左侧：工单成本档案库 */}
+        {/* {t('header_archive')} */}
         <div className="lg:col-span-4 space-y-6">
           <Card className="border-none shadow-xl rounded-3xl overflow-hidden bg-white">
             <CardHeader className="bg-slate-900 text-white pb-6">
               <CardTitle className="text-lg font-black flex items-center gap-2">
                 <Coins className="size-5 text-indigo-400" />
-                工单成本库
+                {t('archive_title')}
               </CardTitle>
               <div className="relative mt-4">
                 <Input 
                   className="bg-white/10 border-none text-white placeholder:text-slate-500 h-10 rounded-xl pl-10"
-                  placeholder="搜索单号、SKU..."
+                  placeholder={t('search_placeholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -224,7 +224,7 @@ export default function CostPage() {
             <CardContent className="p-0 max-h-[600px] overflow-y-auto">
               <div className="divide-y divide-slate-50">
                 {isLoading ? (
-                   <div className="p-12 text-center text-slate-400 italic">加载中...</div>
+                   <div className="p-12 text-center text-slate-400 italic">{t('Common.loading')}</div>
                 ) : filteredSummary.map((row) => (
                   <div 
                     key={row.workOrderNo} 
@@ -236,14 +236,14 @@ export default function CostPage() {
                         {row.workOrderNo}
                       </span>
                       <span className="text-[10px] font-black px-2 py-0.5 bg-emerald-50 text-emerald-600 rounded uppercase tracking-tighter">
-                        Total: ¥{row.totalCost.toLocaleString()}
+                        {t('total_cost_label')}: ¥{row.totalCost.toLocaleString()}
                       </span>
                     </div>
                     <h4 className="font-bold text-slate-800 mb-1">{row.skuItemCode}</h4>
                     <div className="flex justify-between items-end mt-4">
                       <div>
                          <p className="text-[10px] text-slate-400 font-bold uppercase flex items-center gap-1">
-                           <Calculator className="size-3" /> 单位成本: ¥{row.unitCost.toFixed(2)}
+                           <Calculator className="size-3" /> {t('col_unit_cost')}: ¥{row.unitCost.toFixed(2)}
                          </p>
                       </div>
                       <ChevronRight className="size-4 text-slate-200 group-hover:text-indigo-600 transition-colors" />
@@ -251,25 +251,25 @@ export default function CostPage() {
                   </div>
                 ))}
                 {filteredSummary.length === 0 && !isLoading && (
-                   <div className="p-12 text-center text-slate-300 italic text-xs uppercase font-black tracking-widest">No matching cost records</div>
+                   <div className="p-12 text-center text-slate-300 italic text-xs uppercase font-black tracking-widest">{t('no_matching')}</div>
                 )}
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* 右侧：成本详情/控制台 */}
+        {/* {t('header_console')} */}
         <div className="lg:col-span-8 space-y-8">
           {selectedSummary ? (
             <>
-              {/* 核心指标卡片 */}
+              {/* {t('header_kpis')} */}
               <div className="grid gap-4 md:grid-cols-4 bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">总成本 (CNY)</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('total_label')}</label>
                   <p className="text-xl font-black text-slate-900">¥{selectedSummary.totalCost.toLocaleString()}</p>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">单位产出成本</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('unit_cost_label')}</label>
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-bold text-slate-900">¥{selectedSummary.unitCost.toFixed(2)}</p>
                     <span className="text-[10px] font-bold text-emerald-500 flex items-center">
@@ -278,15 +278,15 @@ export default function CostPage() {
                   </div>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">成本构成异常</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('anomaly_label')}</label>
                   <div className="flex items-center gap-2">
                     <div className="size-2 rounded-full bg-emerald-500" />
-                    <p className="text-sm font-bold text-slate-900">正常</p>
+                    <p className="text-sm font-bold text-slate-900">{t('status_normal')}</p>
                   </div>
                 </div>
                 <div className="flex items-center justify-end gap-3">
                   <Button variant="outline" className="font-black text-[10px] uppercase tracking-widest">
-                    生成报表
+                    {t('btn_generate_report')}
                   </Button>
                 </div>
               </div>
@@ -297,30 +297,30 @@ export default function CostPage() {
               <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
                 <TabsList className="bg-slate-100 p-1 rounded-2xl">
                   <TabsTrigger value="analysis" className="rounded-xl px-8 font-black text-xs uppercase tracking-widest">
-                    <BarChart3 className="size-4 mr-2" /> 构成分析
+                    <BarChart3 className="size-4 mr-2" /> {t('tab_analysis')}
                   </TabsTrigger>
                   <TabsTrigger value="entries" className="rounded-xl px-8 font-black text-xs uppercase tracking-widest">
-                    <History className="size-4 mr-2" /> 费用明细
+                    <History className="size-4 mr-2" /> {t('tab_entries')}
                   </TabsTrigger>
                   <TabsTrigger value="settings" className="rounded-xl px-8 font-black text-xs uppercase tracking-widest">
-                    <Settings2 className="size-4 mr-2" /> 分摊设置
+                    <Settings2 className="size-4 mr-2" /> {t('tab_settings')}
                   </TabsTrigger>
                 </TabsList>
 
-                {/* 构成分析 Tab */}
+                {/* {t('tab_analysis')} */}
                 <TabsContent value="analysis" className="space-y-6">
                    <div className="grid gap-6 md:grid-cols-2">
                       <Card className="border-none shadow-sm rounded-3xl p-8 bg-white">
                          <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-8 flex items-center gap-2">
                             <PieChart className="size-4 text-indigo-600" />
-                            成本构成比例
+                            {t('card_structure_title')}
                          </h3>
                          <div className="space-y-6">
                             {[
-                               { label: '物料成本', value: selectedSummary.materialCost, icon: <Package className="size-3" />, color: 'bg-indigo-500' },
-                               { label: '人工成本', value: selectedSummary.laborCost, icon: <Users className="size-3" />, color: 'bg-emerald-500' },
-                               { label: '制造费用', value: selectedSummary.overheadCost, icon: <Wrench className="size-3" />, color: 'bg-amber-500' },
-                               { label: '其他调整', value: selectedSummary.adjustmentCost, icon: <ArrowUpRight className="size-3" />, color: 'bg-slate-400' },
+                               { label: t('label_material'), value: selectedSummary.materialCost, icon: <Package className="size-3" />, color: 'bg-indigo-500' },
+                               { label: t('label_labor'), value: selectedSummary.laborCost, icon: <Users className="size-3" />, color: 'bg-emerald-500' },
+                               { label: t('label_overhead'), value: selectedSummary.overheadCost, icon: <Wrench className="size-3" />, color: 'bg-amber-500' },
+                               { label: t('label_adjustment'), value: selectedSummary.adjustmentCost, icon: <ArrowUpRight className="size-3" />, color: 'bg-slate-400' },
                             ].map((item) => (
                                <div key={item.label} className="space-y-2">
                                   <div className="flex justify-between items-center text-xs font-bold uppercase tracking-tight">
@@ -339,22 +339,21 @@ export default function CostPage() {
 
                       <Card className="border-none shadow-sm rounded-3xl p-8 bg-slate-900 text-white overflow-hidden relative">
                          <div className="relative z-10">
-                            <h3 className="text-sm font-black text-indigo-400 uppercase tracking-widest mb-6">成本智能核算</h3>
+                            <h3 className="text-sm font-black text-indigo-400 uppercase tracking-widest mb-6">{t('ai_analysis_title')}</h3>
                             <div className="space-y-4">
                                <p className="text-xs text-slate-400 leading-relaxed">
-                                  当前 SKU 的总成本主要由 <span className="text-white font-bold">物料成本 ({((selectedSummary.materialCost / selectedSummary.totalCost) * 100).toFixed(0)}%)</span> 构成。
-                                  单位成本控制在 ¥{selectedSummary.unitCost.toFixed(2)}，处于健康区间。建议关注后续批次的物料价格波动。
+                                  {t('ai_analysis_desc', { material_percent: ((selectedSummary.materialCost / selectedSummary.totalCost) * 100).toFixed(0), unit_cost: selectedSummary.unitCost.toFixed(2) })}
                                </p>
                                <div className="pt-4 grid grid-cols-2 gap-4">
                                   <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
-                                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">预计毛利</p>
+                                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{t('stat_profit')}</p>
                                      <p className="text-lg font-black italic">--</p>
                                   </div>
                                   <div className="p-4 bg-white/5 rounded-2xl border border-white/10">
-                                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">成本风险</p>
-                                     <p className="text-lg font-black italic text-emerald-400">LOW</p>
+                                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{t('stat_risk')}</p>
+                                     <p className="text-lg font-black italic text-emerald-400">{t('stat_risk_low')}</p>
                                   </div>
-                               </div>
+                                </div>
                             </div>
                          </div>
                          <ArrowUpRight className="absolute -bottom-10 -right-10 size-64 text-white/5" />
@@ -362,16 +361,16 @@ export default function CostPage() {
                    </div>
                 </TabsContent>
 
-                {/* 费用明细 Tab */}
+                {/* {t('tab_entries')} */}
                 <TabsContent value="entries" className="space-y-6">
                   <Card className="border-none shadow-sm rounded-3xl overflow-hidden bg-white">
                     <Table>
                       <TableHeader>
                         <TableRow className="hover:bg-transparent border-none">
-                          <TableHead className="pl-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">类型</TableHead>
-                          <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">金额</TableHead>
-                          <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">参考</TableHead>
-                          <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">时间</TableHead>
+                          <TableHead className="pl-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_type')}</TableHead>
+                          <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_amount')}</TableHead>
+                          <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_ref')}</TableHead>
+                          <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_time')}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -382,7 +381,7 @@ export default function CostPage() {
                                  entry.entryType === 'ADJUSTMENT' ? 'bg-amber-50 text-amber-600' :
                                  entry.entryType === 'MATERIAL' ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-100 text-slate-400'
                                }`}>
-                                 {entry.entryType}
+                                 {t(`entry_type_${entry.entryType.toLowerCase()}` as Parameters<typeof t>[0])}
                                </span>
                             </TableCell>
                             <TableCell className="font-bold text-slate-900">¥{Number(entry.amount).toLocaleString()}</TableCell>
@@ -392,7 +391,7 @@ export default function CostPage() {
                         ))}
                         {entriesForSelected.length === 0 && (
                            <TableRow>
-                              <TableCell colSpan={4} className="py-12 text-center text-slate-300 italic text-xs uppercase font-black">No separate entries found</TableCell>
+                              <TableCell colSpan={4} className="py-12 text-center text-slate-300 italic text-xs uppercase font-black">{t('no_entries')}</TableCell>
                            </TableRow>
                         )}
                       </TableBody>
@@ -400,11 +399,11 @@ export default function CostPage() {
                   </Card>
                 </TabsContent>
 
-                {/* 设置 Tab */}
+                {/* {t('tab_settings')} */}
                 <TabsContent value="settings" className="space-y-6">
                    <Card className="border-none shadow-sm rounded-3xl p-8 bg-white min-h-[300px] flex flex-col items-center justify-center">
                       <Settings2 className="size-12 text-slate-50 mb-4" />
-                      <p className="text-sm font-black text-slate-300 uppercase tracking-widest">成本分摊算法配置开发中</p>
+                      <p className="text-sm font-black text-slate-300 uppercase tracking-widest">{t('settings_desc')}</p>
                    </Card>
                 </TabsContent>
               </Tabs>
@@ -412,25 +411,25 @@ export default function CostPage() {
           ) : (
             <div className="h-full flex flex-col items-center justify-center bg-white rounded-[40px] border-2 border-dashed border-slate-100 min-h-[500px]">
                <BarChart3 className="size-20 text-slate-50 mb-6" />
-               <h3 className="text-xl font-black text-slate-300 uppercase tracking-tighter">请从左侧选择一个工单查看成本分析</h3>
-               <p className="text-slate-400 text-sm mt-2">在这里您可以监控生产过程中的物料、人工及制造费用的详细分布</p>
+               <h3 className="text-xl font-black text-slate-300 uppercase tracking-tighter">{t('select_detail')}</h3>
+               <p className="text-slate-400 text-sm mt-2">{t('select_detail_desc')}</p>
             </div>
           )}
         </div>
       </div>
 
-      {/* 录入对话框 */}
+      {/* {t('dialog_container')} */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className="sm:max-w-md rounded-[32px] border-none shadow-2xl p-8">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-black text-slate-900 uppercase tracking-tight">录入/调整费用</DialogTitle>
-            <DialogDescription className="text-slate-400 font-medium">针对特定工单手动添加制造费用或成本修正项</DialogDescription>
+            <DialogTitle className="text-2xl font-black text-slate-900 uppercase tracking-tight">{t('dialog_title')}</DialogTitle>
+            <DialogDescription className="text-slate-400 font-medium">{t('dialog_desc')}</DialogDescription>
           </DialogHeader>
           <div className="mt-6 space-y-4">
             <div className="space-y-1">
-               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">目标工单 (选填)</label>
+               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_wo')}</label>
                <Input
-                 placeholder="如：WO2024041001"
+                 placeholder={t('field_wo_placeholder')}
                  value={workOrderNo}
                  onChange={(e) => setWorkOrderNo(e.target.value)}
                  className="h-12 bg-slate-50 border-none font-bold"
@@ -438,11 +437,11 @@ export default function CostPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">费用类型</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_type')}</label>
                   <select
                     className="w-full h-12 rounded-xl border-none bg-slate-50 px-3 text-sm font-bold"
                     value={entryType}
-                    onChange={(e) => setEntryType(e.target.value as CostEntryType)}
+                    onChange={(e) => setentryType(e.target.value as CostEntryType)}
                   >
                     {ENTRY_TYPES.map((type) => (
                       <option key={type} value={type}>
@@ -452,32 +451,32 @@ export default function CostPage() {
                   </select>
                </div>
                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">币种</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_currency')}</label>
                   <Input placeholder="CNY" value={currency} onChange={(e) => setCurrency(e.target.value)} className="h-12 bg-slate-50 border-none font-bold text-center" />
                </div>
             </div>
             <div className="space-y-1">
-               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">金额</label>
+               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_amount')}</label>
                <Input placeholder="0.00" value={amount} onChange={(e) => setAmount(e.target.value)} className="h-12 bg-slate-50 border-none font-black text-lg" />
             </div>
             <div className="space-y-1">
-               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">参考单据号</label>
+               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_ref')}</label>
                <Input placeholder="REF-2024-..." value={sourceRef} onChange={(e) => setSourceRef(e.target.value)} className="h-12 bg-slate-50 border-none font-bold" />
             </div>
             <div className="space-y-1">
-               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">备注</label>
-               <Input placeholder="备注说明..." value={notes} onChange={(e) => setNotes(e.target.value)} className="h-12 bg-slate-50 border-none font-bold" />
+               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_notes')}</label>
+               <Input placeholder={t('field_notes_placeholder')} value={notes} onChange={(e) => setNotes(e.target.value)} className="h-12 bg-slate-50 border-none font-bold" />
             </div>
             
             {formError && <p className="text-xs font-bold text-red-500 bg-red-50 p-3 rounded-xl mt-2">{formError}</p>}
             <div className="flex gap-3 mt-8">
-               <Button variant="outline" className="flex-1 h-12 font-black rounded-xl" onClick={() => setIsCreateDialogOpen(false)}>取消</Button>
+               <Button variant="outline" className="flex-1 h-12 font-black rounded-xl" onClick={() => setIsCreateDialogOpen(false)}>{t('btn_cancel')}</Button>
                <Button
                  className="flex-1 h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl shadow-xl shadow-indigo-100"
                  disabled={isSubmitting}
                  onClick={() => void createEntry()}
                >
-                 {isSubmitting ? '正在提交...' : '确认录入'}
+                 {isSubmitting ? t('submitting') : t('btn_confirm')}
                </Button>
             </div>
           </div>

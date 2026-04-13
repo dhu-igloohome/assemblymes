@@ -4,42 +4,58 @@ import { prisma } from '@/lib/prisma';
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  try {
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
 
-    const [activeIssues, todayReports, itemsWithSafety, recentOrders, activeWOs, materialDemandWOs, allBalances] = await Promise.all([
-      // 1. 活跃异常明细
-      prisma.issueRecord.findMany({
-        where: { status: { in: ['OPEN', 'IN_PROGRESS'] } },
-        orderBy: { reportedAt: 'desc' },
-        take: 3
+    // 1. 活跃异常明细
+    const activeIssues = await prisma.issueRecord.findMany({
+      where: { status: { in: ['OPEN', 'IN_PROGRESS'] } },
+      orderBy: { reportedAt: 'desc' },
+      take: 3
+    });
+
+    // 2. 今日产出
+    const todayReports = await prisma.productionReport.findMany({
+      where: { createdAt: { gte: todayStart } },
+      select: { goodQty: true }
+    });
+
+    // 3. 获取库存预警 (当前库存 < 安全库存)
+    const [itemsWithSafety, allBalances] = await Promise.all([
+      prisma.item.findMany({
+        where: { safetyStock: { gt: 0 } },
+        select: { itemCode: true, safetyStock: true, itemName: true }
       }),
-      // 2. 今日产出
-      prisma.productionReport.findMany({
-        where: { createdAt: { gte: todayStart } },
-        select: { goodQty: true }
-      }),
-      // 3. 库存预警数
-      prisma.item.count({ where: { safetyStock: { gt: 0 } } }),
-      // 4. 最近订单及其工单进度
-      prisma.salesOrder.findMany({
-        take: 5,
-        orderBy: { createdAt: 'desc' },
-        include: { workOrders: { select: { status: true, plannedQty: true } } }
-      }),
-      // 5. 正在进行的工单 (判断产线是否忙碌)
-      prisma.workOrder.count({ where: { status: 'IN_PROGRESS' } }),
-      // 6. 获取未完成工单用于物料缺口计算
-      prisma.workOrder.findMany({
-        where: { status: { in: ['RELEASED', 'IN_PROGRESS'] } },
-        select: { skuItemCode: true, plannedQty: true }
-      }),
-      // 7. 获取全库位余额
       prisma.inventoryBalance.findMany({
         select: { itemCode: true, quantity: true }
       })
     ]);
+
+    const inventoryMap = new Map<string, number>();
+    allBalances.forEach(b => {
+      inventoryMap.set(b.itemCode, (inventoryMap.get(b.itemCode) || 0) + Number(b.quantity));
+    });
+
+    const inventoryAlertsCount = itemsWithSafety.filter(item => {
+      const current = inventoryMap.get(item.itemCode) || 0;
+      return current < Number(item.safetyStock);
+    }).length;
+
+    // 4. 最近订单及其工单进度
+    const recentOrders = await prisma.salesOrder.findMany({
+      take: 5,
+      orderBy: { createdAt: 'desc' },
+      include: { workOrders: { select: { status: true, plannedQty: true } } }
+    });
+
+    // 5. 正在进行的工单 (判断产线是否忙碌)
+    const activeWOs = await prisma.workOrder.count({ where: { status: 'IN_PROGRESS' } });
+
+    // 6. 获取未完成工单用于物料缺口计算
+    const materialDemandWOs = await prisma.workOrder.findMany({
+      where: { status: { in: ['RELEASED', 'IN_PROGRESS'] } },
+      select: { skuItemCode: true, plannedQty: true }
+    });
 
     // 逻辑：计算 3 天内物料缺口 (简化版：计算当前所有未完成工单的总需求)
     const demandMap = new Map<string, number>();
@@ -124,10 +140,14 @@ export async function GET() {
       activeIssuesCount: activeIssues.length,
       activeIssuesList: activeIssues,
       todayGoodQty,
-      inventoryAlertsCount: itemsWithSafety,
+      inventoryAlertsCount,
       lineStatus: activeWOs > 0 ? 'RUNNING' : 'IDLE',
       recentOrders: formattedOrders,
-      materialGaps: finalMaterialGaps
+      materialGaps: finalMaterialGaps,
+      debugInfo: {
+        timestamp: new Date().toISOString(),
+        dbStatus: 'CONNECTED'
+      }
     });
   } catch (error: any) {
     return NextResponse.json({ error: true, msg: error.message }, { status: 500 });

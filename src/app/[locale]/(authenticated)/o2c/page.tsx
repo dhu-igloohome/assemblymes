@@ -292,15 +292,15 @@ export default function O2CPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase tracking-tighter">销售与订单中心</h1>
-          <p className="text-slate-500 font-medium">Order to Cash (O2C) Management</p>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase tracking-tighter">{t('center_title')}</h1>
+          <p className="text-slate-500 font-medium">{t('center_desc')}</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" className="font-bold border-slate-200" onClick={() => loadData()}>
-            刷新数据
+          <Button variant="outline" className="font-bold border-slate-200" onClick={() => void loadData()}>
+            {t('Common.refresh')}
           </Button>
           <Button className="font-bold bg-indigo-600 shadow-lg shadow-indigo-100" onClick={() => setIsCreateDialogOpen(true)}>
-            <Plus className="size-4 mr-2" /> 新增销售订单
+            <Plus className="size-4 mr-2" /> {t('create_order')}
           </Button>
         </div>
       </div>
@@ -308,47 +308,47 @@ export default function O2CPage() {
       {/* Stats row */}
       <div className="grid gap-6 md:grid-cols-6">
         <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">订单总数</p>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('stat_order_count')}</p>
           <p className="text-2xl font-black text-slate-900">{dashboard?.summary.orderCount ?? 0}</p>
           <div className="mt-2 flex items-center gap-1 text-emerald-500 font-bold text-[10px]">
             <TrendingUp className="size-3" /> +12%
           </div>
         </div>
         <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">销售总额</p>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('stat_revenue_total')}</p>
           <p className="text-2xl font-black text-slate-900">¥{(dashboard?.summary.revenueTotal ?? 0).toLocaleString()}</p>
         </div>
         <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">已发货</p>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('stat_shipped_qty')}</p>
           <p className="text-2xl font-black text-slate-900">{dashboard?.summary.shippedQtyTotal ?? 0}</p>
         </div>
         <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">已开票</p>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('stat_billed_total')}</p>
           <p className="text-2xl font-black text-slate-900">¥{(dashboard?.summary.billedTotal ?? 0).toLocaleString()}</p>
         </div>
         <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">已收款</p>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('stat_received_total')}</p>
           <p className="text-2xl font-black text-slate-900">¥{(dashboard?.summary.receivedTotal ?? 0).toLocaleString()}</p>
         </div>
         <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">应收账款</p>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{t('stat_ar_total')}</p>
           <p className="text-2xl font-black text-red-600">¥{(dashboard?.summary.arTotal ?? 0).toLocaleString()}</p>
         </div>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-12">
-        {/* 左侧：订单档案库 */}
+        {/* {t('left_archive')} */}
         <div className="lg:col-span-4 space-y-6">
           <Card className="border-none shadow-xl rounded-3xl overflow-hidden bg-white">
             <CardHeader className="bg-slate-900 text-white pb-6">
               <CardTitle className="text-lg font-black flex items-center gap-2">
                 <ShoppingBag className="size-5 text-indigo-400" />
-                销售订单档案
+                {t('archive_title')}
               </CardTitle>
               <div className="relative mt-4">
                 <Input 
                   className="bg-white/10 border-none text-white placeholder:text-slate-500 h-10 rounded-xl pl-10"
-                  placeholder="搜索单号、客户名称..."
+                  placeholder={t('search_placeholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -358,7 +358,7 @@ export default function O2CPage() {
             <CardContent className="p-0 max-h-[600px] overflow-y-auto">
               <div className="divide-y divide-slate-50">
                 {isLoading ? (
-                   <div className="p-12 text-center text-slate-400 italic">加载中...</div>
+                   <div className="p-12 text-center text-slate-400 italic">{t('Common.loading')}</div>
                 ) : filteredOrders.map((row) => (
                   <div 
                     key={row.id} 
@@ -375,40 +375,40 @@ export default function O2CPage() {
                     <div className="flex justify-between items-end mt-4">
                       <div>
                          <p className="text-[10px] text-slate-400 font-bold uppercase flex items-center gap-1">
-                           <Package className="size-3" /> SKU: {row.skuItemCode}
+                           <Package className="size-3" /> {t('sku_label')}: {row.skuItemCode}
                          </p>
                          <p className="text-[10px] text-slate-400 font-bold uppercase flex items-center gap-1">
-                           <TrendingUp className="size-3" /> 数量: {row.orderedQty}
+                           <TrendingUp className="size-3" /> {t('qty_label')}: {row.orderedQty}
                          </p>
                       </div>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase">交期: {row.dueDate ? new Date(row.dueDate).toLocaleDateString() : '-'}</p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase">{t('due_date_label')}: {row.dueDate ? new Date(row.dueDate).toLocaleDateString() : '-'}</p>
                     </div>
                   </div>
                 ))}
                 {filteredOrders.length === 0 && !isLoading && (
-                   <div className="p-12 text-center text-slate-300 italic text-xs uppercase font-black tracking-widest">No matching orders</div>
+                   <div className="p-12 text-center text-slate-300 italic text-xs uppercase font-black tracking-widest">{t('empty')}</div>
                 )}
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* 右侧：订单控制台 */}
+        {/* {t('right_console')} */}
         <div className="lg:col-span-8 space-y-8">
           {selectedOrder ? (
             <>
-              {/* 快速概览与核心操作 */}
+              {/* {t('core_overview')} */}
               <div className="grid gap-4 md:grid-cols-4 bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">客户</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('customer_label')}</label>
                   <p className="text-sm font-bold text-slate-900">{selectedOrder.customerName}</p>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">订单总额</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('total_amount_label')}</label>
                   <p className="text-sm font-bold text-indigo-600">¥{(Number(selectedOrder.unitPrice) * selectedOrder.orderedQty).toLocaleString()}</p>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">收款状态</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('payment_status_label')}</label>
                   <div className="flex items-center gap-2">
                      <div className="h-1.5 flex-1 bg-slate-100 rounded-full overflow-hidden">
                         <div 
@@ -429,7 +429,7 @@ export default function O2CPage() {
                     disabled={actionSubmitting || selectedOrder.status !== 'DRAFT'}
                     onClick={() => void doAction(`/api/o2c/orders/${selectedOrderId}/confirm`, {}, t('confirm_success'))}
                   >
-                    {selectedOrder.status === 'DRAFT' ? '确认订单' : '已确认'}
+                    {selectedOrder.status === 'DRAFT' ? t('btn_confirm_order') : t('confirmed')}
                   </Button>
                 </div>
               </div>
@@ -440,50 +440,50 @@ export default function O2CPage() {
               <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
                 <TabsList className="bg-slate-100 p-1 rounded-2xl">
                   <TabsTrigger value="overview" className="rounded-xl px-8 font-black text-xs uppercase tracking-widest">
-                    <ShoppingBag className="size-4 mr-2" /> 订单详情
+                    <ShoppingBag className="size-4 mr-2" /> {t('tab_details')}
                   </TabsTrigger>
                   <TabsTrigger value="execution" className="rounded-xl px-8 font-black text-xs uppercase tracking-widest">
-                    <Truck className="size-4 mr-2" /> 发货与物流
+                    <Truck className="size-4 mr-2" /> {t('tab_execution')}
                   </TabsTrigger>
                   <TabsTrigger value="finance" className="rounded-xl px-8 font-black text-xs uppercase tracking-widest">
-                    <Wallet className="size-4 mr-2" /> 财务与回款
+                    <Wallet className="size-4 mr-2" /> {t('tab_finance')}
                   </TabsTrigger>
                 </TabsList>
 
-                {/* 订单详情 Tab */}
+                {/* {t('tab_details')} */}
                 <TabsContent value="overview" className="space-y-6">
                   <div className="grid gap-6 md:grid-cols-2">
                      <Card className="border-none shadow-sm rounded-3xl p-6 bg-white">
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6 border-l-4 border-indigo-600 pl-4">产品信息</h3>
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6 border-l-4 border-indigo-600 pl-4">{t('card_product_info')}</h3>
                         <div className="space-y-4">
                            <div className="flex justify-between items-center py-2 border-b border-slate-50">
-                              <span className="text-xs text-slate-500">产品编码</span>
+                              <span className="text-xs text-slate-500">{t('field_sku_code')}</span>
                               <span className="text-xs font-black text-slate-900">{selectedOrder.skuItemCode}</span>
                            </div>
                            <div className="flex justify-between items-center py-2 border-b border-slate-50">
-                              <span className="text-xs text-slate-500">订购数量</span>
+                              <span className="text-xs text-slate-500">{t('field_ordered_qty')}</span>
                               <span className="text-xs font-black text-slate-900">{selectedOrder.orderedQty} PCS</span>
                            </div>
                            <div className="flex justify-between items-center py-2 border-b border-slate-50">
-                              <span className="text-xs text-slate-500">单价</span>
+                              <span className="text-xs text-slate-500">{t('field_unit_price')}</span>
                               <span className="text-xs font-black text-indigo-600">{selectedOrder.unitPrice} {selectedOrder.currency}</span>
                            </div>
                            <div className="flex justify-between items-center py-2">
-                              <span className="text-xs text-slate-500">合计总额</span>
+                              <span className="text-xs text-slate-500">{t('field_total_amount')}</span>
                               <span className="text-sm font-black text-indigo-600">¥{(Number(selectedOrder.unitPrice) * selectedOrder.orderedQty).toLocaleString()}</span>
                            </div>
                         </div>
                      </Card>
                      <Card className="border-none shadow-sm rounded-3xl p-6 bg-white">
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6 border-l-4 border-indigo-600 pl-4">进度追踪</h3>
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6 border-l-4 border-indigo-600 pl-4">{t('card_progress_tracking')}</h3>
                         <div className="space-y-6 relative before:absolute before:left-3 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-50">
                            <div className="flex items-start gap-4 relative z-10">
                               <div className={`size-6 rounded-full flex items-center justify-center ${selectedOrder.status !== 'CANCELLED' ? 'bg-indigo-600 text-white' : 'bg-slate-200 text-slate-400'}`}>
                                  <CheckCircle2 className="size-3" />
                               </div>
                               <div>
-                                 <p className="text-xs font-black text-slate-900">订单已确认</p>
-                                 <p className="text-[10px] text-slate-400 font-bold uppercase">PROCESS STARTED</p>
+                                 <p className="text-xs font-black text-slate-900">{t('step_confirmed')}</p>
+                                 <p className="text-[10px] text-slate-400 font-bold uppercase">{t('step_confirmed_desc')}</p>
                               </div>
                            </div>
                            <div className="flex items-start gap-4 relative z-10">
@@ -491,7 +491,7 @@ export default function O2CPage() {
                                  <Truck className="size-3" />
                               </div>
                               <div>
-                                 <p className="text-xs font-black text-slate-900">产品已发货</p>
+                                 <p className="text-xs font-black text-slate-900">{t('step_shipped')}</p>
                                  <p className="text-[10px] text-slate-400 font-bold uppercase">{selectedOrder.shippedQty}/{selectedOrder.orderedQty} PCS</p>
                               </div>
                            </div>
@@ -500,8 +500,8 @@ export default function O2CPage() {
                                  <DollarSign className="size-3" />
                               </div>
                               <div>
-                                 <p className="text-xs font-black text-slate-900">账款已结清</p>
-                                 <p className="text-[10px] text-slate-400 font-bold uppercase">PAYMENT COMPLETED</p>
+                                 <p className="text-xs font-black text-slate-900">{t('step_paid')}</p>
+                                 <p className="text-[10px] text-slate-400 font-bold uppercase">{t('step_paid_desc')}</p>
                               </div>
                            </div>
                         </div>
@@ -509,14 +509,14 @@ export default function O2CPage() {
                   </div>
                 </TabsContent>
 
-                {/* 发货与物流 Tab */}
+                {/* {t('tab_execution')} */}
                 <TabsContent value="execution" className="space-y-6">
                   <div className="grid gap-6 lg:grid-cols-3">
                      <Card className="lg:col-span-1 border-none shadow-sm rounded-3xl p-6 bg-white">
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6">执行发货</h3>
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6">{t('card_execution_ship')}</h3>
                         <div className="space-y-4">
                            <div className="space-y-2">
-                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">本次发货数量</label>
+                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_ship_qty')}</label>
                               <Input 
                                 type="number"
                                 value={shipQty} 
@@ -525,26 +525,26 @@ export default function O2CPage() {
                               />
                            </div>
                            <div className="space-y-2">
-                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">出库仓库/库位</label>
+                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_ship_location')}</label>
                               <select 
-                                aria-label="选择库位"
+                                aria-label={t('field_ship_location')}
                                 className="w-full h-10 rounded-xl bg-slate-50 border-none px-3 text-xs font-bold focus:ring-2 focus:ring-indigo-600 outline-none" 
                                 value={shipLocationId} 
                                 onChange={(e) => setShipLocationId(e.target.value)}
                               >
-                                <option value="">选择库位</option>
+                                <option value="">{t('select_location')}</option>
                                 {warehouses.flatMap((w) => w.locations.map((loc) => (
                                   <option key={loc.id} value={loc.id}>{w.warehouseCode}/{loc.locationCode}</option>
                                 )))}
                               </select>
                            </div>
                            <div className="space-y-2">
-                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">物流单号</label>
+                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_logistics_no')}</label>
                               <Input 
                                 value={shipLogisticsNo} 
                                 onChange={(e) => setShipLogisticsNo(e.target.value)}
                                 className="h-10 bg-slate-50 border-none font-bold text-xs"
-                                placeholder="快递单号..."
+                                placeholder={t('field_logistics_placeholder')}
                               />
                            </div>
                            <Button 
@@ -558,31 +558,31 @@ export default function O2CPage() {
                                )
                              }
                            >
-                             确认出库发货
+                             {t('btn_confirm_ship')}
                            </Button>
                         </div>
                      </Card>
                      <Card className="lg:col-span-2 border-none shadow-sm rounded-3xl p-6 bg-white overflow-hidden">
                         <div className="flex justify-between items-center mb-6">
-                           <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">发货历史</h3>
+                           <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">{t('card_ship_history')}</h3>
                            <History className="size-4 text-slate-300" />
                         </div>
                         <div className="overflow-x-auto -mx-6">
                            <Table>
                               <TableHeader>
                                  <TableRow className="hover:bg-transparent border-none">
-                                    <TableHead className="pl-6 text-[10px] font-black uppercase text-slate-400">发货时间</TableHead>
-                                    <TableHead className="text-[10px] font-black uppercase text-slate-400">数量</TableHead>
-                                    <TableHead className="text-[10px] font-black uppercase text-slate-400">物流单号</TableHead>
-                                    <TableHead className="text-[10px] font-black uppercase text-slate-400 pr-6">经办人</TableHead>
+                                    <TableHead className="pl-6 text-[10px] font-black uppercase text-slate-400">{t('col_ship_time')}</TableHead>
+                                    <TableHead className="text-[10px] font-black uppercase text-slate-400">{t('col_ship_qty')}</TableHead>
+                                    <TableHead className="text-[10px] font-black uppercase text-slate-400">{t('col_logistics_no')}</TableHead>
+                                    <TableHead className="text-[10px] font-black uppercase text-slate-400 pr-6">{t('col_operator')}</TableHead>
                                  </TableRow>
                               </TableHeader>
                               <TableBody>
-                                 {/* 注意：这里的发货历史在现有 API 中似乎没有直接暴露，仅在 shippedQty 中体现，
-                                     如果需要详细列表，可能需要后续扩展 API */}
+                                 {/* Note: Shipping history is not directly exposed in current API, 
+                                     only reflected in shippedQty. Extended API might be needed for detailed list. */}
                                  <TableRow className="border-b border-slate-50">
                                     <TableCell colSpan={4} className="py-12 text-center text-slate-300 italic text-xs uppercase font-black tracking-widest">
-                                       No shipment records found
+                                       {t('no_ship_records')}
                                     </TableCell>
                                  </TableRow>
                               </TableBody>
@@ -592,15 +592,15 @@ export default function O2CPage() {
                   </div>
                 </TabsContent>
 
-                {/* 财务与回款 Tab */}
+                {/* {t('tab_finance')} */}
                 <TabsContent value="finance" className="space-y-6">
                   <div className="grid gap-6 lg:grid-cols-2">
                      <Card className="border-none shadow-sm rounded-3xl p-6 bg-white">
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6">开票登记</h3>
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6">{t('card_invoice_reg')}</h3>
                         <div className="space-y-4">
                            <div className="grid grid-cols-2 gap-4">
                               <div className="space-y-2">
-                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">开票金额</label>
+                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_invoice_amount')}</label>
                                  <Input 
                                    type="number"
                                    value={invoiceAmount} 
@@ -609,7 +609,7 @@ export default function O2CPage() {
                                  />
                               </div>
                               <div className="space-y-2">
-                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">开票日期</label>
+                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_invoice_date')}</label>
                                  <Input 
                                    type="date"
                                    value={invoiceDueDate} 
@@ -629,22 +629,22 @@ export default function O2CPage() {
                                )
                              }
                            >
-                             生成并推送发票
+                             {t('btn_generate_invoice')}
                            </Button>
                         </div>
                      </Card>
                      <Card className="border-none shadow-sm rounded-3xl p-6 bg-white">
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6">收款登记</h3>
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6">{t('card_payment_reg')}</h3>
                         <div className="space-y-4">
                            <div className="space-y-2">
-                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">选择待收发票</label>
+                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_select_invoice')}</label>
                               <select 
-                                aria-label="选择发票"
+                                aria-label={t('field_select_invoice')}
                                 className="w-full h-10 rounded-xl bg-slate-50 border-none px-3 text-xs font-bold focus:ring-2 focus:ring-indigo-600 outline-none" 
                                 value={selectedInvoiceId} 
                                 onChange={(e) => setSelectedInvoiceId(e.target.value)}
                               >
-                                <option value="">选择发票</option>
+                                <option value="">{t('select_invoice')}</option>
                                 {invoicesForOrder.map((inv) => (
                                   <option key={inv.id} value={inv.id}>{inv.invoiceNo} (¥{Number(inv.amount).toLocaleString()})</option>
                                 ))}
@@ -652,7 +652,7 @@ export default function O2CPage() {
                            </div>
                            <div className="grid grid-cols-2 gap-4">
                               <div className="space-y-2">
-                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">收款金额</label>
+                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_payment_amount')}</label>
                                  <Input 
                                    type="number"
                                    value={paymentAmount} 
@@ -661,12 +661,12 @@ export default function O2CPage() {
                                  />
                               </div>
                               <div className="space-y-2">
-                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">支付方式</label>
+                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_payment_method')}</label>
                                  <Input 
                                    value={paymentMethod} 
                                    onChange={(e) => setPaymentMethod(e.target.value)}
                                    className="h-10 bg-slate-50 border-none font-bold text-xs"
-                                   placeholder="银行汇款/现金..."
+                                   placeholder={t('field_payment_method_placeholder')}
                                  />
                               </div>
                            </div>
@@ -681,22 +681,22 @@ export default function O2CPage() {
                                )
                              }
                            >
-                             确认收款并销账
+                             {t('btn_confirm_payment')}
                            </Button>
                         </div>
                      </Card>
 
                      <Card className="lg:col-span-2 border-none shadow-sm rounded-3xl p-6 bg-white overflow-hidden">
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6">开票记录与状态</h3>
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6">{t('card_invoice_history')}</h3>
                         <div className="overflow-x-auto -mx-6">
                            <Table>
                               <TableHeader>
                                  <TableRow className="hover:bg-transparent border-none">
-                                    <TableHead className="pl-6 text-[10px] font-black uppercase text-slate-400">发票单号</TableHead>
-                                    <TableHead className="text-[10px] font-black uppercase text-slate-400">金额</TableHead>
-                                    <TableHead className="text-[10px] font-black uppercase text-slate-400">已收</TableHead>
-                                    <TableHead className="text-[10px] font-black uppercase text-slate-400">状态</TableHead>
-                                    <TableHead className="text-[10px] font-black uppercase text-slate-400 pr-6">应收日期</TableHead>
+                                    <TableHead className="pl-6 text-[10px] font-black uppercase text-slate-400">{t('col_invoice_no')}</TableHead>
+                                    <TableHead className="text-[10px] font-black uppercase text-slate-400">{t('col_amount')}</TableHead>
+                                    <TableHead className="text-[10px] font-black uppercase text-slate-400">{t('col_paid')}</TableHead>
+                                    <TableHead className="text-[10px] font-black uppercase text-slate-400">{t('Common.status')}</TableHead>
+                                    <TableHead className="text-[10px] font-black uppercase text-slate-400 pr-6">{t('col_due_date')}</TableHead>
                                  </TableRow>
                               </TableHeader>
                               <TableBody>
@@ -718,7 +718,7 @@ export default function O2CPage() {
                                  {invoicesForOrder.length === 0 && (
                                     <TableRow>
                                        <TableCell colSpan={5} className="py-12 text-center text-slate-300 italic text-xs uppercase font-black tracking-widest">
-                                          No invoices found for this order
+                                          {t('no_invoices_found')}
                                        </TableCell>
                                     </TableRow>
                                  )}
@@ -733,51 +733,51 @@ export default function O2CPage() {
           ) : (
             <div className="h-full flex flex-col items-center justify-center bg-white rounded-[40px] border-2 border-dashed border-slate-100 min-h-[500px]">
                <ShoppingBag className="size-20 text-slate-50 mb-6" />
-               <h3 className="text-xl font-black text-slate-300 uppercase tracking-tighter">请从左侧选择一个订单查看详情</h3>
-               <p className="text-slate-400 text-sm mt-2">在这里处理订单确认、发货、开票及收款全流程</p>
+               <h3 className="text-xl font-black text-slate-300 uppercase tracking-tighter">{t('select_detail')}</h3>
+               <p className="text-slate-400 text-sm mt-2">{t('select_detail_desc')}</p>
             </div>
           )}
         </div>
       </div>
 
-      {/* 创建订单对话框 */}
+      {/* {t('dialog_create_order')} */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className="sm:max-w-2xl rounded-[32px] border-none shadow-2xl p-8 overflow-y-auto max-h-[90vh]">
            <DialogHeader>
-              <DialogTitle className="text-2xl font-black text-slate-900 uppercase tracking-tight">创建销售订单</DialogTitle>
-              <DialogDescription className="text-slate-400 font-medium">录入新的销售契约，驱动生产与执行</DialogDescription>
+              <DialogTitle className="text-2xl font-black text-slate-900 uppercase tracking-tight">{t('dialog_create_order')}</DialogTitle>
+              <DialogDescription className="text-slate-400 font-medium">{t('dialog_create_order_desc')}</DialogDescription>
            </DialogHeader>
            <div className="grid gap-6 mt-6 md:grid-cols-2">
               <div className="space-y-2">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">订单单号</label>
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('order_no_label')}</label>
                  <Input 
                    value={orderNo} 
                    onChange={(e) => setOrderNo(e.target.value.toUpperCase())}
                    className="h-12 bg-slate-50 border-none font-bold"
-                   placeholder="如：SO-2024001"
+                   placeholder={t('field_order_no_placeholder')}
                  />
               </div>
               <div className="space-y-2">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">客户名称</label>
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('customer_label')}</label>
                  <Input 
                    value={customerName} 
                    onChange={(e) => setCustomerName(e.target.value)}
                    className="h-12 bg-slate-50 border-none font-bold"
-                   placeholder="如：特斯拉(上海)"
+                   placeholder={t('field_customer_placeholder')}
                  />
               </div>
               <div className="space-y-2">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">产品 SKU 编码</label>
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('sku_label')}</label>
                  <Input 
                    value={skuItemCode} 
                    onChange={(e) => setSkuItemCode(e.target.value)}
                    className="h-12 bg-slate-50 border-none font-bold"
-                   placeholder="选择产品..."
+                   placeholder={t('field_sku_placeholder')}
                  />
               </div>
               <div className="grid grid-cols-2 gap-4">
                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">订购数量</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('qty_label')}</label>
                     <Input 
                       type="number"
                       value={orderedQty} 
@@ -786,7 +786,7 @@ export default function O2CPage() {
                     />
                  </div>
                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">销售单价</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_unit_price')}</label>
                     <Input 
                       type="number"
                       value={unitPrice} 
@@ -796,7 +796,7 @@ export default function O2CPage() {
                  </div>
               </div>
               <div className="space-y-2">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">交货日期</label>
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('due_date_label')}</label>
                  <Input 
                    type="date"
                    value={dueDate} 
@@ -805,7 +805,7 @@ export default function O2CPage() {
                  />
               </div>
               <div className="space-y-2">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">结算币种</label>
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('currency')}</label>
                  <Input 
                    value={currency} 
                    onChange={(e) => setCurrency(e.target.value.toUpperCase())}
@@ -813,9 +813,9 @@ export default function O2CPage() {
                  />
               </div>
               <div className="md:col-span-2 space-y-2">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">初始状态</label>
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_initial_status')}</label>
                  <select 
-                   aria-label="状态"
+                   aria-label={t('field_initial_status')}
                    className="w-full h-12 rounded-xl bg-slate-50 border-none px-4 font-bold focus:ring-2 focus:ring-indigo-600 outline-none" 
                    value={status} 
                    onChange={(e) => setStatus(e.target.value as SalesOrderStatus)}
@@ -833,14 +833,14 @@ export default function O2CPage() {
                 className="flex-1 h-14 font-black rounded-2xl"
                 onClick={() => setIsCreateDialogOpen(false)}
               >
-                取消
+                {t('Common.cancel')}
               </Button>
               <Button 
                 className="flex-1 h-14 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl shadow-xl shadow-indigo-100"
                 onClick={() => void createOrder()}
                 disabled={isSubmitting}
               >
-                {isSubmitting ? '提交中...' : '确认创建订单'}
+                {isSubmitting ? t('Common.submitting') : t('btn_confirm_create')}
               </Button>
            </div>
         </DialogContent>

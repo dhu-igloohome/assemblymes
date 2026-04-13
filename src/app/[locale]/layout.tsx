@@ -21,6 +21,12 @@ export const metadata: Metadata = {
   description: "Manufacturing Execution System for Assembly",
 };
 
+import { setRequestLocale } from 'next-intl/server';
+
+export async function generateStaticParams() {
+  return routing.locales.map((locale) => ({ locale }));
+}
+
 export default async function LocaleLayout({
   children,
   params
@@ -35,14 +41,16 @@ export default async function LocaleLayout({
     notFound();
   }
  
-  // Providing all messages to the client
-  // side is the easiest way to get started
-  const messages = await getMessages();
+  // Enable static rendering
+  setRequestLocale(locale);
+
+  // Provides messages for the client components
+  const messages = await getMessages({ locale });
 
   return (
     <html lang={locale} className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
-        <NextIntlClientProvider messages={messages}>
+        <NextIntlClientProvider messages={messages} locale={locale} timeZone="Asia/Shanghai">
           {children}
         </NextIntlClientProvider>
       </body>

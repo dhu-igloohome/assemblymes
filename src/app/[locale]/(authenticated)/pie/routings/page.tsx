@@ -293,32 +293,32 @@ export default function RoutingsPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase tracking-tighter">工艺路线设计中心</h1>
-          <p className="text-slate-500 font-medium">Production Routing & Process Designer</p>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase tracking-tighter">{t('title')}</h1>
+          <p className="text-slate-500 font-medium">{t('center_desc')}</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" className="font-bold border-slate-200" onClick={() => loadExistingRoutings()}>
-            刷新列表
+          <Button variant="outline" className="font-bold border-slate-200" onClick={() => void loadExistingRoutings()}>
+            {t('btn_refresh_list')}
           </Button>
           <Button className="font-bold bg-indigo-600 shadow-lg shadow-indigo-100" onClick={() => void handleSave()} disabled={!itemCode || isSubmitting}>
-            <Save className="size-4 mr-2" /> {isSubmitting ? '保存中...' : '发布当前工艺'}
+            <Save className="size-4 mr-2" /> {isSubmitting ? t('submitting') : t('btn_publish_routing')}
           </Button>
         </div>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-12">
-        {/* 左侧：工艺档案库 */}
+        {/* {t('left_archive')} */}
         <div className="lg:col-span-4 space-y-6">
           <Card className="border-none shadow-xl rounded-3xl overflow-hidden bg-white">
             <CardHeader className="bg-slate-900 text-white pb-6">
               <CardTitle className="text-lg font-black flex items-center gap-2">
                 <Workflow className="size-5 text-indigo-400" />
-                产品工艺档案
+                {t('archive_title')}
               </CardTitle>
               <div className="relative mt-4">
                 <Input 
                   className="bg-white/10 border-none text-white placeholder:text-slate-500 h-10 rounded-xl pl-10"
-                  placeholder="搜索产品名称或编码..."
+                  placeholder={t('search_placeholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -328,7 +328,7 @@ export default function RoutingsPage() {
             <CardContent className="p-0 max-h-[600px] overflow-y-auto">
               <div className="divide-y divide-slate-50">
                 {isLoadingExistingList ? (
-                   <div className="p-12 text-center text-slate-400 italic">加载中...</div>
+                   <div className="p-12 text-center text-slate-400 italic">{t('Common.loading')}</div>
                 ) : filteredRoutings.map((record) => (
                   <div 
                     key={record.id} 
@@ -346,32 +346,32 @@ export default function RoutingsPage() {
                     <h4 className="font-bold text-slate-800 mb-1">{record.item.itemName}</h4>
                     <div className="flex justify-between items-end mt-4">
                       <p className="text-[10px] text-slate-400 font-bold uppercase flex items-center gap-1">
-                        <Monitor className="size-3" /> {record._count.operations} 工序
+                        <Monitor className="size-3" /> {record._count.operations} {t('col_ops_count')}
                       </p>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase">更新: {new Date(record.updatedAt).toLocaleDateString()}</p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase">{t('col_last_update')}: {new Date(record.updatedAt).toLocaleDateString()}</p>
                     </div>
                   </div>
                 ))}
                 {filteredRoutings.length === 0 && !isLoadingExistingList && (
-                   <div className="p-12 text-center text-slate-300 italic text-xs uppercase font-black tracking-widest">No matching routings</div>
+                   <div className="p-12 text-center text-slate-300 italic text-xs uppercase font-black tracking-widest">{t('no_matching')}</div>
                 )}
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* 右侧：工艺设计器 */}
+        {/* {t('right_designer')} */}
         <div className="lg:col-span-8 space-y-8">
           {itemCode ? (
             <>
-              {/* 配置区域 */}
+              {/* {t('config_area')} */}
               <div className="grid gap-4 md:grid-cols-3 bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">当前设计产品</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('label_current_design')}</label>
                   <p className="text-sm font-bold text-slate-900">{items.find(i => i.itemCode === itemCode)?.itemName}</p>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">版本号</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_version_no')}</label>
                   <Input 
                     value={version} 
                     onChange={(e) => setVersion(e.target.value)}
@@ -379,7 +379,7 @@ export default function RoutingsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">生效日期</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_effective_date')}</label>
                   <Input 
                     type="date"
                     value={effectiveDate} 
@@ -395,30 +395,30 @@ export default function RoutingsPage() {
               <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
                 <TabsList className="bg-slate-100 p-1 rounded-2xl">
                   <TabsTrigger value="operations" className="rounded-xl px-8 font-black text-xs uppercase tracking-widest">
-                    <Monitor className="size-4 mr-2" /> 工序明细
+                    <Monitor className="size-4 mr-2" /> {t('tab_ops_detail')}
                   </TabsTrigger>
                   <TabsTrigger value="visual" className="rounded-xl px-8 font-black text-xs uppercase tracking-widest">
-                    <Workflow className="size-4 mr-2" /> 流程预览
+                    <Workflow className="size-4 mr-2" /> {t('tab_visual_preview')}
                   </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="operations" className="space-y-6">
                   <Card className="border-none shadow-sm rounded-3xl overflow-hidden bg-white">
                     <div className="bg-slate-50 px-8 py-4 border-b border-slate-100 flex justify-between items-center">
-                       <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">PROCESS STEPS</h3>
+                       <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('card_ops_steps')}</h3>
                        <Button size="sm" variant="ghost" className="text-indigo-600 font-bold" onClick={handleAddOperation}>
-                         <Plus className="size-4 mr-1" /> 添加工序
+                         <Plus className="size-4 mr-1" /> {t('btn_add_op')}
                        </Button>
                     </div>
                     <Table>
                       <TableHeader>
                         <TableRow className="hover:bg-transparent border-none">
-                          <TableHead className="pl-8 text-[10px] font-black uppercase text-slate-400 tracking-widest w-20">序号</TableHead>
-                          <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">工序名称</TableHead>
-                          <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">工作中心</TableHead>
-                          <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest w-32">标准工时(s)</TableHead>
-                          <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">QC点</TableHead>
-                          <TableHead className="text-right pr-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">操作</TableHead>
+                          <TableHead className="pl-8 text-[10px] font-black uppercase text-slate-400 tracking-widest w-20">{t('col_seq')}</TableHead>
+                          <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_op_name')}</TableHead>
+                          <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_wc')}</TableHead>
+                          <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest w-32">{t('col_std_time')}</TableHead>
+                          <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_qc_point')}</TableHead>
+                          <TableHead className="text-right pr-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('Common.actions')}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -442,7 +442,7 @@ export default function RoutingsPage() {
                                   value={op.operationName}
                                   onChange={(e) => updateOperation(idx, 'operationName', e.target.value)}
                                   className="bg-slate-50 border-none font-bold text-xs h-9"
-                                  placeholder="如：半成品组装"
+                                  placeholder={t('field_op_placeholder')}
                                 />
                               </div>
                             </TableCell>
@@ -452,7 +452,7 @@ export default function RoutingsPage() {
                                 onValueChange={(v) => updateOperation(idx, 'workstation', v || '')}
                               >
                                 <SelectTrigger className="h-9 bg-slate-50 border-none text-[10px] font-black uppercase w-40">
-                                  <SelectValue placeholder="选择工位" />
+                                  <SelectValue placeholder={t('select_wc')} />
                                 </SelectTrigger>
                                 <SelectContent>
                                   {workCenters.map((wc) => (
@@ -497,25 +497,25 @@ export default function RoutingsPage() {
                          {operations.length === 0 ? (
                             <div className="py-20 text-center">
                                <Zap className="size-16 text-slate-100 mx-auto mb-4" />
-                               <p className="text-sm font-black text-slate-300 uppercase italic">未配置工序流程</p>
+                               <p className="text-sm font-black text-slate-300 uppercase italic">{t('visual_empty')}</p>
                             </div>
                          ) : operations.sort((a, b) => a.sequence - b.sequence).map((op, i) => (
                             <div key={i} className="flex flex-col items-center space-y-8 w-full max-w-md">
                                <div className="relative group w-full">
                                   <div className="bg-slate-900 text-white rounded-3xl p-6 shadow-xl border-4 border-slate-800 transition-all hover:scale-105 hover:bg-indigo-900 hover:border-indigo-800">
                                      <div className="flex justify-between items-start mb-4">
-                                        <span className="text-[10px] font-black px-2 py-0.5 bg-white/10 rounded uppercase">Step {i + 1}</span>
+                                        <span className="text-[10px] font-black px-2 py-0.5 bg-white/10 rounded uppercase">{t('visual_step')} {i + 1}</span>
                                         <div className="flex gap-2">
                                           <Clock className="size-4 text-slate-500" />
                                           <span className="text-xs font-black">{op.standardTimeSec}s</span>
                                         </div>
                                      </div>
-                                     <h4 className="text-lg font-black uppercase tracking-tight">{op.operationName || '未命名工序'}</h4>
-                                     <p className="text-[10px] text-slate-500 font-bold uppercase mt-1 tracking-widest">{op.workstation || '未分配工位'}</p>
+                                     <h4 className="text-lg font-black uppercase tracking-tight">{op.operationName || t('visual_unnamed')}</h4>
+                                     <p className="text-[10px] text-slate-500 font-bold uppercase mt-1 tracking-widest">{op.workstation || t('visual_unassigned')}</p>
                                      
                                      {op.isInspectionPoint && (
                                        <div className="mt-4 flex items-center gap-2 text-[10px] font-black text-emerald-400 uppercase">
-                                          <ShieldCheck className="size-3" /> QUALITY INSPECTION POINT
+                                          <ShieldCheck className="size-3" /> {t('visual_qc_point')}
                                        </div>
                                      )}
                                   </div>
@@ -533,8 +533,8 @@ export default function RoutingsPage() {
           ) : (
             <div className="h-full flex flex-col items-center justify-center bg-white rounded-[40px] border-2 border-dashed border-slate-100 min-h-[500px]">
                <Workflow className="size-20 text-slate-50 mb-6" />
-               <h3 className="text-xl font-black text-slate-300 uppercase tracking-tighter">请从左侧选择一个产品开始工艺设计</h3>
-               <p className="text-slate-400 text-sm mt-2">只有定义了工艺路线的产品才能下达生产任务</p>
+               <h3 className="text-xl font-black text-slate-300 uppercase tracking-tighter">{t('select_detail')}</h3>
+               <p className="text-slate-400 text-sm mt-2">{t('select_detail_desc')}</p>
             </div>
           )}
         </div>

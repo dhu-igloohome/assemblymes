@@ -217,32 +217,32 @@ export default function WorkCentersPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase tracking-tighter">工作中心管理</h1>
-          <p className="text-slate-500 font-medium">Work Centers & Resource Management</p>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase tracking-tighter">{t('title')}</h1>
+          <p className="text-slate-500 font-medium">{t('center_desc')}</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" className="font-bold border-slate-200" onClick={() => loadRows()}>
-            刷新
+          <Button variant="outline" className="font-bold border-slate-200" onClick={() => void loadRows()}>
+            {t('btn_refresh')}
           </Button>
           <Button className="font-bold bg-indigo-600 shadow-lg shadow-indigo-100" onClick={openCreate}>
-            <Plus className="size-4 mr-2" /> 新增工作中心
+            <Plus className="size-4 mr-2" /> {t('btn_add')}
           </Button>
         </div>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-12">
-        {/* 左侧：资源看板 */}
+        {/* {t('left_archive')} */}
         <div className="lg:col-span-4 space-y-6">
           <Card className="border-none shadow-xl rounded-3xl overflow-hidden bg-white">
             <CardHeader className="bg-slate-900 text-white pb-6">
               <CardTitle className="text-lg font-black flex items-center gap-2">
                 <LayoutGrid className="size-5 text-indigo-400" />
-                所有工作中心
+                {t('list_title')}
               </CardTitle>
               <div className="relative mt-4">
                 <Input 
                   className="bg-white/10 border-none text-white placeholder:text-slate-500 h-10 rounded-xl pl-10"
-                  placeholder="搜索编码或名称..."
+                  placeholder={t('search_placeholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -252,7 +252,7 @@ export default function WorkCentersPage() {
             <CardContent className="p-0 max-h-[600px] overflow-y-auto">
               <div className="divide-y divide-slate-50">
                 {isLoading ? (
-                   <div className="p-12 text-center text-slate-400 italic">加载中...</div>
+                   <div className="p-12 text-center text-slate-400 italic">{t('Common.loading')}</div>
                 ) : filteredRows.map((row) => (
                   <div 
                     key={row.id} 
@@ -271,24 +271,24 @@ export default function WorkCentersPage() {
                     <h4 className="font-bold text-slate-800 mb-1">{row.name}</h4>
                     <div className="flex justify-between items-end mt-4">
                       <p className="text-[10px] text-slate-400 font-bold uppercase flex items-center gap-1">
-                        <Zap className="size-3" /> 日产能: {row.dailyCapacity ?? '未设置'}
+                        <Zap className="size-3" /> {t('daily_capacity')}: {row.dailyCapacity ?? t('Common.empty')}
                       </p>
                       <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                         <Button variant="ghost" size="xs" className="text-indigo-600 font-bold" onClick={(e) => { e.stopPropagation(); openEdit(row); }}>编辑</Button>
-                         <Button variant="ghost" size="xs" className="text-red-400 font-bold" onClick={(e) => { e.stopPropagation(); void handleDelete(row); }}>删除</Button>
+                         <Button variant="ghost" size="xs" className="text-indigo-600 font-bold" onClick={(e) => { e.stopPropagation(); openEdit(row); }}>{t('Common.edit')}</Button>
+                         <Button variant="ghost" size="xs" className="text-red-400 font-bold" onClick={(e) => { e.stopPropagation(); void handleDelete(row); }}>{t('Common.delete')}</Button>
                       </div>
                     </div>
                   </div>
                 ))}
                 {filteredRows.length === 0 && !isLoading && (
-                   <div className="p-12 text-center text-slate-300 italic text-xs uppercase font-black tracking-widest">No results found</div>
+                   <div className="p-12 text-center text-slate-300 italic text-xs uppercase font-black tracking-widest">{t('no_results')}</div>
                 )}
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* 右侧：资源详情/概览 */}
+        {/* {t('right_console')} */}
         <div className="lg:col-span-8 space-y-8">
            <div className="grid gap-6 md:grid-cols-2">
               <Card className="border-none shadow-sm rounded-3xl p-6 bg-white">
@@ -297,7 +297,7 @@ export default function WorkCentersPage() {
                        <Cpu className="size-6 text-indigo-600" />
                     </div>
                     <div>
-                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">总工作中心</p>
+                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('stat_total')}</p>
                        <p className="text-2xl font-black text-slate-900">{rows.length}</p>
                     </div>
                  </div>
@@ -308,7 +308,7 @@ export default function WorkCentersPage() {
                        <Zap className="size-6 text-amber-600" />
                     </div>
                     <div>
-                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">平均日产能</p>
+                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('stat_avg_capacity')}</p>
                        <p className="text-2xl font-black text-slate-900">
                          {rows.length > 0 ? (rows.reduce((acc, r) => acc + (r.dailyCapacity || 0), 0) / rows.length).toFixed(0) : 0}
                        </p>
@@ -322,13 +322,13 @@ export default function WorkCentersPage() {
                  {editingId ? (
                     <div className="w-full max-w-lg space-y-8">
                        <div className="text-center">
-                          <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight">编辑工作中心</h2>
-                          <p className="text-slate-400 text-sm mt-1">更新资源配置与产能标准</p>
+                          <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight">{t('dialog_edit')}</h2>
+                          <p className="text-slate-400 text-sm mt-1">{t('dialog_edit_desc')}</p>
                        </div>
                        
                        <div className="space-y-6">
                           <div className="space-y-2">
-                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">资源编码</label>
+                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('label_code')}</label>
                              <Input 
                                value={code} 
                                disabled 
@@ -336,23 +336,23 @@ export default function WorkCentersPage() {
                              />
                           </div>
                           <div className="space-y-2">
-                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">中心名称</label>
+                             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('label_name')}</label>
                              <Input 
                                value={name} 
                                onChange={(e) => setName(e.target.value)}
                                className="h-12 bg-slate-50 border-none font-bold"
-                               placeholder="如：1号总装线"
+                               placeholder={t('placeholder_name')}
                              />
                           </div>
                           <div className="grid grid-cols-2 gap-4">
                              <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">资源类型</label>
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('label_type')}</label>
                                 <Select
                                   value={wcType}
                                   onValueChange={(v) => setWcType((v ?? 'FLOW_LINE') as WorkCenterType)}
                                 >
                                   <SelectTrigger className="h-12 bg-slate-50 border-none font-bold">
-                                    <SelectValue placeholder="类型" />
+                                    <SelectValue placeholder={t('label_type')} />
                                   </SelectTrigger>
                                   <SelectContent>
                                     {WORK_CENTER_TYPE_OPTIONS.map((opt) => (
@@ -364,12 +364,12 @@ export default function WorkCentersPage() {
                                 </Select>
                              </div>
                              <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">日均产能(PCS)</label>
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('label_capacity')}</label>
                                 <Input 
                                   value={dailyCapacity} 
                                   onChange={(e) => setDailyCapacity(e.target.value)}
                                   className="h-12 bg-slate-50 border-none font-bold"
-                                  placeholder="如：500"
+                                  placeholder={t('placeholder_capacity')}
                                 />
                              </div>
                           </div>
@@ -382,7 +382,7 @@ export default function WorkCentersPage() {
                             onClick={() => void submitWorkCenter()}
                             disabled={isSubmitting}
                           >
-                            {isSubmitting ? '正在提交...' : '更新资源配置'}
+                            {isSubmitting ? t('Common.submitting') : t('btn_update_config')}
                           </Button>
                        </div>
                     </div>
@@ -392,8 +392,8 @@ export default function WorkCentersPage() {
                           <Settings2 className="size-10 text-slate-200" />
                        </div>
                        <div className="max-w-xs mx-auto">
-                          <h3 className="text-lg font-black text-slate-300 uppercase tracking-tighter">资源配置中心</h3>
-                          <p className="text-slate-400 text-xs mt-2">点击左侧列表中的工作中心进行详细配置，或点击右上角创建新的资源点。</p>
+                          <h3 className="text-lg font-black text-slate-300 uppercase tracking-tighter">{t('config_center_title')}</h3>
+                          <p className="text-slate-400 text-xs mt-2">{t('config_center_desc')}</p>
                        </div>
                     </div>
                  )}
@@ -402,42 +402,42 @@ export default function WorkCentersPage() {
         </div>
       </div>
 
-      {/* 创建对话框 */}
+      {/* {t('dialog_container')} */}
       <Dialog open={dialogOpen && dialogMode === 'create'} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md rounded-[32px] border-none shadow-2xl p-8">
            <DialogHeader>
-              <DialogTitle className="text-2xl font-black text-slate-900 uppercase tracking-tight">新增工作中心</DialogTitle>
-              <DialogDescription className="text-slate-400 font-medium">定义新的生产资源点与产能基准</DialogDescription>
+              <DialogTitle className="text-2xl font-black text-slate-900 uppercase tracking-tight">{t('dialog_create')}</DialogTitle>
+              <DialogDescription className="text-slate-400 font-medium">{t('dialog_create_desc')}</DialogDescription>
            </DialogHeader>
            <div className="space-y-6 mt-6">
               <div className="space-y-2">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">资源编码</label>
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('label_code')}</label>
                  <Input 
                    value={code} 
                    onChange={(e) => setCode(e.target.value.toUpperCase())}
                    className="h-12 bg-slate-50 border-none font-bold"
-                   placeholder="如：LINE-01"
+                   placeholder={t('placeholder_code')}
                    maxLength={16}
                  />
               </div>
               <div className="space-y-2">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">中心名称</label>
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('label_name')}</label>
                  <Input 
                    value={name} 
                    onChange={(e) => setName(e.target.value)}
                    className="h-12 bg-slate-50 border-none font-bold"
-                   placeholder="如：1号总装线"
+                   placeholder={t('placeholder_name')}
                  />
               </div>
               <div className="grid grid-cols-2 gap-4">
                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">资源类型</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('label_type')}</label>
                     <Select
                       value={wcType}
                       onValueChange={(v) => setWcType((v ?? 'FLOW_LINE') as WorkCenterType)}
                     >
                       <SelectTrigger className="h-12 bg-slate-50 border-none font-bold">
-                        <SelectValue placeholder="类型" />
+                        <SelectValue placeholder={t('label_type')} />
                       </SelectTrigger>
                       <SelectContent>
                         {WORK_CENTER_TYPE_OPTIONS.map((opt) => (
@@ -449,12 +449,12 @@ export default function WorkCentersPage() {
                     </Select>
                  </div>
                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">日均产能(PCS)</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('label_capacity')}</label>
                     <Input 
                       value={dailyCapacity} 
                       onChange={(e) => setDailyCapacity(e.target.value)}
                       className="h-12 bg-slate-50 border-none font-bold"
-                      placeholder="如：500"
+                      placeholder={t('placeholder_capacity')}
                     />
                  </div>
               </div>
@@ -464,7 +464,7 @@ export default function WorkCentersPage() {
                 onClick={() => void submitWorkCenter()}
                 disabled={isSubmitting}
               >
-                {isSubmitting ? '提交中...' : '确认创建资源'}
+                {isSubmitting ? t('Common.submitting') : t('btn_confirm_create')}
               </Button>
            </div>
         </DialogContent>

@@ -188,32 +188,32 @@ export default function ProcurementPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase tracking-tighter">采购与入库中心</h1>
-          <p className="text-slate-500 font-medium">Procurement & Receiving Workbench</p>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase tracking-tighter">{t('center_title')}</h1>
+          <p className="text-slate-500 font-medium">{t('center_desc')}</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" className="font-bold border-slate-200" onClick={() => loadData()}>
-            刷新
+          <Button variant="outline" className="font-bold border-slate-200" onClick={() => void loadData()}>
+            {t('Common.refresh')}
           </Button>
           <Button className="font-bold bg-indigo-600 shadow-lg shadow-indigo-100" onClick={() => setIsCreateDialogOpen(true)}>
-            <Plus className="size-4 mr-2" /> 新增采购订单
+            <Plus className="size-4 mr-2" /> {t('btn_add_po')}
           </Button>
         </div>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-12">
-        {/* 左侧：采购订单档案 */}
+        {/* {t('left_archive')} */}
         <div className="lg:col-span-4 space-y-6">
           <Card className="border-none shadow-xl rounded-3xl overflow-hidden bg-white">
             <CardHeader className="bg-slate-900 text-white pb-6">
               <CardTitle className="text-lg font-black flex items-center gap-2">
                 <ShoppingCart className="size-5 text-indigo-400" />
-                采购订单库
+                {t('archive_title')}
               </CardTitle>
               <div className="relative mt-4">
                 <Input 
                   className="bg-white/10 border-none text-white placeholder:text-slate-500 h-10 rounded-xl pl-10"
-                  placeholder="搜索单号、供应商..."
+                  placeholder={t('search_placeholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -223,7 +223,7 @@ export default function ProcurementPage() {
             <CardContent className="p-0 max-h-[600px] overflow-y-auto">
               <div className="divide-y divide-slate-50">
                 {isLoading ? (
-                   <div className="p-12 text-center text-slate-400 italic">加载中...</div>
+                   <div className="p-12 text-center text-slate-400 italic">{t('Common.loading')}</div>
                 ) : filteredPOs.map((row) => (
                   <div 
                     key={row.id} 
@@ -240,10 +240,10 @@ export default function ProcurementPage() {
                     <div className="flex justify-between items-end mt-4">
                       <div>
                          <p className="text-[10px] text-slate-400 font-bold uppercase flex items-center gap-1">
-                           <Package className="size-3" /> 明细: {row.lines.length} 项
+                           <Package className="size-3" /> {t('lines_label')}: {row.lines.length} {t('Common.view_details')}
                          </p>
                          <p className="text-[10px] text-slate-400 font-bold uppercase flex items-center gap-1">
-                           <Truck className="size-3" /> 供应商: {row.supplier.supplierCode}
+                           <Truck className="size-3" /> {t('supplier_label')}: {row.supplier.supplierCode}
                          </p>
                       </div>
                       <ChevronRight className="size-4 text-slate-200 group-hover:text-indigo-600 transition-colors" />
@@ -251,29 +251,29 @@ export default function ProcurementPage() {
                   </div>
                 ))}
                 {filteredPOs.length === 0 && !isLoading && (
-                   <div className="p-12 text-center text-slate-300 italic text-xs uppercase font-black tracking-widest">No matching records</div>
+                   <div className="p-12 text-center text-slate-300 italic text-xs uppercase font-black tracking-widest">{t('no_matching_records')}</div>
                 )}
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* 右侧：采购 workbench */}
+        {/* {t('right_workbench')} */}
         <div className="lg:col-span-8 space-y-8">
           {selectedPo ? (
             <>
-              {/* 订单核心信息概览 */}
+              {/* {t('core_info')} */}
               <div className="grid gap-4 md:grid-cols-4 bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">供应商</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('supplier_label')}</label>
                   <p className="text-sm font-bold text-slate-900">{selectedPo.supplier.name}</p>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">订单单号</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('po_no_label')}</label>
                   <p className="text-sm font-bold text-indigo-600">{selectedPo.poNo}</p>
                 </div>
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">到货进度</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('inbound_progress')}</label>
                   <div className="flex items-center gap-2">
                      {selectedPo.lines[0] && (
                        <>
@@ -298,7 +298,7 @@ export default function ProcurementPage() {
                     disabled={isSubmitting || selectedPo.status !== 'DRAFT'}
                     onClick={() => void submitAction(`/api/procurement/orders/${selectedPoId}/confirm`, { confirmedBy: operator }, t('confirm_success'))}
                   >
-                    {selectedPo.status === 'DRAFT' ? '确认并下达' : '已下达'}
+                    {selectedPo.status === 'DRAFT' ? t('btn_confirm_release') : t('released')}
                   </Button>
                 </div>
               </div>
@@ -309,27 +309,27 @@ export default function ProcurementPage() {
               <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
                 <TabsList className="bg-slate-100 p-1 rounded-2xl">
                   <TabsTrigger value="overview" className="rounded-xl px-8 font-black text-xs uppercase tracking-widest">
-                    <ShoppingCart className="size-4 mr-2" /> 订单明细
+                    <ShoppingCart className="size-4 mr-2" /> {t('tab_lines')}
                   </TabsTrigger>
                   <TabsTrigger value="receiving" className="rounded-xl px-8 font-black text-xs uppercase tracking-widest">
-                    <PackageCheck className="size-4 mr-2" /> 收货执行
+                    <PackageCheck className="size-4 mr-2" /> {t('tab_execution')}
                   </TabsTrigger>
                 </TabsList>
 
-                {/* 订单明细 Tab */}
+                {/* {t('tab_lines')} */}
                 <TabsContent value="overview" className="space-y-6">
                   <Card className="border-none shadow-sm rounded-3xl overflow-hidden bg-white">
                     <div className="bg-slate-50 px-8 py-4 border-b border-slate-100">
-                       <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Purchase Order Lines</h3>
+                       <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('tab_lines')}</h3>
                     </div>
                     <Table>
                       <TableHeader>
                         <TableRow className="hover:bg-transparent border-none">
-                          <TableHead className="pl-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">物料编码</TableHead>
-                          <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">订购数量</TableHead>
-                          <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">已收数量</TableHead>
-                          <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">待收数量</TableHead>
-                          <TableHead className="text-right pr-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">状态</TableHead>
+                          <TableHead className="pl-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_item')}</TableHead>
+                          <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_ordered')}</TableHead>
+                          <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_received')}</TableHead>
+                          <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_pending')}</TableHead>
+                          <TableHead className="text-right pr-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('Common.status')}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -342,11 +342,11 @@ export default function ProcurementPage() {
                             <TableCell className="text-right pr-8">
                                {Number(line.receivedQty) >= Number(line.orderedQty) ? (
                                  <span className="text-[10px] font-black text-emerald-500 uppercase flex items-center justify-end gap-1">
-                                   <CheckCircle2 className="size-3" /> 已结清
+                                   <CheckCircle2 className="size-3" /> {t('status_cleared')}
                                  </span>
                                ) : (
                                  <span className="text-[10px] font-black text-amber-500 uppercase flex items-center justify-end gap-1">
-                                   <Clock className="size-3" /> 收货中
+                                   <Clock className="size-3" /> {t('status_receiving')}
                                  </span>
                                )}
                             </TableCell>
@@ -357,30 +357,30 @@ export default function ProcurementPage() {
                   </Card>
                 </TabsContent>
 
-                {/* 收货执行 Tab */}
+                {/* {t('tab_execution')} */}
                 <TabsContent value="receiving" className="space-y-6">
                    <div className="grid gap-6 lg:grid-cols-12">
                       <div className="lg:col-span-5 space-y-6">
                          <Card className="border-none shadow-sm rounded-3xl p-6 bg-white">
-                            <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6">入库登记</h3>
+                            <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6">{t('inbound_registration')}</h3>
                             <div className="space-y-4">
                                <div className="space-y-2">
-                                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">选择收货物料</label>
+                                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_select_item')}</label>
                                   <select 
-                                    aria-label="选择物料"
+                                    aria-label={t('field_select_item')}
                                     className="w-full h-12 rounded-xl bg-slate-50 border-none px-4 font-bold focus:ring-2 focus:ring-indigo-600 outline-none text-sm" 
                                     value={selectedLineId} 
                                     onChange={(e) => setSelectedLineId(e.target.value)}
                                   >
-                                    <option value="">选择物料</option>
+                                    <option value="">{t('field_select_item')}</option>
                                     {selectedPo.lines.map((line) => (
-                                      <option key={line.id} value={line.id}>{line.itemCode} (待收: {Number(line.orderedQty) - Number(line.receivedQty)})</option>
+                                      <option key={line.id} value={line.id}>{line.itemCode} ({t('col_pending')}: {Number(line.orderedQty) - Number(line.receivedQty)})</option>
                                     ))}
                                   </select>
                                </div>
                                <div className="grid grid-cols-2 gap-4">
                                   <div className="space-y-2">
-                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">本次收货数量</label>
+                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_receive_qty')}</label>
                                      <Input 
                                        type="number"
                                        value={receiveQty} 
@@ -389,14 +389,14 @@ export default function ProcurementPage() {
                                      />
                                   </div>
                                   <div className="space-y-2">
-                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">入库库位</label>
+                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_location')}</label>
                                      <select 
-                                       aria-label="选择库位"
+                                       aria-label={t('field_location')}
                                        className="w-full h-12 rounded-xl bg-slate-50 border-none px-4 font-bold focus:ring-2 focus:ring-indigo-600 outline-none text-xs" 
                                        value={locationId} 
                                        onChange={(e) => setLocationId(e.target.value)}
                                      >
-                                       <option value="">选择库位</option>
+                                       <option value="">{t('field_location')}</option>
                                        {warehouses.flatMap((w) =>
                                          w.locations.map((loc) => (
                                            <option key={loc.id} value={loc.id}>{w.warehouseCode}/{loc.locationCode}</option>
@@ -406,12 +406,12 @@ export default function ProcurementPage() {
                                   </div>
                                </div>
                                <div className="space-y-2">
-                                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">批次号 / 送货单号</label>
+                                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_batch_no')}</label>
                                   <Input 
                                     value={batchNo} 
                                     onChange={(e) => setBatchNo(e.target.value)}
                                     className="h-12 bg-slate-50 border-none font-bold text-sm"
-                                    placeholder="如：LOT20240410"
+                                    placeholder={t('field_batch_placeholder')}
                                   />
                                </div>
                                <Button 
@@ -425,7 +425,7 @@ export default function ProcurementPage() {
                                    )
                                  }
                                >
-                                 确认收货入库
+                                 {t('btn_confirm_inbound')}
                                </Button>
                             </div>
                          </Card>
@@ -433,37 +433,37 @@ export default function ProcurementPage() {
                       <div className="lg:col-span-7">
                          <Card className="border-none shadow-sm rounded-3xl p-8 bg-slate-900 text-white h-full relative overflow-hidden">
                             <div className="relative z-10">
-                               <h3 className="text-sm font-black text-indigo-400 uppercase tracking-widest mb-8">收货指引</h3>
+                               <h3 className="text-sm font-black text-indigo-400 uppercase tracking-widest mb-8">{t('inbound_guide')}</h3>
                                <div className="space-y-8">
                                   <div className="flex items-center gap-6">
                                      <div className="size-10 rounded-full bg-white/10 flex items-center justify-center font-black text-indigo-400">1</div>
                                      <div>
-                                        <p className="font-bold">核对送货单</p>
-                                        <p className="text-xs text-slate-400">确认供应商名称与采购订单单号一致</p>
+                                        <p className="font-bold">{t('guide_check_delivery')}</p>
+                                        <p className="text-xs text-slate-400">{t('guide_check_delivery_desc')}</p>
                                      </div>
                                   </div>
                                   <div className="flex items-center gap-6">
                                      <div className="size-10 rounded-full bg-white/10 flex items-center justify-center font-black text-indigo-400">2</div>
                                      <div>
-                                        <p className="font-bold">清点实物数量</p>
-                                        <p className="text-xs text-slate-400">检查物料是否有可见破损，确认包装完整</p>
+                                        <p className="font-bold">{t('guide_count_qty')}</p>
+                                        <p className="text-xs text-slate-400">{t('guide_count_qty_desc')}</p>
                                      </div>
                                   </div>
                                   <div className="flex items-center gap-6">
                                      <div className="size-10 rounded-full bg-white/10 flex items-center justify-center font-black text-indigo-400">3</div>
                                      <div>
-                                        <p className="font-bold">系统过账入库</p>
-                                        <p className="text-xs text-slate-400">选择对应物料并指定存放库位，完成系统收货</p>
+                                        <p className="font-bold">{t('guide_system_post')}</p>
+                                        <p className="text-xs text-slate-400">{t('guide_system_post_desc')}</p>
                                      </div>
                                   </div>
                                </div>
                                
                                <div className="mt-12 p-6 bg-white/5 rounded-2xl border border-white/10">
                                   <div className="flex justify-between items-center mb-4">
-                                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">今日累计收货</span>
+                                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{t('today_received')}</span>
                                      <TrendingUp className="size-4 text-emerald-400" />
                                   </div>
-                                  <p className="text-3xl font-black">{rows.reduce((acc, po) => acc + po.lines.reduce((lAcc, l) => lAcc + Number(l.receivedQty), 0), 0)} <span className="text-xs font-normal text-slate-500 uppercase ml-2">Units Today</span></p>
+                                  <p className="text-3xl font-black">{rows.reduce((acc, po) => acc + po.lines.reduce((lAcc, l) => lAcc + Number(l.receivedQty), 0), 0)} <span className="text-xs font-normal text-slate-500 uppercase ml-2">{t('units_today')}</span></p>
                                </div>
                             </div>
                             <Truck className="absolute -bottom-10 -right-10 size-64 text-white/5 rotate-12" />
@@ -476,33 +476,33 @@ export default function ProcurementPage() {
           ) : (
             <div className="h-full flex flex-col items-center justify-center bg-white rounded-[40px] border-2 border-dashed border-slate-100 min-h-[500px]">
                <ShoppingCart className="size-20 text-slate-50 mb-6" />
-               <h3 className="text-xl font-black text-slate-300 uppercase tracking-tighter">请从左侧选择一个采购订单查看详情</h3>
-               <p className="text-slate-400 text-sm mt-2">在这里处理订单确认、收货入库以及采购明细查看</p>
+               <h3 className="text-xl font-black text-slate-300 uppercase tracking-tighter">{t('select_detail')}</h3>
+               <p className="text-slate-400 text-sm mt-2">{t('select_detail_desc')}</p>
             </div>
           )}
         </div>
       </div>
 
-      {/* 创建采购订单对话框 */}
+      {/* {t('dialog_create')} */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className="sm:max-w-2xl rounded-[32px] border-none shadow-2xl p-8 overflow-y-auto max-h-[90vh]">
            <DialogHeader>
-              <DialogTitle className="text-2xl font-black text-slate-900 uppercase tracking-tight">创建采购订单</DialogTitle>
-              <DialogDescription className="text-slate-400 font-medium">录入新的采购需求，驱动供应链执行</DialogDescription>
+              <DialogTitle className="text-2xl font-black text-slate-900 uppercase tracking-tight">{t('dialog_create_po')}</DialogTitle>
+              <DialogDescription className="text-slate-400 font-medium">{t('dialog_create_po_desc')}</DialogDescription>
            </DialogHeader>
            <div className="grid gap-6 mt-6 md:grid-cols-2">
               <div className="space-y-2">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">PO 单号</label>
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_po_no')}</label>
                  <Input 
                    value={poNo} 
                    onChange={(e) => setPoNo(e.target.value.toUpperCase())}
                    className="h-12 bg-slate-50 border-none font-bold"
-                   placeholder="如：PO2024001"
+                   placeholder="e.g. PO2024001"
                  />
               </div>
               <div className="grid grid-cols-2 gap-4">
                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">供应商编码</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_supplier_code')}</label>
                     <Input 
                       value={supplierCode} 
                       onChange={(e) => setSupplierCode(e.target.value.toUpperCase())}
@@ -511,17 +511,17 @@ export default function ProcurementPage() {
                     />
                  </div>
                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">供应商名称</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_supplier_name')}</label>
                     <Input 
                       value={supplierName} 
                       onChange={(e) => setSupplierName(e.target.value)}
                       className="h-12 bg-slate-50 border-none font-bold"
-                      placeholder="供应商全称..."
+                      placeholder={t('field_supplier_name')}
                     />
                  </div>
               </div>
               <div className="space-y-2">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">采购物料 SKU</label>
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_sku')}</label>
                  <Input 
                    value={itemCode} 
                    onChange={(e) => setItemCode(e.target.value)}
@@ -531,7 +531,7 @@ export default function ProcurementPage() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">采购数量</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_qty')}</label>
                     <Input 
                       type="number"
                       value={orderedQty} 
@@ -540,7 +540,7 @@ export default function ProcurementPage() {
                     />
                  </div>
                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">采购单价</label>
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_price')}</label>
                     <Input 
                       type="number"
                       value={unitPrice} 
@@ -550,25 +550,25 @@ export default function ProcurementPage() {
                  </div>
               </div>
               <div className="md:col-span-2 space-y-2">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">采购经办人</label>
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_buyer')}</label>
                  <Input 
                    value={createdBy} 
                    onChange={(e) => setCreatedBy(e.target.value)}
                    className="h-12 bg-slate-50 border-none font-bold"
-                   placeholder="经办人员名称..."
+                   placeholder={t('field_buyer')}
                  />
               </div>
               <div className="space-y-2">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">预期到货日期</label>
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_due_date')}</label>
                  <Input 
                    type="date"
                    value={expectedDate} 
                    onChange={(e) => setExpectedDate(e.target.value)}
-                   className="h-12 bg-slate-50 border-none font-bold"
+                   className="h-12 bg-slate-50 border-none font-bold" 
                  />
               </div>
               <div className="space-y-2">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">币种</label>
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_currency')}</label>
                  <Input 
                    value={currency} 
                    onChange={(e) => setCurrency(e.target.value.toUpperCase())}
@@ -577,7 +577,7 @@ export default function ProcurementPage() {
                  />
               </div>
               <div className="md:col-span-2 p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100 flex justify-between items-center">
-                 <span className="text-xs font-black text-indigo-400 uppercase">订单预计总额</span>
+                 <span className="text-xs font-black text-indigo-400 uppercase">{t('order_est_total')}</span>
                  <span className="text-xl font-black text-indigo-600">
                     {currency} {(Number(orderedQty) * Number(unitPrice)).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                  </span>
@@ -590,7 +590,7 @@ export default function ProcurementPage() {
                 className="flex-1 h-14 font-black rounded-2xl"
                 onClick={() => setIsCreateDialogOpen(false)}
               >
-                取消
+                {t('Common.cancel')}
               </Button>
               <Button 
                 className="flex-1 h-14 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl shadow-xl shadow-indigo-100"
@@ -615,7 +615,7 @@ export default function ProcurementPage() {
                 }
                 disabled={isSubmitting}
               >
-                {isSubmitting ? '提交中...' : '发布采购订单'}
+                {isSubmitting ? t('Common.submitting') : t('btn_publish_po')}
               </Button>
            </div>
         </DialogContent>

@@ -420,32 +420,32 @@ export default function BomsPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase">BOM 产品结构管理</h1>
-          <p className="text-slate-500 font-medium">Product Bill of Materials Designer</p>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight uppercase">{t('title')}</h1>
+          <p className="text-slate-500 font-medium">{t('center_desc')}</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" className="font-bold border-slate-200" onClick={() => loadExistingBoms()}>
-            刷新列表
+          <Button variant="outline" className="font-bold border-slate-200" onClick={() => void loadExistingBoms()}>
+            {t('btn_refresh_list')}
           </Button>
           <Button className="font-bold bg-indigo-600 shadow-lg shadow-indigo-100" onClick={handleSave} disabled={!parentItemCode}>
-            <Save className="size-4 mr-2" /> 保存当前版本
+            <Save className="size-4 mr-2" /> {t('btn_save_version')}
           </Button>
         </div>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-12">
-        {/* 左侧：BOM 档案库 */}
+        {/* {t('left_archive')} */}
         <div className="lg:col-span-4 space-y-6">
           <Card className="border-none shadow-xl rounded-3xl overflow-hidden bg-white">
             <CardHeader className="bg-slate-900 text-white pb-6">
               <CardTitle className="text-lg font-black flex items-center gap-2">
                 <Layers className="size-5 text-indigo-400" />
-                产品 BOM 档案
+                {t('archive_title')}
               </CardTitle>
               <div className="relative mt-4">
                 <Input 
                   className="bg-white/10 border-none text-white placeholder:text-slate-500 h-10 rounded-xl pl-10"
-                  placeholder="搜索产品名称或编码..."
+                  placeholder={t('search_placeholder')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -455,7 +455,7 @@ export default function BomsPage() {
             <CardContent className="p-0 max-h-[600px] overflow-y-auto">
               <div className="divide-y divide-slate-50">
                 {isLoadingExistingList ? (
-                   <div className="p-12 text-center text-slate-400 italic">加载中...</div>
+                   <div className="p-12 text-center text-slate-400 italic">{t('Common.loading')}</div>
                 ) : filteredExisting.map((record) => (
                   <div 
                     key={record.id} 
@@ -474,8 +474,8 @@ export default function BomsPage() {
                     </div>
                     <h4 className="font-bold text-slate-800 mb-1">{record.parentItem.itemName}</h4>
                     <div className="flex justify-between items-end mt-4">
-                      <p className="text-[10px] text-slate-400 font-bold uppercase">VERSION: {record.version}</p>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase">{record._count.lines} COMPONENTS</p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase">{t('col_version')}: {record.version}</p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase">{record._count.lines} {t('col_components')}</p>
                     </div>
                   </div>
                 ))}
@@ -484,18 +484,18 @@ export default function BomsPage() {
           </Card>
         </div>
 
-        {/* 右侧：BOM 设计器 */}
+        {/* {t('right_designer')} */}
         <div className="lg:col-span-8 space-y-8">
           {parentItemCode ? (
             <>
-              {/* 配置区域 */}
+              {/* {t('config_area')} */}
               <div className="grid gap-4 md:grid-cols-3 bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">当前设计产品</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('label_current_design')}</label>
                   <p className="text-sm font-bold text-slate-900">{items.find(i => i.itemCode === parentItemCode)?.itemName}</p>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">编辑版本</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_version_no')}</label>
                   <Input 
                     value={version} 
                     onChange={(e) => setVersion(e.target.value)}
@@ -503,7 +503,7 @@ export default function BomsPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">生效日期</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_effective_date')}</label>
                   <Input 
                     type="date"
                     value={effectiveDate} 
@@ -516,32 +516,32 @@ export default function BomsPage() {
               <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
                 <TabsList className="bg-slate-100 p-1 rounded-2xl">
                   <TabsTrigger value="lines" className="rounded-xl px-8 font-black text-xs uppercase tracking-widest">
-                    <Layers className="size-4 mr-2" /> 物料清单
+                    <Layers className="size-4 mr-2" /> {t('tab_lines')}
                   </TabsTrigger>
                   <TabsTrigger value="tree" className="rounded-xl px-8 font-black text-xs uppercase tracking-widest">
-                    <GitFork className="size-4 mr-2" /> 结构展开
+                    <GitFork className="size-4 mr-2" /> {t('tab_tree')}
                   </TabsTrigger>
                   <TabsTrigger value="diff" className="rounded-xl px-8 font-black text-xs uppercase tracking-widest">
-                    <History className="size-4 mr-2" /> 版本比对
+                    <History className="size-4 mr-2" /> {t('tab_diff')}
                   </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="lines" className="space-y-6">
                   <Card className="border-none shadow-sm rounded-3xl overflow-hidden bg-white">
                     <div className="bg-slate-50 px-8 py-4 border-b border-slate-100 flex justify-between items-center">
-                       <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">BOM COMPONENTS</h3>
+                       <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('card_lines_title')}</h3>
                        <Button size="sm" variant="ghost" className="text-indigo-600 font-bold" onClick={handleAddLine}>
-                         <Plus className="size-4 mr-1" /> 添加物料
+                         <Plus className="size-4 mr-1" /> {t('btn_add_component')}
                        </Button>
                     </div>
                     <Table>
                       <TableHeader>
                         <TableRow className="hover:bg-transparent border-none">
                           <TableHead className="pl-8 w-16"></TableHead>
-                          <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">物料信息</TableHead>
-                          <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">用量 (Qty)</TableHead>
-                          <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">损耗率</TableHead>
-                          <TableHead className="text-right pr-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">操作</TableHead>
+                          <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_component_info')}</TableHead>
+                          <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_qty')}</TableHead>
+                          <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_scrap')}</TableHead>
+                          <TableHead className="text-right pr-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('Common.actions')}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -566,7 +566,7 @@ export default function BomsPage() {
                                 </datalist>
                                 <Input 
                                   list={`bom-comp-${idx}`}
-                                  placeholder="搜索或输入编码..."
+                                  placeholder={t('field_comp_placeholder')}
                                   value={line.componentItemCode ? `${line.componentItemCode} ${items.find(i => i.itemCode === line.componentItemCode)?.itemName ?? ''}` : ''}
                                   onChange={(e) => {
                                     const code = e.target.value.split(' ')[0];
@@ -612,7 +612,7 @@ export default function BomsPage() {
                       {tree.length === 0 ? (
                         <div className="py-20 text-center">
                            <GitFork className="size-16 text-slate-100 mx-auto mb-4" />
-                           <p className="text-sm font-black text-slate-300 uppercase italic">无法展开结构</p>
+                           <p className="text-sm font-black text-slate-300 uppercase italic">{t('visual_empty')}</p>
                         </div>
                       ) : (
                         <div className="relative pl-4 border-l-2 border-slate-100 space-y-4">
@@ -627,12 +627,12 @@ export default function BomsPage() {
                    <Card className="border-none shadow-sm rounded-3xl p-6 bg-white space-y-6">
                       <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl">
                          <div className="space-y-1">
-                            <p className="text-[10px] font-black text-slate-400 uppercase">BASE VERSION</p>
+                            <p className="text-[10px] font-black text-slate-400 uppercase">{t('diff_base')}</p>
                             <p className="font-bold text-indigo-600">{selectedVersion}</p>
                          </div>
                          <ArrowRight className="text-slate-300" />
                          <div className="space-y-1 text-right">
-                            <p className="text-[10px] font-black text-slate-400 uppercase">COMPARE TO</p>
+                            <p className="text-[10px] font-black text-slate-400 uppercase">{t('diff_compare')}</p>
                             <Select value={compareVersion || ''} onValueChange={(v) => setCompareVersion(v)}>
                                <SelectTrigger className="w-32 bg-white border-none font-bold h-8"><SelectValue /></SelectTrigger>
                                <SelectContent>
@@ -645,7 +645,7 @@ export default function BomsPage() {
                       </div>
                       {diffLines.length > 0 ? (
                         <Table>
-                          <TableHeader><TableRow><TableHead>物料</TableHead><TableHead>变动</TableHead><TableHead>用量变化</TableHead></TableRow></TableHeader>
+                          <TableHeader><TableRow><TableHead>{t('parent_item')}</TableHead><TableHead>{t('col_change_type')}</TableHead><TableHead>{t('col_qty_change')}</TableHead></TableRow></TableHeader>
                           <TableBody>
                             {diffLines.map((d, i) => (
                               <TableRow key={i}>
@@ -660,7 +660,7 @@ export default function BomsPage() {
                             ))}
                           </TableBody>
                         </Table>
-                      ) : <p className="text-center py-12 text-slate-300 italic text-xs uppercase font-black tracking-widest">No differences found</p>}
+                      ) : <p className="text-center py-12 text-slate-300 italic text-xs uppercase font-black tracking-widest">{t('diff_no_change')}</p>}
                    </Card>
                 </TabsContent>
               </Tabs>
@@ -668,8 +668,8 @@ export default function BomsPage() {
           ) : (
             <div className="h-full flex flex-col items-center justify-center bg-white rounded-[40px] border-2 border-dashed border-slate-100 min-h-[500px]">
                <Zap className="size-20 text-slate-50 mb-6" />
-               <h3 className="text-xl font-black text-slate-300 uppercase tracking-tighter">请从左侧选择一个产品开始设计</h3>
-               <p className="text-slate-400 text-sm mt-2">或点击顶部的“新增产品”先创建物料主数据</p>
+               <h3 className="text-xl font-black text-slate-300 uppercase tracking-tighter">{t('select_detail')}</h3>
+               <p className="text-slate-400 text-sm mt-2">{t('select_detail_desc')}</p>
             </div>
           )}
         </div>

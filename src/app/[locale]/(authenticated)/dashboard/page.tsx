@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { 
   AlertTriangle, 
   BarChart3, 
@@ -27,11 +27,16 @@ interface DashboardData {
   lineStatus: 'RUNNING' | 'IDLE';
   recentOrders: any[];
   materialGaps: any[];
+  debugInfo?: {
+    timestamp: string;
+    dbStatus: string;
+  };
 }
 
 export default function GlobalDashboard() {
   const t = useTranslations('Dashboard');
   const tPie = useTranslations('Pie');
+  const locale = useLocale();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -50,14 +55,14 @@ export default function GlobalDashboard() {
   if (loading) return <div className="p-8 text-slate-500">{tPie('loading')}</div>;
 
   return (
-    <div className="p-8 space-y-8 bg-slate-50/50 min-h-screen">
+    <div key={locale} className="p-8 space-y-8 bg-slate-50/50 min-h-screen">
+      {/* Locale Context: {locale} */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-3xl font-black tracking-tight text-slate-900">{t('title')}</h1>
-          <p className="text-slate-500 font-medium">Digital Factory Command Center</p>
+          <p className="text-slate-500 font-medium uppercase tracking-widest text-[10px] opacity-70">{t('line_status')}</p>
         </div>
         
-        {/* 产线状态指示灯 */}
         <div className={`flex items-center gap-3 px-4 py-2 rounded-full border shadow-sm ${
           data?.lineStatus === 'RUNNING' ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-100 border-slate-200'
         }`}>
@@ -65,18 +70,18 @@ export default function GlobalDashboard() {
             data?.lineStatus === 'RUNNING' ? 'bg-emerald-500' : 'bg-slate-400'
           }`} />
           <span className="text-sm font-bold text-slate-700">
-            {data?.lineStatus === 'RUNNING' ? '产线运行中 (RUNNING)' : '产线待机 (IDLE)'}
+            {data?.lineStatus === 'RUNNING' ? t('status_running') : t('status_idle')}
           </span>
         </div>
       </div>
 
       {error && (
         <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded text-red-700 text-sm">
-          ⚠️ 数据连接异常: {error}
+          ⚠️ {t('api_error', { error })}
         </div>
       )}
 
-      {/* 第一排：核心 KPI - 重点在于异常提示 */}
+      {/* {t('header_kpis')} */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card className={`border-2 transition-all ${data?.activeIssuesCount ? 'border-red-200 bg-red-50/50 shadow-red-100' : ''}`}>
           <CardHeader className="pb-2">
@@ -89,7 +94,7 @@ export default function GlobalDashboard() {
             <div className={`text-4xl font-black ${data?.activeIssuesCount ? 'text-red-700' : 'text-slate-900'}`}>
               {data?.activeIssuesCount || 0}
             </div>
-            <p className="text-[10px] font-bold mt-1 text-slate-400">当前待处理现场异常</p>
+            <p className="text-[10px] font-bold mt-1 text-slate-400">{t('stat_andon_desc')}</p>
           </CardContent>
         </Card>
 
@@ -102,7 +107,7 @@ export default function GlobalDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-black text-indigo-700">{data?.todayGoodQty || 0}</div>
-            <p className="text-[10px] font-bold mt-1 text-slate-400">今日良品总产出 (PCS)</p>
+            <p className="text-[10px] font-bold mt-1 text-slate-400">{t('stat_output_desc')}</p>
           </CardContent>
         </Card>
 
@@ -115,7 +120,7 @@ export default function GlobalDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-black text-amber-700">{data?.inventoryAlertsCount || 0}</div>
-            <p className="text-[10px] font-bold mt-1 text-slate-400">低于安全库存项</p>
+            <p className="text-[10px] font-bold mt-1 text-slate-400">{t('stat_inventory_desc')}</p>
           </CardContent>
         </Card>
 
@@ -128,23 +133,23 @@ export default function GlobalDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-4xl font-black text-slate-900">{data?.recentOrders?.length || 0}</div>
-            <p className="text-[10px] font-bold mt-1 text-slate-400">近 7 天执行中订单</p>
+            <p className="text-[10px] font-bold mt-1 text-slate-400">{t('stat_orders_desc')}</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* 第二排：进度与执行 */}
+      {/* {t('header_progress')} */}
       <div className="grid gap-6 md:grid-cols-3">
-        {/* 订单进度条 - 小厂老板最想看的东西 */}
+        {/* {t('order_progress_bar')} */}
         <Card className="md:col-span-2 shadow-lg border-none bg-white">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-lg font-black text-slate-800">订单交付进度</CardTitle>
-              <CardDescription>实时跟踪每一笔订单的生产环节</CardDescription>
+              <CardTitle className="text-lg font-black text-slate-800">{t('order_delivery_progress')}</CardTitle>
+              <CardDescription>{t('order_delivery_desc')}</CardDescription>
             </div>
             <Link href="/o2c">
               <Button variant="outline" size="sm" className="font-bold border-slate-200">
-                全部订单 <ArrowRight className="ml-2 size-3" />
+                {t('btn_view_all_orders')} <ArrowRight className="ml-2 size-3" />
               </Button>
             </Link>
           </CardHeader>
@@ -161,7 +166,7 @@ export default function GlobalDashboard() {
                     </div>
                     <div className="text-right">
                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter block">
-                        STATUS: {order.stage}
+                        {t(`stage_${order.stage}`)}
                       </span>
                       <span className="text-sm font-black text-slate-900">{order.progress}%</span>
                     </div>
@@ -180,21 +185,21 @@ export default function GlobalDashboard() {
           </CardContent>
         </Card>
 
-        {/* 快速任务通道 */}
+        {/* {t('quick_tasks')} */}
         <div className="space-y-6">
           <Card className="bg-indigo-900 text-white border-none shadow-xl">
             <CardHeader>
               <CardTitle className="text-white flex items-center gap-2">
                 <Zap className="size-5 text-amber-400 fill-amber-400" />
-                指挥部入口
+                {t('quick_access_title')}
               </CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-2 gap-3">
               {[
-                { name: '报工', href: '/execution/report', icon: Activity },
-                { name: '查库', href: '/inventory', icon: Package },
-                { name: '质检', href: '/quality', icon: CheckCircle2 },
-                { name: '排产', href: '/planning', icon: Clock },
+                { name: t('quick_access_report'), href: '/execution/report', icon: Activity },
+                { name: t('quick_access_inventory'), href: '/inventory', icon: Package },
+                { name: t('quick_access_quality'), href: '/quality', icon: CheckCircle2 },
+                { name: t('quick_access_planning'), href: '/planning', icon: Clock },
               ].map((m) => (
                 <Link key={m.name} href={m.href} className="block">
                   <div className="flex flex-col items-center justify-center p-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors border border-white/10 aspect-square">
@@ -210,7 +215,7 @@ export default function GlobalDashboard() {
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-bold flex items-center gap-2 text-red-600">
                 <AlertTriangle className="size-4" />
-                待办异常记录
+                {t('pending_issues_title')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
@@ -221,7 +226,7 @@ export default function GlobalDashboard() {
                 </div>
               ))}
               {(!data?.activeIssuesList || data.activeIssuesList.length === 0) && (
-                <p className="text-slate-400 italic py-4 text-center">暂无待处理异常</p>
+                <p className="text-slate-400 italic py-4 text-center">{t('no_pending_issues')}</p>
               )}
             </CardContent>
           </Card>
@@ -230,7 +235,7 @@ export default function GlobalDashboard() {
             <CardHeader className="pb-2 bg-slate-900 text-white">
               <CardTitle className="text-sm font-bold flex items-center gap-2">
                 <Boxes className="size-4 text-amber-400" />
-                3天内生产缺料预测
+                {t('material_gap_title')}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0 text-sm">
@@ -238,11 +243,11 @@ export default function GlobalDashboard() {
                 <div key={gap.itemCode} className="p-3 border-b border-slate-50 hover:bg-slate-50 transition-colors">
                   <div className="flex justify-between mb-1">
                     <span className="font-bold text-slate-700">{gap.itemName}</span>
-                    <span className="text-xs font-black text-red-600">缺 {gap.gap}</span>
+                    <span className="text-xs font-black text-red-600">{t('material_gap_short', { qty: gap.gap })}</span>
                   </div>
                   <div className="flex justify-between text-[10px] text-slate-400 mb-2">
                     <span>{gap.itemCode}</span>
-                    <span>需求: {gap.demand} / 在库: {gap.inventory}</span>
+                    <span>{t('material_gap_demand_info', { demand: gap.demand, inventory: gap.inventory })}</span>
                   </div>
                   <div className="h-1 bg-slate-100 rounded-full">
                     <div 
@@ -253,12 +258,48 @@ export default function GlobalDashboard() {
                 </div>
               ))}
               {(!data?.materialGaps || data.materialGaps.length === 0) && (
-                <p className="text-slate-400 italic py-8 text-center text-xs">库存充足，无生产缺口</p>
+                <p className="text-slate-400 italic py-8 text-center text-xs">{t('no_material_gaps')}</p>
               )}
             </CardContent>
           </Card>
         </div>
       </div>
+      {/* Page Footer Metadata & Debug */}
+      <div className="flex flex-col gap-4 pt-8 border-t border-slate-200">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
+            <div className={`size-1.5 rounded-full ${data ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
+            {t('system_active')} • {new Date().toLocaleDateString()}
+          </div>
+          <div className="text-[10px] font-mono text-slate-300 bg-slate-50 px-2 py-1 rounded border border-slate-100 uppercase">
+            {data?.debugInfo?.dbStatus === 'CONNECTED' ? t('debug_connected') : 'DB: DISCONNECTED'} • {data?.debugInfo?.timestamp || '—'}
+          </div>
+        </div>
+        
+        {/* Discrete Seeding Trigger (Only if data is empty) */}
+        {(!data || data.recentOrders.length === 0) && (
+          <div className="p-4 border-2 border-dashed border-red-100 rounded-2xl bg-red-50/30 flex items-center justify-between group transition-all hover:border-red-200">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-red-100 rounded-lg text-red-600">
+                <AlertTriangle className="size-4" />
+              </div>
+              <div>
+                <p className="text-xs font-black text-red-800 uppercase tracking-tight">{t('composition_alert')}: DATA_SILO_EMPTY</p>
+                <p className="text-[10px] font-medium text-red-600/70">{t('select_detail_desc')}</p>
+              </div>
+            </div>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="border-red-200 text-red-700 hover:bg-red-100 font-bold text-xs"
+              onClick={async () => {
+                const res = await fetch('/api/debug/seed-demo', { method: 'POST' });
+                if (res.ok) window.location.reload();
+              }}
+            >
+              {t('btn_gen_report')} (SEED DEMO)
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
-  );
-}

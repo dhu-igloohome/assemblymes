@@ -51,16 +51,16 @@ export default function AndonBoardPage() {
     const timer = setInterval(() => {
       void fetchIssues();
       setCurrentTime(new Date());
-    }, 10000); // 每10秒刷新一次数据
+    }, 10000); // Refresh data every 10s
     return () => clearInterval(timer);
   }, [fetchIssues]);
 
-  // 计算统计数据
+  // Calculate statistics
   const stats = useMemo(() => {
     const open = issues.filter(i => i.status === 'OPEN').length;
     const inProgress = issues.filter(i => i.status === 'IN_PROGRESS').length;
     
-    // 分类统计
+    // Categorized statistics
     const byType = {
       MATERIAL: issues.filter(i => i.issueType === 'MATERIAL').length,
       QUALITY: issues.filter(i => i.issueType === 'QUALITY').length,
@@ -92,7 +92,7 @@ export default function AndonBoardPage() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 p-6 flex flex-col gap-6 font-sans">
-      {/* Header */}
+      {/* {t('Header')} */}
       <div className="flex justify-between items-center border-b border-slate-800 pb-4">
         <div className="flex items-center gap-4">
           <div className="bg-red-600 p-2 rounded-lg">
@@ -116,7 +116,7 @@ export default function AndonBoardPage() {
       </div>
 
       <div className="grid grid-cols-12 gap-6 flex-1">
-        {/* Left: Active Issues List */}
+        {/* {t('left_active_issues')} */}
         <div className="col-span-12 xl:col-span-8 flex flex-col gap-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold flex items-center gap-2">
@@ -170,9 +170,9 @@ export default function AndonBoardPage() {
           </div>
         </div>
 
-        {/* Right: Statistics and Analytics */}
+        {/* {t('right_stats')} */}
         <div className="col-span-12 xl:col-span-4 flex flex-col gap-6">
-          {/* Issue Type Distribution */}
+          {/* {t('andon_type_distribution')} */}
           <div className="bg-slate-900/50 border border-slate-800 rounded-3xl p-8 space-y-6">
             <h2 className="text-xl font-bold flex items-center gap-2">
               <ShieldAlert className="size-5 text-indigo-400" />
@@ -207,18 +207,18 @@ export default function AndonBoardPage() {
             </div>
           </div>
 
-          {/* Productivity Guard Card */}
+          {/* {t('productivity_guard')} */}
           <div className="bg-gradient-to-br from-indigo-900/40 to-slate-900 border border-indigo-500/20 rounded-3xl p-8 flex-1 flex flex-col justify-between">
             <div>
               <AlertOctagon className="size-12 text-indigo-400 mb-4" />
-              <h2 className="text-3xl font-black text-white mb-2 leading-none">PRODUCTION<br/>ON-GUARD</h2>
-              <p className="text-slate-400">实时异常监控系统已开启。所有挂起的问题均会实时通知相关负责人及管理团队。</p>
+              <h2 className="text-3xl font-black text-white mb-2 leading-none">{t('guard_title_line1')}<br/>{t('guard_title_line2')}</h2>
+              <p className="text-slate-400">{t('andon_desc')}</p>
             </div>
             
             <div className="mt-8 pt-8 border-t border-indigo-500/20">
               <div className="flex items-center gap-3 text-emerald-400">
                 <div className="size-3 bg-emerald-500 rounded-full animate-ping" />
-                <span className="font-mono font-bold tracking-tighter">SYSTEM ACTIVE • NO LATENCY</span>
+                <span className="font-mono font-bold tracking-tighter">{t('system_active')}</span>
               </div>
             </div>
           </div>
