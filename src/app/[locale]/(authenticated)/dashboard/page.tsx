@@ -56,6 +56,32 @@ export default function GlobalDashboard() {
 
   return (
     <div key={locale} className="p-8 space-y-8 bg-slate-50/50 min-h-screen">
+      {/* Super Seeding Trigger (Visible at Top for Quick Access) */}
+      <div className="p-4 border-2 border-dashed border-indigo-200 rounded-2xl bg-white flex items-center justify-between group transition-all hover:bg-indigo-50/30">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-indigo-600 rounded-lg text-white">
+            <Zap className="size-4 fill-white" />
+          </div>
+          <div>
+            <p className="text-xs font-black text-indigo-900 uppercase tracking-tight">Full-Stack Closed Loop Test</p>
+            <p className="text-[10px] font-medium text-indigo-600/70">Scenario: Users -> SO -> WO -> Andon -> QC -> Delivery</p>
+          </div>
+        </div>
+        <Button 
+          size="sm" 
+          variant="default" 
+          className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md"
+          onClick={async () => {
+            if (confirm('Execute Full-Stack Closed Loop? This will add complex scenario data.')) {
+              const res = await fetch('/api/debug/seed-demo', { method: 'POST' });
+              if (res.ok) window.location.reload();
+            }
+          }}
+        >
+          {t('btn_gen_report')} (EXECUTE SUPER LOOP)
+        </Button>
+      </div>
+
       {/* Locale Context: {locale} */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
@@ -274,32 +300,6 @@ export default function GlobalDashboard() {
           <div className="text-[10px] font-mono text-slate-300 bg-slate-50 px-2 py-1 rounded border border-slate-100 uppercase">
             {data?.debugInfo?.dbStatus === 'CONNECTED' ? t('debug_connected') : 'DB: DISCONNECTED'} • {data?.debugInfo?.timestamp || '—'}
           </div>
-        </div>
-        
-        {/* Super Seeding Trigger (Visible for testing) */}
-        <div className="p-4 border-2 border-dashed border-indigo-100 rounded-2xl bg-indigo-50/30 flex items-center justify-between group transition-all hover:border-indigo-200">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-indigo-100 rounded-lg text-indigo-600">
-              <Zap className="size-4 fill-indigo-600" />
-            </div>
-            <div>
-              <p className="text-xs font-black text-indigo-800 uppercase tracking-tight">Full-Stack Closed Loop Test</p>
-              <p className="text-[10px] font-medium text-indigo-600/70">Execute comprehensive scenario: Users -> SO -> WO -> Andon -> QC -> Delivery</p>
-            </div>
-          </div>
-          <Button 
-            size="sm" 
-            variant="outline" 
-            className="border-indigo-200 text-indigo-700 hover:bg-indigo-100 font-bold text-xs shadow-sm"
-            onClick={async () => {
-              if (confirm('Execute Full-Stack Closed Loop? This will add complex scenario data.')) {
-                const res = await fetch('/api/debug/seed-demo', { method: 'POST' });
-                if (res.ok) window.location.reload();
-              }
-            }}
-          >
-            {t('btn_gen_report')} (EXECUTE SUPER LOOP)
-          </Button>
         </div>
       </div>
     </div>
