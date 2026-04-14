@@ -1,156 +1,179 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { ItemType } from '@prisma/client';
+import { ItemType, WOStatus, IssueType, InspectionStage, InspectionResult } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 export async function POST() {
   try {
-    console.log('🚀 Starting Full Lifecycle Seeding via API...');
+    console.log('🔥 Initializing Ultimate Full-Stack Closed Loop...');
 
-    // 1. Items
-    const items = [
-      { itemCode: '800001', itemName: '智能锁成品-旗舰款', itemType: 'PRODUCT' as ItemType, unit: 'PCS', safetyStock: 100 },
-      { itemCode: '100001', itemName: '主控板 PCBA', itemType: 'ASSEMBLY' as ItemType, unit: 'PCS', safetyStock: 200 },
-      { itemCode: '100002', itemName: '锁体总成', itemType: 'ASSEMBLY' as ItemType, unit: 'PCS', safetyStock: 150 },
-      { itemCode: '200001', itemName: '锂电池 5000mAh', itemType: 'MATERIAL' as ItemType, unit: 'PCS', safetyStock: 500 },
-      { itemCode: '200002', itemName: '面壳组件', itemType: 'MATERIAL' as ItemType, unit: 'PCS', safetyStock: 300 },
+    // --- 1. 用户与组织闭环 ---
+    const hashedPassword = await bcrypt.hash('123456', 10);
+    const users = [
+      { username: 'admin_demo', role: 'ADMIN' },
+      { username: 'planner_demo', role: 'PLANNER' },
+      { username: 'worker_demo', role: 'WORKER' }
     ];
 
-    for (const item of items) {
-      await prisma.item.upsert({
-        where: { itemCode: item.itemCode },
-        update: item,
-        create: item,
+    for (const u of users) {
+      await prisma.user.upsert({
+        where: { username: u.username },
+        update: { role: u.role as any },
+        create: { username: u.username, password: hashedPassword, role: u.role as any }
       });
     }
 
-    // 2. Sales Orders
-    const soNos = ['SO20240410-001', 'SO20240410-002', 'SO20240410-003', 'SO20240410-004', 'SO20240410-005'];
-    const customers = ['客户-旗舰店', '客户-工程承包商', '客户-海外出口', '客户-部分交付场景', '客户-FQC终检失败'];
-    
-    const createdSOs = [];
-    for (let i = 0; i < 5; i++) {
-      const so = await prisma.salesOrder.upsert({
-        where: { orderNo: soNos[i] },
-        update: {
-          customerName: customers[i],
-          skuItemCode: '800001',
-          orderedQty: 100 + i * 50,
-          unitPrice: 299.00,
-          status: i === 0 ? 'CLOSED' : 'CONFIRMED',
-          dueDate: new Date(Date.now() + 86400000 * (i + 1)),
-        },
-        create: {
-          orderNo: soNos[i],
-          customerName: customers[i],
-          skuItemCode: '800001',
-          orderedQty: 100 + i * 50,
-          unitPrice: 299.00,
-          status: i === 0 ? 'CLOSED' : 'CONFIRMED',
-          dueDate: new Date(Date.now() + 86400000 * (i + 1)),
-        },
-      });
-      createdSOs.push(so);
-    }
+    // --- 2. 基础数据 (Master Data) ---
+    // 创建一个名为 "SmartLock-X1" 的产品及其 BOM 结构
+    const product = await prisma.item.upsert({
+      where: { itemCode: 'SL-X1' },
+      update: {},
+      create: { itemCode: 'SL-X1', itemName: '智能锁-全栈闭环测试款', itemType: 'PRODUCT', unit: 'PCS', safetyStock: 50 }
+    });
 
-    // 3. Work Orders
-    const woNos = ['WO-8699-1', 'WO-8699-2', 'WO-8699-3', 'WO-8699-4', 'WO-8699-5'];
-    const statuses = ['DONE', 'DONE', 'IN_PROGRESS', 'RELEASED', 'PLANNED'];
-    
-    for (let i = 0; i < 5; i++) {
-      const wo = await prisma.workOrder.upsert({
-        where: { workOrderNo: woNos[i] },
-        update: {
-          salesOrderId: createdSOs[i].id,
-          skuItemCode: '800001',
-          batchNo: 'BATCH-20240410',
-          plannedQty: createdSOs[i].orderedQty,
-          status: statuses[i] as any,
-        },
-        create: {
-          workOrderNo: woNos[i],
-          salesOrderId: createdSOs[i].id,
-          skuItemCode: '800001',
-          batchNo: 'BATCH-20240410',
-          plannedQty: createdSOs[i].orderedQty,
-          status: statuses[i] as any,
-        },
-      });
+    const pcba = await prisma.item.upsert({
+      where: { itemCode: 'M-PCBA-01' },
+      update: {},
+      create: { itemCode: 'M-PCBA-01', itemName: '核心主控板', itemType: 'MATERIAL', unit: 'PCS', safetyStock: 200 }
+    });
 
-      const op = await prisma.workOrderOperation.upsert({
-        where: { workOrderId_sequence: { workOrderId: wo.id, sequence: 10 } },
-        update: {
-          operationName: 'Final Assembly',
-          workstation: 'ST-01',
-          standardTimeSec: 60,
-          status: i < 2 ? 'COMPLETED' : (i === 2 ? 'STARTED' : 'PENDING'),
-          completedQty: i < 2 ? wo.plannedQty : (i === 2 ? Math.floor(wo.plannedQty / 2) : 0),
-        },
-        create: {
-          workOrderId: wo.id,
-          sequence: 10,
-          operationName: 'Final Assembly',
-          workstation: 'ST-01',
-          standardTimeSec: 60,
-          status: i < 2 ? 'COMPLETED' : (i === 2 ? 'STARTED' : 'PENDING'),
-          completedQty: i < 2 ? wo.plannedQty : (i === 2 ? Math.floor(wo.plannedQty / 2) : 0),
-        },
-      });
-
-      if (i <= 2) {
-        await prisma.productionReport.create({
-          data: {
-            workOrderOperationId: op.id,
-            operator: 'Robot-1',
-            goodQty: i < 2 ? wo.plannedQty : Math.floor(wo.plannedQty / 2),
-          }
-        });
-      }
-    }
-
-    // 4. Andon Issues
-    const issueTypes = ['MATERIAL', 'QUALITY', 'EQUIPMENT'];
-    const descriptions = ['Line 1 shortage: 5000mAh Battery', 'FQC yield drop at Final Station', 'Station 3 glue gun failure'];
-    
-    for (let i = 0; i < 3; i++) {
-      await prisma.issueRecord.create({
-        data: {
-          issueType: issueTypes[i] as any,
-          status: 'OPEN',
-          description: descriptions[i],
-          reporter: 'System-Auto',
-          reportedAt: new Date(),
+    // 建立 BOM 关联
+    const bom = await prisma.bomHeader.upsert({
+      where: { parentItemCode: 'SL-X1' },
+      update: { isActive: true },
+      create: { 
+        parentItemCode: 'SL-X1', 
+        version: 'V1.0', 
+        isActive: true,
+        lines: {
+          create: [
+            { componentItemCode: 'M-PCBA-01', quantity: 1 }
+          ]
         }
-      });
-    }
+      }
+    });
 
-    // 5. Inventory Shortage
+    // --- 3. 正常交付闭环 (Scenario: Success) ---
+    const soNormal = await prisma.salesOrder.create({
+      data: {
+        orderNo: 'SO-NORMAL-001',
+        customerName: '优质客户-顺丰交付',
+        skuItemCode: 'SL-X1',
+        orderedQty: 50,
+        unitPrice: 500,
+        status: 'CLOSED',
+        dueDate: new Date()
+      }
+    });
+
+    const woNormal = await prisma.workOrder.create({
+      data: {
+        workOrderNo: 'WO-SUCCESS-01',
+        salesOrderId: soNormal.id,
+        skuItemCode: 'SL-X1',
+        plannedQty: 50,
+        status: 'DONE',
+        actualStartDate: new Date(Date.now() - 86400000),
+        actualEndDate: new Date()
+      }
+    });
+
+    // --- 4. 异常链路 A: 生产中设备故障 (Scenario: Andon Alert) ---
+    const soBroken = await prisma.salesOrder.create({
+      data: {
+        orderNo: 'SO-FAIL-002',
+        customerName: '测试客户-报工异常场景',
+        skuItemCode: 'SL-X1',
+        orderedQty: 100,
+        unitPrice: 500,
+        status: 'CONFIRMED',
+        dueDate: new Date(Date.now() + 86400000)
+      }
+    });
+
+    const woBroken = await prisma.workOrder.create({
+      data: {
+        workOrderNo: 'WO-ANDON-02',
+        salesOrderId: soBroken.id,
+        skuItemCode: 'SL-X1',
+        plannedQty: 100,
+        status: 'IN_PROGRESS'
+      }
+    });
+
+    await prisma.issueRecord.create({
+      data: {
+        issueType: 'EQUIPMENT',
+        description: '自动螺丝机卡料，生产线停滞',
+        status: 'OPEN',
+        reporter: 'worker_demo',
+        reportedAt: new Date()
+      }
+    });
+
+    // --- 5. 异常链路 B: 品质终检失败 (Scenario: Quality Fail) ---
+    const soQC = await prisma.salesOrder.create({
+      data: {
+        orderNo: 'SO-QC-003',
+        customerName: '测试客户-终检不合格场景',
+        skuItemCode: 'SL-X1',
+        orderedQty: 20,
+        unitPrice: 500,
+        status: 'CONFIRMED',
+        dueDate: new Date(Date.now() + 172800000)
+      }
+    });
+
+    await prisma.qualityInspection.create({
+      data: {
+        inspectionNo: 'FQC-20240410-01',
+        itemCode: 'SL-X1',
+        stage: 'FQC',
+        sampleSize: 20,
+        defectQty: 5,
+        result: 'FAIL',
+        inspectedBy: 'qc_admin',
+        issueSummary: '面壳有明显划痕，批量外观不良',
+        disposition: '全部返修'
+      }
+    });
+
+    // --- 6. 库存缺料闭环 (Scenario: Material Gap) ---
+    // PCBA 库存仅有 10 个，但订单需要 500 个
     const wh = await prisma.warehouse.upsert({
-      where: { warehouseCode: 'WH01' },
-      update: { name: 'Main Factory Warehouse' },
-      create: { warehouseCode: 'WH01', name: 'Main Factory Warehouse' },
+      where: { warehouseCode: 'WH-MAIN' },
+      update: {},
+      create: { warehouseCode: 'WH-MAIN', name: '总装厂主仓库' }
     });
-
     const loc = await prisma.storageLocation.upsert({
-      where: { warehouseId_locationCode: { warehouseId: wh.id, locationCode: 'LOC-A1' } },
-      update: { name: 'A-Zone Shelf 1' },
-      create: { warehouseId: wh.id, locationCode: 'LOC-A1', name: 'A-Zone Shelf 1' },
+      where: { warehouseId_locationCode: { warehouseId: wh.id, locationCode: 'BIN-01' } },
+      update: {},
+      create: { warehouseId: wh.id, locationCode: 'BIN-01', name: '电子件存放区' }
     });
 
     await prisma.inventoryBalance.upsert({
-      where: { itemCode_locationId: { itemCode: '200001', locationId: loc.id } },
-      update: { quantity: 50 },
-      create: { itemCode: '200001', locationId: loc.id, quantity: 50 },
-    });
-
-    await prisma.inventoryBalance.upsert({
-      where: { itemCode_locationId: { itemCode: '200002', locationId: loc.id } },
+      where: { itemCode_locationId: { itemCode: 'M-PCBA-01', locationId: loc.id } },
       update: { quantity: 10 },
-      create: { itemCode: '200002', locationId: loc.id, quantity: 10 },
+      create: { itemCode: 'M-PCBA-01', locationId: loc.id, quantity: 10 }
     });
 
-    return NextResponse.json({ success: true });
+    // 创建一个大额订单触发缺料
+    await prisma.salesOrder.create({
+      data: {
+        orderNo: 'SO-GAP-004',
+        customerName: '大客户-缺料场景',
+        skuItemCode: 'SL-X1',
+        orderedQty: 500,
+        unitPrice: 480,
+        status: 'CONFIRMED',
+        dueDate: new Date(Date.now() + 604800000)
+      }
+    });
+
+    console.log('✅ Ultimate Closed Loop Seeded Successfully.');
+    return NextResponse.json({ success: true, message: 'Super loop initialized' });
   } catch (error: any) {
-    console.error('Seeding error:', error);
+    console.error('Super Seeding error:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }

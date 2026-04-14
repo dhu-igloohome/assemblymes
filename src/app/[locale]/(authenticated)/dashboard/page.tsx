@@ -276,31 +276,31 @@ export default function GlobalDashboard() {
           </div>
         </div>
         
-        {/* Discrete Seeding Trigger (Only if data is empty) */}
-        {(!data || data.recentOrders.length === 0) && (
-          <div className="p-4 border-2 border-dashed border-red-100 rounded-2xl bg-red-50/30 flex items-center justify-between group transition-all hover:border-red-200">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-red-100 rounded-lg text-red-600">
-                <AlertTriangle className="size-4" />
-              </div>
-              <div>
-                <p className="text-xs font-black text-red-800 uppercase tracking-tight">{t('composition_alert')}</p>
-                <p className="text-[10px] font-medium text-red-600/70">{t('select_detail_desc')}</p>
-              </div>
+        {/* Super Seeding Trigger (Visible for testing) */}
+        <div className="p-4 border-2 border-dashed border-indigo-100 rounded-2xl bg-indigo-50/30 flex items-center justify-between group transition-all hover:border-indigo-200">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-indigo-100 rounded-lg text-indigo-600">
+              <Zap className="size-4 fill-indigo-600" />
             </div>
-            <Button 
-              size="sm" 
-              variant="outline" 
-              className="border-red-200 text-red-700 hover:bg-red-100 font-bold text-xs"
-              onClick={async () => {
+            <div>
+              <p className="text-xs font-black text-indigo-800 uppercase tracking-tight">Full-Stack Closed Loop Test</p>
+              <p className="text-[10px] font-medium text-indigo-600/70">Execute comprehensive scenario: Users -> SO -> WO -> Andon -> QC -> Delivery</p>
+            </div>
+          </div>
+          <Button 
+            size="sm" 
+            variant="outline" 
+            className="border-indigo-200 text-indigo-700 hover:bg-indigo-100 font-bold text-xs shadow-sm"
+            onClick={async () => {
+              if (confirm('Execute Full-Stack Closed Loop? This will add complex scenario data.')) {
                 const res = await fetch('/api/debug/seed-demo', { method: 'POST' });
                 if (res.ok) window.location.reload();
-              }}
-            >
-              {t('btn_gen_report')} (SEED DEMO)
-            </Button>
-          </div>
-        )}
+              }
+            }}
+          >
+            {t('btn_gen_report')} (EXECUTE SUPER LOOP)
+          </Button>
+        </div>
       </div>
     </div>
   );
