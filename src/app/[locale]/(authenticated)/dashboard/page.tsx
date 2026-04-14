@@ -64,7 +64,7 @@ export default function GlobalDashboard() {
           </div>
           <div>
             <p className="text-xs font-black text-indigo-900 uppercase tracking-tight">Full-Stack Closed Loop Test</p>
-            <p className="text-[10px] font-medium text-indigo-600/70">Scenario: Users -> SO -> WO -> Andon -> QC -> Delivery</p>
+            <p className="text-[10px] font-medium text-indigo-600/70">Scenario: Users -&gt; SO -&gt; WO -&gt; Andon -&gt; QC -&gt; Delivery</p>
           </div>
         </div>
         <Button 
@@ -72,7 +72,7 @@ export default function GlobalDashboard() {
           variant="default" 
           className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-md"
           onClick={async () => {
-            if (confirm('Execute Full-Stack Closed Loop? This will add complex scenario data.')) {
+            if (window.confirm('Execute Full-Stack Closed Loop? This will add complex scenario data.')) {
               const res = await fetch('/api/debug/seed-demo', { method: 'POST' });
               if (res.ok) window.location.reload();
             }
@@ -107,7 +107,6 @@ export default function GlobalDashboard() {
         </div>
       )}
 
-      {/* {t('header_kpis')} */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card className={`border-2 transition-all ${data?.activeIssuesCount ? 'border-red-200 bg-red-50/50 shadow-red-100' : ''}`}>
           <CardHeader className="pb-2">
@@ -164,9 +163,7 @@ export default function GlobalDashboard() {
         </Card>
       </div>
 
-      {/* {t('header_progress')} */}
       <div className="grid gap-6 md:grid-cols-3">
-        {/* {t('order_progress_bar')} */}
         <Card className="md:col-span-2 shadow-lg border-none bg-white">
           <CardHeader className="flex flex-row items-center justify-between">
             <div>
@@ -211,7 +208,6 @@ export default function GlobalDashboard() {
           </CardContent>
         </Card>
 
-        {/* {t('quick_tasks')} */}
         <div className="space-y-6">
           <Card className="bg-indigo-900 text-white border-none shadow-xl">
             <CardHeader>
@@ -245,7 +241,7 @@ export default function GlobalDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
-              {data?.activeIssuesList?.map(issue => (
+              {data?.activeIssuesList?.map((issue: any) => (
                 <div key={issue.id} className="p-2 bg-red-50 rounded-lg border border-red-100">
                   <p className="font-bold text-red-800 line-clamp-1">{issue.description}</p>
                   <p className="text-[10px] text-red-600 font-medium mt-1">{new Date(issue.reportedAt).toLocaleString()}</p>
@@ -265,7 +261,7 @@ export default function GlobalDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0 text-sm">
-              {(data?.materialGaps || []).map((gap) => (
+              {(data?.materialGaps || []).map((gap: any) => (
                 <div key={gap.itemCode} className="p-3 border-b border-slate-50 hover:bg-slate-50 transition-colors">
                   <div className="flex justify-between mb-1">
                     <span className="font-bold text-slate-700">{gap.itemName}</span>
@@ -290,7 +286,7 @@ export default function GlobalDashboard() {
           </Card>
         </div>
       </div>
-      {/* Page Footer Metadata & Debug */}
+      
       <div className="flex flex-col gap-4 pt-8 border-t border-slate-200">
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400">
