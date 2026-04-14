@@ -4,14 +4,14 @@ import bcrypt from 'bcryptjs';
 
 export async function POST() {
   try {
-    console.log('🚀 Ultimate Seed Starting...');
+    console.log('🔥 Initializing Ultimate Full-Stack Closed Loop Scenarios...');
     const hashedPassword = await bcrypt.hash('123456', 10);
 
-    // Simplified but full-stack data
+    // 1. 建立人员与账号闭环
     const emp = await prisma.employee.upsert({
-      where: { employeeNo: 'ADMIN-001' },
+      where: { employeeNo: 'DEMO-ADMIN' },
       update: {},
-      create: { employeeNo: 'ADMIN-001', name: 'Master User', team: 'IT' }
+      create: { employeeNo: 'DEMO-ADMIN', name: 'Factory Master', team: 'Management' }
     });
 
     await prisma.systemUser.upsert({
@@ -25,26 +25,82 @@ export async function POST() {
       }
     });
 
+    // 2. 基础物料：智能锁全栈款
     await prisma.item.upsert({
-      where: { itemCode: 'PRD-01' },
+      where: { itemCode: 'SL-MAX' },
       update: {},
-      create: { itemCode: 'PRD-01', itemName: 'Assembly Lock Pro', itemType: 'PRODUCT' as any, unit: 'PCS', safetyStock: 10 }
-    });
-
-    await prisma.salesOrder.create({
-      data: {
-        orderNo: 'SO-' + Date.now().toString().slice(-4),
-        customerName: 'Global Client',
-        skuItemCode: 'PRD-01',
-        orderedQty: 50,
-        unitPrice: 199.99,
-        status: 'CONFIRMED' as any
+      create: { 
+        itemCode: 'SL-MAX', 
+        itemName: 'Ultimate Smart Lock (Scenario Test)', 
+        itemType: 'PRODUCT' as any, 
+        unit: 'PCS', 
+        safetyStock: 20 
       }
     });
 
-    return NextResponse.json({ success: true });
+    // 3. 场景 A: 完美交付 (100% 达成)
+    const soDone = await prisma.salesOrder.create({
+      data: {
+        orderNo: 'SO-SUCCESS-' + Math.floor(Math.random()*1000),
+        customerName: 'Happy Path Client',
+        skuItemCode: 'SL-MAX',
+        orderedQty: 100,
+        unitPrice: 299,
+        status: 'CLOSED' as any,
+        dueDate: new Date()
+      }
+    });
+
+    await prisma.workOrder.create({
+      data: {
+        workOrderNo: 'WO-DONE-' + Math.floor(Math.random()*1000),
+        salesOrderId: soDone.id,
+        skuItemCode: 'SL-MAX',
+        batchNo: 'BATCH-001',
+        plannedQty: 100,
+        status: 'DONE' as any
+      }
+    });
+
+    // 4. 场景 B: 生产线故障 (触发 Andon)
+    const woBroken = await prisma.workOrder.create({
+      data: {
+        workOrderNo: 'WO-FAIL-' + Math.floor(Math.random()*1000),
+        skuItemCode: 'SL-MAX',
+        batchNo: 'BATCH-002',
+        plannedQty: 200,
+        status: 'IN_PROGRESS' as any
+      }
+    });
+
+    await prisma.issueRecord.create({
+      data: {
+        issueType: 'EQUIPMENT' as any,
+        description: 'Robot Arm Calibration Error - Line 1 Stalled',
+        status: 'OPEN' as any,
+        reporter: 'System-Simulation',
+        workOrderId: woBroken.id
+      }
+    });
+
+    // 5. 场景 C: 终检失败 (品质预警)
+    await prisma.qualityInspection.create({
+      data: {
+        inspectionNo: 'FQC-' + Date.now().toString().slice(-4),
+        itemCode: 'SL-MAX',
+        stage: 'OQC' as any,
+        sampleSize: 50,
+        defectQty: 12,
+        result: 'FAIL' as any,
+        inspectedBy: 'QC-Officer',
+        issueSummary: 'Firmware Flash Fail - Batch 002',
+        disposition: 'Return to Rework'
+      }
+    });
+
+    return NextResponse.json({ success: true, message: 'Scenario Loaded' });
   } catch (error: any) {
-    console.error('Seed error:', error);
+    console.error('Seed Error:', error);
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
