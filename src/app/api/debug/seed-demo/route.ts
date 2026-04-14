@@ -51,7 +51,7 @@ export async function POST() {
       }
     });
 
-    await prisma.workOrder.create({
+    const woDone = await prisma.workOrder.create({
       data: {
         workOrderNo: 'WO-DONE-' + Math.floor(Math.random()*1000),
         salesOrderId: soDone.id,
@@ -59,6 +59,28 @@ export async function POST() {
         batchNo: 'BATCH-001',
         plannedQty: 100,
         status: 'DONE' as any
+      }
+    });
+
+    // 为成功工单建立工序并报工 (使仪表盘产量数字跳动)
+    const opDone = await prisma.workOrderOperation.create({
+      data: {
+        workOrderId: woDone.id,
+        sequence: 10,
+        operationName: 'Final Assembly',
+        workstation: 'ST-01',
+        standardTimeSec: 60,
+        status: 'COMPLETED' as any,
+        completedQty: 100
+      }
+    });
+
+    await prisma.productionReport.create({
+      data: {
+        workOrderOperationId: opDone.id,
+        operator: 'Factory Master',
+        goodQty: 100,
+        createdAt: new Date() // Today
       }
     });
 
