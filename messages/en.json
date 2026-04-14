@@ -389,6 +389,7 @@
     "placeholder_code": "e.g. LINE-01"
   },
   "O2c": {
+    "title": "Sales & Order",
     "center_title": "Sales & Order Center",
     "center_desc": "Order to Cash (O2C) Management",
     "stat_order_count": "Total Orders",

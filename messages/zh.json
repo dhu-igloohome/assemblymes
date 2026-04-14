@@ -389,6 +389,7 @@
     "placeholder_code": "如：LINE-01"
   },
   "O2c": {
+    "title": "销售与订单",
     "center_title": "销售与订单中心",
     "center_desc": "Order to Cash (O2C) Management",
     "stat_order_count": "订单总数",
