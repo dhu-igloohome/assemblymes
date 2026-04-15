@@ -14,7 +14,9 @@ import {
   Package,
   Zap,
   Clock,
-  ShoppingBag
+  ShoppingBag,
+  Sparkles,
+  Cpu
 } from 'lucide-react';
 import { Link } from '@/i18n/routing';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -54,6 +56,33 @@ export default function GlobalDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedIntelligence, setSelectedIntelligence] = useState<{label: string, icon: any, details: string[]} | null>(null);
+
+  // AI Insight State
+  const [isGeneratingInsight, setIsGeneratingInsight] = useState(false);
+  const [aiInsight, setAiInsight] = useState<{
+    summary: string;
+    actions: string[];
+    trend: string;
+  } | null>(null);
+
+  const handleAIInsight = async (reportType: string) => {
+    setIsGeneratingInsight(true);
+    try {
+      const res = await fetch('/api/ai/report-insight', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reportType })
+      });
+      if (res.ok) {
+        const result = await res.json();
+        setAiInsight(result);
+      }
+    } catch (err) {
+      toast.error('AI Insight Engine is busy. Please try later.');
+    } finally {
+      setIsGeneratingInsight(false);
+    }
+  };
 
   const exportCSV = () => {
     if (!data) return;
@@ -216,12 +245,23 @@ export default function GlobalDashboard() {
                 'Status: 95% On-Time Delivery'
               ]
             },
-          ].map((item) => (
+          ].map((item, idx) => (
             <Card 
               key={item.label} 
-              className="border-none shadow-sm hover:shadow-md transition-shadow cursor-pointer rounded-2xl group overflow-hidden"
+              className="border-none shadow-sm hover:shadow-xl transition-all cursor-pointer rounded-2xl group overflow-hidden relative"
               onClick={() => setSelectedIntelligence({ label: item.label, icon: item.icon, details: item.details })}
             >
+              {/* AI Insight Button Overlay */}
+              <div 
+                className="absolute top-3 right-3 p-1.5 bg-white/80 backdrop-blur-sm text-indigo-600 rounded-lg opacity-0 group-hover:opacity-100 transition-all z-20 hover:bg-indigo-600 hover:text-white border border-indigo-100"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAIInsight(idx === 0 ? 'PRODUCTION' : idx === 1 ? 'QUALITY' : 'COST');
+                }}
+              >
+                <Sparkles className="size-3" />
+              </div>
+              
               <CardContent className="p-0">
                 <div className="p-6 flex items-center gap-4">
                   <div className={`p-3 rounded-xl ${item.bg} ${item.color} group-hover:scale-110 transition-transform`}>
@@ -277,6 +317,74 @@ export default function GlobalDashboard() {
               >
                 Close
               </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* AI Report Insight Dialog */}
+      <Dialog open={!!aiInsight} onOpenChange={(open) => !open && setAiInsight(null)}>
+        <DialogContent className="sm:max-w-xl bg-slate-50 border-none rounded-[32px] p-8 shadow-2xl overflow-hidden relative">
+          <div className="absolute top-0 right-0 p-8 opacity-5">
+             <Sparkles className="size-48 text-indigo-600" />
+          </div>
+          
+          <DialogHeader>
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-4 bg-indigo-600 text-white rounded-2xl shadow-lg shadow-indigo-200">
+                <Cpu className="size-8" />
+              </div>
+              <div>
+                <DialogTitle className="text-3xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3">
+                  AI Business Insight
+                  <div className={`px-2 py-0.5 rounded text-[10px] font-black uppercase border ${
+                    aiInsight?.trend === 'UP' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' : 
+                    aiInsight?.trend === 'DOWN' ? 'bg-rose-50 text-rose-600 border-rose-100' : 
+                    'bg-slate-50 text-slate-600 border-slate-100'
+                  }`}>
+                    {aiInsight?.trend} Trend
+                  </div>
+                </DialogTitle>
+                <DialogDescription className="text-slate-500 font-medium">
+                  Automated strategic analysis based on real-time manufacturing data.
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div className="mt-6 space-y-8 relative z-10">
+            <div className="p-6 bg-white rounded-[24px] border border-slate-100 shadow-sm">
+               <h4 className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <Activity className="size-3" /> Executive Summary
+               </h4>
+               <p className="text-lg font-bold text-slate-800 leading-snug">
+                  {aiInsight?.summary}
+               </p>
+            </div>
+
+            <div className="space-y-4">
+               <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                  <Zap className="size-3" /> Recommended Actions
+               </h4>
+               <div className="grid gap-3">
+                  {aiInsight?.actions.map((action, i) => (
+                    <div key={i} className="flex gap-4 p-4 bg-white rounded-2xl border border-slate-50 items-start hover:border-indigo-100 transition-colors shadow-sm">
+                       <div className="size-6 bg-indigo-50 rounded-full flex items-center justify-center text-indigo-600 text-[10px] font-black mt-0.5 shrink-0">
+                          {i + 1}
+                       </div>
+                       <p className="text-sm font-bold text-slate-600">{action}</p>
+                    </div>
+                  ))}
+               </div>
+            </div>
+
+            <div className="pt-6 flex justify-end">
+               <Button 
+                 className="bg-slate-900 hover:bg-black text-white font-black uppercase text-xs tracking-widest px-10 h-12 rounded-xl"
+                 onClick={() => setAiInsight(null)}
+               >
+                 Close Report
+               </Button>
             </div>
           </div>
         </DialogContent>

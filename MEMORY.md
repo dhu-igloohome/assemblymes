@@ -15,7 +15,8 @@
 - [x] **P0: Core Flow & Real-time** (End-to-end tracking, MRP, Andon loop)
 - [x] **P1: Industrial UX** (Scanner, Poka-yoke, Auto-scheduling, Mobile UI)
 - [x] **P2: Security & Integration** (RBAC, Audit Logs, Integration Hub)
-- [x] **P3: Quality & Interaction Audit** (100% logic check for all interactive points)
+- [x] **P3: AI & Efficiency** (Andon AI, Operations Cockpit)
+- [ ] **P4: Business Intelligence** (AI Report Insight, Advanced Traceability)
 
 ## 🧠 Core Architecture & Constraints
 - **Framework**: Next.js (App Router) + Prisma + PostgreSQL.
