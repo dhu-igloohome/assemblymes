@@ -115,7 +115,14 @@
     "report_production_efficiency": "Prod Efficiency",
     "report_quality_trends": "Quality Trends",
     "report_cost_variance": "Cost Variance",
-    "report_delivery_lt": "Delivery Lead-time"
+    "report_delivery_lt": "Delivery Lead-time",
+    "traffic_analytics_title": "Public Traffic & Demand Insights",
+    "traffic_analytics_desc": "Visitor analytics for assemblymes.vercel.app portal.",
+    "col_region": "Region",
+    "col_uv": "Unique Visitors (UV)",
+    "col_pv": "Page Views (PV)",
+    "col_duration": "Avg Duration",
+    "col_bounce": "Bounce Rate"
   },
   "Items": {
     "title": "Item Master",

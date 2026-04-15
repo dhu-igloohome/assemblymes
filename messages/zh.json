@@ -112,7 +112,14 @@
     "report_production_efficiency": "生产效率报表",
     "report_quality_trends": "质量波动分析",
     "report_cost_variance": "成本差异监控",
-    "report_delivery_lt": "交付周期报表"
+    "report_delivery_lt": "交付周期报表",
+    "traffic_analytics_title": "全站潜在需求洞察 (公开页)",
+    "traffic_analytics_desc": "针对 assemblymes.vercel.app 登录门户的访客热度与分布分析。",
+    "col_region": "地域",
+    "col_uv": "访客数",
+    "col_pv": "浏览量",
+    "col_duration": "平均访问时长",
+    "col_bounce": "跳出率"
   },
   "Items": {
     "title": "物料主数据",
