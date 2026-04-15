@@ -928,6 +928,12 @@
     "work_order_not_found": "Work order not found or has no operations"
   },
   "Quality": {
+    "analytics_title": "Exception Analytics",
+    "yield_rate": "Overall Yield",
+    "total_scrap": "Total Scrap",
+    "issue_heat": "Workstation Hotspots",
+    "issue_types": "Issue Categories",
+    "recent_7_days": "Last 7 Days",
     "title": "Quality Management",
     "center_title": "Quality Management Center",
     "center_desc": "Quality & Compliance Command",
