@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { AlertCircle, CheckCircle2, Clock, MessageSquare, PhoneCall, Scan, Search, ArrowRight, FileText, Activity, Package } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Clock, MessageSquare, PhoneCall, Scan, Search, ArrowRight, FileText, Activity, Package, ShieldAlert } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 export default function ExecutionPage() {
@@ -47,6 +47,59 @@ export default function ExecutionPage() {
   const [scannedWo, setScannedWo] = useState<Record<string, any> | null>(null);
   const [isSearchingWo, setIsSearchingWo] = useState(false);
   const [batchQty, setBatchQty] = useState('');
+  const [scanBuffer, setScanBuffer] = useState('');
+  const [lastScanTime, setLastScanTime] = useState(0);
+
+  // Global Barcode Scanner Listener (Foundation)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if user is typing in a textarea or input manually (optional, but for MES we often want global capture)
+      const isInput = e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement;
+      
+      const currentTime = Date.now();
+      // Scanners are fast. If interval > 100ms, it's probably manual typing
+      if (currentTime - lastScanTime > 100) {
+        setScanBuffer('');
+      }
+
+      if (e.key === 'Enter') {
+        if (scanBuffer.length > 3) {
+          setWoSearch(scanBuffer);
+          void triggerWoSearch(scanBuffer);
+          setScanBuffer('');
+        }
+      } else if (e.key.length === 1) {
+        setScanBuffer(prev => prev + e.key.toUpperCase());
+        setLastScanTime(currentTime);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [scanBuffer, lastScanTime]);
+
+  const triggerWoSearch = async (code: string) => {
+    setIsSearchingWo(true);
+    setScannedWo(null);
+    setListError('');
+    try {
+      const res = await fetch(`/api/work-orders?workOrderNo=${code.trim()}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.length > 0) {
+          setScannedWo(data[0]);
+          setBatchQty(String(data[0].plannedQty - (data[0].completedQty || 0)));
+          setListMessage(`Success: Loaded ${code}`);
+        } else {
+          setListError(t('work_order_not_found'));
+        }
+      }
+    } catch {
+      setListError(t('load_failed'));
+    } finally {
+      setIsSearchingWo(false);
+    }
+  };
 
   // Personal Stats State
   const [personalStats, setPersonalStats] = useState({ todayQty: 0, todayScrap: 0, target: 100 });
@@ -89,25 +142,7 @@ export default function ExecutionPage() {
   const handleSearchWo = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!woSearch.trim()) return;
-    setIsSearchingWo(true);
-    setScannedWo(null);
-    setListError('');
-    try {
-      const res = await fetch(`/api/work-orders?workOrderNo=${woSearch.trim()}`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.length > 0) {
-          setScannedWo(data[0]);
-          setBatchQty(String(data[0].plannedQty - (data[0].completedQty || 0)));
-        } else {
-          setListError(t('work_order_not_found'));
-        }
-      }
-    } catch {
-      setListError(t('load_failed'));
-    } finally {
-      setIsSearchingWo(false);
-    }
+    await triggerWoSearch(woSearch);
   };
 
   const handleBatchReport = async () => {
@@ -232,9 +267,15 @@ export default function ExecutionPage() {
             <CardContent className="p-6">
               <form onSubmit={handleSearchWo} className="flex flex-col md:flex-row gap-4 items-end">
                 <div className="flex-1 space-y-2">
-                  <label className="text-sm font-bold text-indigo-900 flex items-center gap-2">
-                    <Scan className="size-4" />
-                    {t('scan_wo_label')}
+                  <label className="text-sm font-bold text-indigo-900 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Scan className="size-4" />
+                      {t('scan_wo_label')}
+                    </div>
+                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-[10px] font-black animate-pulse">
+                      <div className="size-1.5 bg-emerald-500 rounded-full" />
+                      SCAN READY
+                    </div>
                   </label>
                   <div className="relative">
                     <Input 
@@ -458,13 +499,32 @@ export default function ExecutionPage() {
             {/* {t('right_report_form')} */}
             <div className="flex-1 p-8 bg-white">
               <DialogHeader className="mb-8">
-                <DialogTitle className="text-2xl font-black text-slate-900 uppercase tracking-tight">{t('report_production')}</DialogTitle>
-                <DialogDescription className="font-bold text-indigo-600 bg-indigo-50 inline-block px-2 py-1 rounded mt-2">
-                  {reportingOp?.workOrder?.workOrderNo} / {reportingOp?.operationName}
-                </DialogDescription>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <DialogTitle className="text-2xl font-black text-slate-900 uppercase tracking-tight">{t('report_production')}</DialogTitle>
+                    <DialogDescription className="font-bold text-indigo-600 bg-indigo-50 inline-block px-2 py-1 rounded mt-2">
+                      {reportingOp?.workOrder?.workOrderNo} / {reportingOp?.operationName}
+                    </DialogDescription>
+                  </div>
+                  {reportingOp?.isInspectionPoint && (
+                    <div className="bg-amber-50 border border-amber-200 p-2 rounded-xl flex items-center gap-2 animate-pulse">
+                      <ShieldAlert className="size-5 text-amber-600" />
+                      <span className="text-[10px] font-black text-amber-700 uppercase tracking-tight">Quality Check Point</span>
+                    </div>
+                  )}
+                </div>
               </DialogHeader>
 
               <div className="space-y-6">
+                {reportingOp?.isInspectionPoint && (
+                  <div className="p-4 bg-slate-50 border-l-4 border-amber-500 rounded-r-xl space-y-2">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Inspection Standard</p>
+                    <p className="text-sm font-bold text-slate-700 italic">
+                      "{reportingOp.inspectionStandard || 'No specific standard defined for this point. Please perform general QC check.'}"
+                    </p>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('good_qty_label')}</label>

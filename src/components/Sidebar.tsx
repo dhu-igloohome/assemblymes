@@ -37,6 +37,7 @@ const navModules = [
     id: 'engineering',
     titleKey: 'engineering',
     icon: Boxes,
+    roles: ['SUPER_ADMIN', 'ENGINEER'],
     children: [
       { href: '/pie/items', translationKey: 'title', icon: Package2, ns: 'Items' },
       { href: '/pie/boms', translationKey: 'title', icon: GitBranchPlus, ns: 'Boms' },
@@ -48,6 +49,7 @@ const navModules = [
     id: 'planning_sales',
     titleKey: 'orders_planning',
     icon: CalendarClock,
+    roles: ['SUPER_ADMIN', 'PLANNER'],
     children: [
       { href: '/o2c', translationKey: 'title', icon: Handshake, ns: 'O2c' },
       { href: '/planning', translationKey: 'title', icon: CalendarClock, ns: 'Planning' },
@@ -57,6 +59,7 @@ const navModules = [
     id: 'supply_inventory',
     titleKey: 'supply_inventory',
     icon: ShoppingCart,
+    roles: ['SUPER_ADMIN', 'INVENTORY', 'PLANNER'],
     children: [
       { href: '/procurement', translationKey: 'procurement_overview', icon: ShoppingCart, ns: 'Procurement' },
       { href: '/inventory', translationKey: 'inventory_overview', icon: Package2, ns: 'Inventory' },
@@ -66,10 +69,11 @@ const navModules = [
     id: 'manufacturing',
     titleKey: 'manufacturing',
     icon: Cpu,
+    roles: ['SUPER_ADMIN', 'PRODUCTION', 'QUALITY', 'PLANNER'],
     children: [
       { href: '/execution/work-orders', translationKey: 'work_orders', icon: FileText, ns: 'WorkOrders' },
-      { href: '/execution/report', translationKey: 'execution', icon: Cpu, ns: 'Execution' },
-      { href: '/quality', translationKey: 'quality_overview', icon: ShieldCheck, ns: 'Quality' },
+      { href: '/execution/report', translationKey: 'execution', icon: Cpu, roles: ['SUPER_ADMIN', 'PRODUCTION'], ns: 'Execution' },
+      { href: '/quality', translationKey: 'quality_overview', icon: ShieldCheck, roles: ['SUPER_ADMIN', 'QUALITY'], ns: 'Quality' },
       { href: '/execution/andon', translationKey: 'andon_board', icon: BarChart3, ns: 'Execution' },
     ],
   },
@@ -77,12 +81,14 @@ const navModules = [
     id: 'costing',
     titleKey: 'costing',
     icon: Coins,
+    roles: ['SUPER_ADMIN', 'FINANCE'],
     children: [{ href: '/cost', translationKey: 'title', icon: Coins, ns: 'Cost' }],
   },
   {
     id: 'org_access',
     titleKey: 'organization',
     icon: Users,
+    roles: ['SUPER_ADMIN'],
     children: [
       { href: '/personnel/employees', translationKey: 'title', icon: Users, ns: 'Employees' },
       { href: '/pie/system/users', translationKey: 'system_users', icon: ShieldCheck, roles: ['SUPER_ADMIN'], ns: 'System' },

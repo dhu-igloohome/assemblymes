@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
+import { Button } from '@/components/ui/button';
 import { 
   AlertTriangle, 
   Clock, 
@@ -28,8 +29,10 @@ interface IssueRecord {
 
 export default function AndonBoardPage() {
   const t = useTranslations('Execution');
+  const tc = useTranslations('Common');
   const [issues, setIssues] = useState<IssueRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
   const fetchIssues = useCallback(async () => {
@@ -45,6 +48,24 @@ export default function AndonBoardPage() {
       setLoading(false);
     }
   }, []);
+
+  const updateIssueStatus = async (id: string, status: string) => {
+    setIsUpdating(id);
+    try {
+      const res = await fetch(`/api/execution/issues/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status, resolution: status === 'RESOLVED' ? 'Issue resolved on site.' : undefined }),
+      });
+      if (res.ok) {
+        await fetchIssues();
+      }
+    } catch (err) {
+      console.error('Failed to update issue:', err);
+    } finally {
+      setIsUpdating(null);
+    }
+  };
 
   useEffect(() => {
     void fetchIssues();
@@ -155,13 +176,30 @@ export default function AndonBoardPage() {
                   </div>
 
                   <div className="text-right space-y-2">
+                    <div className="flex flex-col gap-2 min-w-[120px]">
+                      {issue.status === 'OPEN' && (
+                        <Button 
+                          className="bg-red-600 hover:bg-red-700 text-white font-black uppercase text-[10px] tracking-widest h-10 shadow-lg shadow-red-900/20"
+                          disabled={isUpdating === issue.id}
+                          onClick={() => void updateIssueStatus(issue.id, 'IN_PROGRESS')}
+                        >
+                          {t('issue_respond')}
+                        </Button>
+                      )}
+                      {issue.status === 'IN_PROGRESS' && (
+                        <Button 
+                          className="bg-amber-500 hover:bg-amber-600 text-white font-black uppercase text-[10px] tracking-widest h-10 shadow-lg shadow-amber-900/20"
+                          disabled={isUpdating === issue.id}
+                          onClick={() => void updateIssueStatus(issue.id, 'RESOLVED')}
+                        >
+                          {t('issue_resolve')}
+                        </Button>
+                      )}
+                    </div>
+
                     <div className="bg-slate-900 px-4 py-2 rounded-lg border border-slate-800">
                       <p className="text-xs text-slate-500 uppercase font-bold tracking-tighter">{t('workstation')}</p>
                       <p className="text-xl font-black text-slate-200">{issue.workCenterCode || '—'}</p>
-                    </div>
-                    <div className="bg-slate-900 px-4 py-2 rounded-lg border border-slate-800">
-                      <p className="text-xs text-slate-500 uppercase font-bold tracking-tighter">{t('issue_reporter')}</p>
-                      <p className="text-lg font-bold text-slate-200">{issue.reporter}</p>
                     </div>
                   </div>
                 </div>

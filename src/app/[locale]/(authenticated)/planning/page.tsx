@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -71,6 +71,7 @@ export default function PlanningPage() {
   const [data, setData] = useState<OverviewResponse | null>(null);
   const [pendingOrders, setPendingOrders] = useState<any[]>([]);
   const [expandedWO, setExpandedWO] = useState<string | null>(null);
+  const [isAutoPlanning, setIsAutoPlanning] = useState(false);
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
@@ -78,7 +79,7 @@ export default function PlanningPage() {
     try {
       const [planningRes, ordersRes] = await Promise.all([
         fetch('/api/planning/overview', { cache: 'no-store' }),
-        fetch('/api/sales-orders?status=CONFIRMED', { cache: 'no-store' })
+        fetch('/api/o2c/orders?status=CONFIRMED', { cache: 'no-store' })
       ]);
 
       if (planningRes.ok) {
@@ -97,6 +98,36 @@ export default function PlanningPage() {
       setIsLoading(false);
     }
   }, [t]);
+
+  const handleAutoPlan = async () => {
+    if (pendingOrders.length === 0) return;
+    setIsAutoPlanning(true);
+    try {
+      const res = await fetch('/api/planning/auto-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderIds: pendingOrders.map(o => o.id) })
+      });
+      if (res.ok) {
+        await loadData();
+      }
+    } catch (err) {
+      console.error('Auto plan failed:', err);
+    } finally {
+      setIsAutoPlanning(false);
+    }
+  };
+
+  const totalRequiredHours = useMemo(() => {
+    // Basic heuristic: sum of pending order quantities * avg hours per unit (mocking 0.5h/unit for now)
+    return pendingOrders.reduce((sum, o) => sum + o.orderedQty * 0.5, 0);
+  }, [pendingOrders]);
+
+  const totalAvailableHours = useMemo(() => {
+    return (data?.capacity || []).reduce((sum, c) => sum + c.dailyCapacityHours, 0);
+  }, [data]);
+
+  const isOverloaded = totalRequiredHours > totalAvailableHours;
 
   useEffect(() => {
     void loadData();
@@ -133,6 +164,32 @@ export default function PlanningPage() {
                 <span className="bg-indigo-500 text-white border-none px-2 py-0.5 rounded-full text-[10px] font-bold">{pendingOrders.length}</span>
               </div>
               <CardDescription className="text-slate-400 font-medium">{t('card_order_pool_desc')}</CardDescription>
+              
+              {pendingOrders.length > 0 && (
+                <div className="mt-4 p-3 bg-white/5 rounded-2xl border border-white/10 space-y-3">
+                  <div className="flex justify-between items-end">
+                    <div className="space-y-1">
+                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Est. Load</p>
+                      <p className={`text-xl font-black ${isOverloaded ? 'text-red-400' : 'text-emerald-400'}`}>
+                        {totalRequiredHours.toFixed(1)} <span className="text-[10px] text-slate-600 font-bold">/ {totalAvailableHours.toFixed(1)}H</span>
+                      </p>
+                    </div>
+                    {isOverloaded && (
+                      <div className="flex items-center gap-1 text-red-400 animate-pulse">
+                        <AlertTriangle className="size-3" />
+                        <span className="text-[8px] font-black uppercase">Capacity Overload</span>
+                      </div>
+                    )}
+                  </div>
+                  <Button 
+                    onClick={handleAutoPlan}
+                    disabled={isAutoPlanning}
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 h-10 font-black text-[10px] uppercase tracking-widest shadow-lg shadow-indigo-900/40"
+                  >
+                    {isAutoPlanning ? tc('submitting') : 'Smart Convert All'}
+                  </Button>
+                </div>
+              )}
             </CardHeader>
             <CardContent className="p-0">
               <div className="divide-y divide-slate-50">
