@@ -108,7 +108,14 @@
     "select_detail_desc": "System ready, waiting for production data...",
     "flow_tracking_title": "End-to-End Flow Tracking",
     "flow_tracking_desc": "Real-time distribution of orders across the production lifecycle.",
-    "stage_CONFIRMED": "CONFIRMED"
+    "stage_CONFIRMED": "CONFIRMED",
+    "mgmt_center_title": "Intelligence Decision Center",
+    "mgmt_center_desc": "Strategic analysis and data-driven manufacturing control.",
+    "btn_export_all": "Export Full Factory Report",
+    "report_production_efficiency": "Prod Efficiency",
+    "report_quality_trends": "Quality Trends",
+    "report_cost_variance": "Cost Variance",
+    "report_delivery_lt": "Delivery Lead-time"
   },
   "Items": {
     "title": "Item Master",

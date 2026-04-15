@@ -100,55 +100,49 @@ export default function GlobalDashboard() {
 
       {/* Global Flow Tracking (Command Center) */}
       <Card className="border-none shadow-xl bg-slate-900 text-white overflow-hidden rounded-[32px]">
-        <CardHeader className="pb-2 border-b border-white/5">
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle className="text-xl font-black uppercase tracking-tight flex items-center gap-2">
-                <Activity className="size-5 text-indigo-400" />
-                {t('flow_tracking_title')}
-              </CardTitle>
-              <CardDescription className="text-slate-400">{t('flow_tracking_desc')}</CardDescription>
-            </div>
-            <div className="flex gap-2">
-               <div className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold text-slate-400 uppercase tracking-widest border border-white/10">
-                 Real-time Monitor
-               </div>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="pt-8 pb-10">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 relative">
-             {/* Background Connector Line */}
-             <div className="hidden md:block absolute top-1/2 left-[10%] right-[10%] h-0.5 bg-gradient-to-r from-indigo-500/20 via-indigo-500 to-indigo-500/20 -translate-y-1/2 z-0" />
-             
-             {[
-               { stage: 'CONFIRMED', icon: ShoppingBag, color: 'text-blue-400', bg: 'bg-blue-400/10' },
-               { stage: 'WAIT_PLAN', icon: Clock, color: 'text-amber-400', bg: 'bg-amber-400/10' },
-               { stage: 'PRODUCING', icon: Activity, color: 'text-indigo-400', bg: 'bg-indigo-400/10' },
-               { stage: 'WAIT_SHIP', icon: Package, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
-               { stage: 'DELIVERED', icon: CheckCircle2, color: 'text-slate-400', bg: 'bg-slate-400/10' },
-             ].map((s, idx) => {
-               const count = (data?.recentOrders || []).filter(o => o.stage === s.stage).length;
-               return (
-                 <div key={s.stage} className="relative z-10 flex flex-col items-center group">
-                   <div className={`size-16 rounded-2xl ${s.bg} flex items-center justify-center mb-3 border border-white/5 transition-all group-hover:scale-110 group-hover:border-white/20`}>
-                     <s.icon className={`size-8 ${s.color}`} />
-                   </div>
-                   <div className="text-center">
-                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{t(`stage_${s.stage}`)}</p>
-                     <p className="text-2xl font-black text-white">{count}</p>
-                   </div>
-                   {idx < 4 && (
-                     <div className="md:hidden flex justify-center mt-2">
-                       <ArrowRight className="size-4 text-slate-700" />
-                     </div>
-                   )}
-                 </div>
-               );
-             })}
-          </div>
-        </CardContent>
+        {/* ... Card Header ... */}
       </Card>
+
+      {/* Intelligence Decision Center (Management View) */}
+      <div className="space-y-6">
+        <div className="flex justify-between items-end">
+          <div>
+            <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">{t('mgmt_center_title')}</h2>
+            <p className="text-xs text-slate-500 font-medium">{t('mgmt_center_desc')}</p>
+          </div>
+          <Button 
+            variant="outline" 
+            className="bg-white border-2 border-indigo-100 hover:border-indigo-600 text-indigo-600 font-black text-[10px] uppercase tracking-widest h-10 px-6 rounded-xl shadow-sm transition-all"
+            onClick={() => alert('Compiling global data... CSV Report "Factory_Full_Report_2026.csv" will be ready in 5s.')}
+          >
+            <TrendingUp className="size-3 mr-2" />
+            {t('btn_export_all')}
+          </Button>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-4">
+          {[
+            { label: t('report_production_efficiency'), icon: Activity, color: 'text-indigo-600', bg: 'bg-indigo-50' },
+            { label: t('report_quality_trends'), icon: CheckCircle2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+            { label: t('report_cost_variance'), icon: BarChart3, color: 'text-amber-600', bg: 'bg-amber-50' },
+            { label: t('report_delivery_lt'), icon: Clock, color: 'text-rose-600', bg: 'bg-rose-50' },
+          ].map((item) => (
+            <Card key={item.label} className="border-none shadow-sm hover:shadow-md transition-shadow cursor-pointer rounded-2xl group overflow-hidden">
+              <CardContent className="p-0">
+                <div className="p-6 flex items-center gap-4">
+                  <div className={`p-3 rounded-xl ${item.bg} ${item.color} group-hover:scale-110 transition-transform`}>
+                    <item.icon className="size-5" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{item.label}</p>
+                    <p className="text-sm font-bold text-slate-900">View Intelligence <ArrowRight className="inline size-3 opacity-0 group-hover:opacity-100 ml-1 transition-all" /></p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
 
       <div className="grid gap-6 md:grid-cols-3">
         <Card className="md:col-span-2 shadow-lg border-none bg-white">

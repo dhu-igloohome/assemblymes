@@ -105,7 +105,14 @@
     "select_detail_desc": "系统已就绪，正在等待生产数据...",
     "flow_tracking_title": "全流程执行追踪",
     "flow_tracking_desc": "订单在生产生命周期各阶段的实时分布情况。",
-    "stage_CONFIRMED": "已确认订单"
+    "stage_CONFIRMED": "已确认订单",
+    "mgmt_center_title": "数字化决策管理中心",
+    "mgmt_center_desc": "基于全链路数据的战略分析与制造管控。",
+    "btn_export_all": "导出全厂生产运行周报",
+    "report_production_efficiency": "生产效率报表",
+    "report_quality_trends": "质量波动分析",
+    "report_cost_variance": "成本差异监控",
+    "report_delivery_lt": "交付周期报表"
   },
   "Items": {
     "title": "物料主数据",
