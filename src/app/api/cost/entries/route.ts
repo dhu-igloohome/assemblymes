@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { createAuditLog } from '@/lib/services/audit-service';
 
 const TYPE_OPTIONS = ['MATERIAL', 'LABOR', 'OVERHEAD', 'ADJUSTMENT'] as const;
 type CostEntryType = (typeof TYPE_OPTIONS)[number];
@@ -95,6 +96,15 @@ export async function POST(request: Request) {
           select: { workOrderNo: true, skuItemCode: true, batchNo: true },
         },
       },
+    });
+
+    // Record audit log for cost adjustment
+    void createAuditLog({
+      action: 'CREATE_COST_ENTRY',
+      entity: 'CostEntry',
+      entityId: row.id,
+      operator: createdBy || 'SYSTEM',
+      details: `Created ${entryTypeRaw} entry of ${amountNum} ${currency} for WO ${workOrderNo}`,
     });
 
     return NextResponse.json(row, { status: 201 });
