@@ -142,11 +142,26 @@ export default function PlanningPage() {
           <p className="text-slate-500 font-medium">{t('center_desc')}</p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" className="font-bold border-slate-200">
+          <Button 
+            variant="outline" 
+            className="font-bold border-slate-200"
+            onClick={() => {
+              const firstShortage = data?.shortage.find(s => !s.isReady);
+              if (firstShortage) {
+                setExpandedWO(firstShortage.workOrderNo);
+                const el = document.getElementById(`wo-${firstShortage.workOrderNo}`);
+                el?.scrollIntoView({ behavior: 'smooth' });
+              }
+            }}
+          >
             {t('btn_check_material')}
           </Button>
-          <Button className="font-bold bg-indigo-600 shadow-lg shadow-indigo-100">
-            {t('btn_auto_suggest')}
+          <Button 
+            className="font-bold bg-indigo-600 shadow-lg shadow-indigo-100"
+            onClick={handleAutoPlan}
+            disabled={isAutoPlanning || pendingOrders.length === 0}
+          >
+            {isAutoPlanning ? tc('submitting') : t('btn_auto_suggest')}
           </Button>
         </div>
       </div>
@@ -204,8 +219,25 @@ export default function PlanningPage() {
                     <h4 className="font-bold text-slate-800 mb-1">{order.customerName}</h4>
                     <p className="text-[10px] text-slate-400 font-bold uppercase mb-4 tracking-widest">SKU: {order.skuItemCode}</p>
                     
-                    <Button size="sm" className="w-full bg-white text-indigo-600 border border-indigo-100 hover:bg-indigo-600 hover:text-white font-black text-[10px] uppercase h-8 shadow-sm">
-                      {t('btn_convert_to_wo')} <ArrowRight className="ml-2 size-3" />
+                    <Button 
+                      size="sm" 
+                      className="w-full bg-white text-indigo-600 border border-indigo-100 hover:bg-indigo-600 hover:text-white font-black text-[10px] uppercase h-8 shadow-sm"
+                      onClick={async () => {
+                        setIsAutoPlanning(true);
+                        try {
+                          const res = await fetch('/api/planning/auto-plan', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ orderIds: [order.id] })
+                          });
+                          if (res.ok) await loadData();
+                        } finally {
+                          setIsAutoPlanning(false);
+                        }
+                      }}
+                      disabled={isAutoPlanning}
+                    >
+                      {isAutoPlanning ? tc('submitting') : <>{t('btn_convert_to_wo')} <ArrowRight className="ml-2 size-3" /></>}
                     </Button>
                   </div>
                 ))}
@@ -248,6 +280,7 @@ export default function PlanningPage() {
                     {(data?.shortage || []).map((row) => (
                       <React.Fragment key={row.workOrderNo}>
                         <TableRow 
+                          id={`wo-${row.workOrderNo}`}
                           className={`border-b border-slate-50 hover:bg-slate-50/50 transition-colors cursor-pointer ${expandedWO === row.workOrderNo ? 'bg-indigo-50/30' : ''}`}
                           onClick={() => setExpandedWO(expandedWO === row.workOrderNo ? null : row.workOrderNo)}
                         >
