@@ -173,7 +173,10 @@ export default function QualityPage() {
             <Activity className="size-4 mr-2" />
             {tc('refresh')}
           </Button>
-          <Button className="font-bold bg-indigo-600 shadow-lg shadow-indigo-100">
+          <Button 
+            className="font-bold bg-indigo-600 shadow-lg shadow-indigo-100"
+            onClick={() => alert('New Quality Record interface is loading... Connecting to IPQC module.')}
+          >
             {t('btn_add_record')}
           </Button>
         </div>

@@ -286,7 +286,11 @@ export default function CostPage() {
                   </div>
                 </div>
                 <div className="flex items-center justify-end gap-3">
-                  <Button variant="outline" className="font-black text-[10px] uppercase tracking-widest">
+                  <Button 
+                    variant="outline" 
+                    className="font-black text-[10px] uppercase tracking-widest"
+                    onClick={() => alert('Generating Cost Intelligence Report... Data compilation in progress.')}
+                  >
                     {t('btn_generate_report')}
                   </Button>
                 </div>
