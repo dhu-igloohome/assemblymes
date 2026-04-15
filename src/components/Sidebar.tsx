@@ -39,7 +39,7 @@ const navModules = [
     id: 'engineering',
     titleKey: 'engineering',
     icon: Boxes,
-    roles: ['SUPER_ADMIN', 'ENGINEER'],
+    roles: ['SUPER_ADMIN', 'PLANNER'],
     children: [
       { href: '/pie/items', translationKey: 'title', icon: Package2, ns: 'Items' },
       { href: '/pie/boms', translationKey: 'title', icon: GitBranchPlus, ns: 'Boms' },
@@ -61,7 +61,7 @@ const navModules = [
     id: 'supply_inventory',
     titleKey: 'supply_inventory',
     icon: ShoppingCart,
-    roles: ['SUPER_ADMIN', 'INVENTORY', 'PLANNER'],
+    roles: ['SUPER_ADMIN', 'PLANNER'],
     children: [
       { href: '/procurement', translationKey: 'procurement_overview', icon: ShoppingCart, ns: 'Procurement' },
       { href: '/inventory', translationKey: 'inventory_overview', icon: Package2, ns: 'Inventory' },
@@ -71,10 +71,10 @@ const navModules = [
     id: 'manufacturing',
     titleKey: 'manufacturing',
     icon: Cpu,
-    roles: ['SUPER_ADMIN', 'PRODUCTION', 'QUALITY', 'PLANNER'],
+    roles: ['SUPER_ADMIN', 'OPERATOR', 'QUALITY', 'PLANNER'],
     children: [
       { href: '/execution/work-orders', translationKey: 'work_orders', icon: FileText, ns: 'WorkOrders' },
-      { href: '/execution/report', translationKey: 'execution', icon: Cpu, roles: ['SUPER_ADMIN', 'PRODUCTION'], ns: 'Execution' },
+      { href: '/execution/report', translationKey: 'execution', icon: Cpu, roles: ['SUPER_ADMIN', 'OPERATOR'], ns: 'Execution' },
       { href: '/quality', translationKey: 'quality_overview', icon: ShieldCheck, roles: ['SUPER_ADMIN', 'QUALITY'], ns: 'Quality' },
       { href: '/execution/andon', translationKey: 'andon_board', icon: BarChart3, ns: 'Execution' },
     ],
@@ -83,7 +83,7 @@ const navModules = [
     id: 'costing',
     titleKey: 'costing',
     icon: Coins,
-    roles: ['SUPER_ADMIN', 'FINANCE'],
+    roles: ['SUPER_ADMIN', 'PLANNER'],
     children: [{ href: '/cost', translationKey: 'title', icon: Coins, ns: 'Cost' }],
   },
   {
@@ -93,10 +93,10 @@ const navModules = [
     roles: ['SUPER_ADMIN'],
     children: [
       { href: '/personnel/employees', translationKey: 'title', icon: Users, ns: 'Employees' },
-      { href: '/pie/system/users', translationKey: 'system_users', icon: ShieldCheck, roles: ['SUPER_ADMIN'], ns: 'System' },
-      { href: '/pie/system/audit-logs', translationKey: 'audit_logs', icon: ShieldAlert, roles: ['SUPER_ADMIN'], ns: 'System' },
-      { href: '/pie/system/integrations', translationKey: 'integration_hub', icon: Network, roles: ['SUPER_ADMIN'], ns: 'System' },
-      { href: '/pie/system/feedback', translationKey: 'visitor_feedback', icon: MessageSquare, roles: ['SUPER_ADMIN'], ns: 'System' },
+      { href: '/pie/system/users', translationKey: 'system_users', icon: ShieldCheck, ns: 'System' },
+      { href: '/pie/system/audit-logs', translationKey: 'audit_logs', icon: ShieldAlert, ns: 'System' },
+      { href: '/pie/system/integrations', translationKey: 'integration_hub', icon: Network, ns: 'System' },
+      { href: '/pie/system/feedback', translationKey: 'visitor_feedback', icon: MessageSquare, ns: 'System' },
     ],
   },
 ] as const;

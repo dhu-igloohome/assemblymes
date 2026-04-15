@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -55,6 +56,29 @@ export default function SystemUsersPage() {
   const [selectedUserId, setSelectedUserId] = useState('');
   const [activeTab, setActiveTab] = useState('account');
   
+  // Permission Matrix Definition
+  const ROLE_PERMISSIONS: Record<string, { label: string; icon: any; color: string }[]> = {
+    SUPER_ADMIN: [
+      { label: 'Full System Access', icon: ShieldAlert, color: 'text-red-500 bg-red-50' },
+      { label: 'Integration Hub Management', icon: Settings2, color: 'text-indigo-500 bg-indigo-50' },
+      { label: 'Audit Log Retrieval', icon: History, color: 'text-slate-500 bg-slate-50' },
+    ],
+    PLANNER: [
+      { label: 'Production Planning', icon: LayoutGrid, color: 'text-indigo-500 bg-indigo-50' },
+      { label: 'BOM & Routing Control', icon: Settings2, color: 'text-indigo-500 bg-indigo-50' },
+      { label: 'Inventory Overview', icon: LayoutGrid, color: 'text-emerald-500 bg-emerald-50' },
+    ],
+    OPERATOR: [
+      { label: 'Mobile Execution Reporting', icon: Fingerprint, color: 'text-emerald-500 bg-emerald-50' },
+      { label: 'Work Order Execution', icon: LayoutGrid, color: 'text-indigo-500 bg-indigo-50' },
+      { label: 'Andon Issue Reporting', icon: ShieldAlert, color: 'text-amber-500 bg-amber-50' },
+    ],
+    QUALITY: [
+      { label: 'Quality Inspection', icon: ShieldCheck, color: 'text-emerald-500 bg-emerald-50' },
+      { label: 'Defect Analysis Board', icon: LayoutGrid, color: 'text-indigo-500 bg-indigo-50' },
+    ]
+  };
+
   // Form State
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -134,13 +158,32 @@ export default function SystemUsersPage() {
   const toggleUserStatus = async (user: SystemUserRow) => {
     try {
       const res = await fetch(`/api/system/users/${user.id}`, {
-        method: 'PATCH',
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ isActive: !user.isActive }),
       });
-      if (res.ok) await loadData();
+      if (res.ok) {
+        toast.success(t('users_status_updated'));
+        await loadData();
+      }
     } catch (err) {
-      console.error(err);
+      toast.error(t('save_failed'));
+    }
+  };
+
+  const handleUpdateRole = async (userId: string, newRole: string) => {
+    try {
+      const res = await fetch(`/api/system/users/${userId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: newRole }),
+      });
+      if (res.ok) {
+        toast.success(t('users_role_updated'));
+        await loadData();
+      }
+    } catch (err) {
+      toast.error(t('save_failed'));
     }
   };
 
@@ -239,9 +282,27 @@ export default function SystemUsersPage() {
                    <div className="size-16 rounded-2xl bg-slate-900 flex items-center justify-center text-white text-2xl font-black">
                       <Fingerprint className="size-8 text-indigo-400" />
                    </div>
-                   <div>
+                   <div className="space-y-1">
                       <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">{selectedUser.username}</h2>
-                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{selectedUser.role} | {selectedUser.employee?.name || t('users_unlinked')}</p>
+                      <div className="flex items-center gap-2">
+                        <Select 
+                          value={selectedUser.role} 
+                          onValueChange={(v) => void handleUpdateRole(selectedUser.id, v)}
+                        >
+                          <SelectTrigger className="h-7 min-w-[120px] bg-slate-100 border-none font-black text-[10px] uppercase tracking-widest rounded-lg px-2">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-xl border-none shadow-xl">
+                            <SelectItem value="SUPER_ADMIN">SUPER_ADMIN</SelectItem>
+                            <SelectItem value="PLANNER">PLANNER</SelectItem>
+                            <SelectItem value="OPERATOR">OPERATOR</SelectItem>
+                            <SelectItem value="QUALITY">QUALITY</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-l pl-2">
+                          {selectedUser.employee?.name || t('users_unlinked')}
+                        </span>
+                      </div>
                    </div>
                 </div>
                 <div className="space-y-1">
@@ -282,21 +343,13 @@ export default function SystemUsersPage() {
                             <ShieldCheck className="size-4 text-indigo-600" />
                             {t('users_permission_preview')}
                          </h3>
-                         <div className="space-y-4">
-                            <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-                               <UserCheck className="size-4 text-emerald-500" />
-                               <span className="text-xs font-bold text-slate-700">{t('users_permission_mes')}</span>
-                            </div>
-                            <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-                               <UserCheck className="size-4 text-emerald-500" />
-                               <span className="text-xs font-bold text-slate-700">{t('users_permission_inv')}</span>
-                            </div>
-                            {selectedUser.role === 'SUPER_ADMIN' && (
-                               <div className="flex items-center gap-3 p-3 bg-red-50 rounded-xl">
-                                  <ShieldAlert className="size-4 text-red-500" />
-                                  <span className="text-xs font-bold text-red-700">{t('users_permission_admin')}</span>
+                         <div className="space-y-3">
+                            {(ROLE_PERMISSIONS[selectedUser.role] || []).map((perm, idx) => (
+                               <div key={idx} className={`flex items-center gap-3 p-4 rounded-2xl transition-all hover:scale-[1.02] border border-transparent hover:border-slate-100 ${perm.color}`}>
+                                  <perm.icon className="size-4 shrink-0" />
+                                  <span className="text-xs font-black uppercase tracking-tight">{perm.label}</span>
                                </div>
-                            )}
+                            ))}
                          </div>
                       </Card>
 

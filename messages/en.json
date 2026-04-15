@@ -1255,6 +1255,8 @@
     "users_btn_disable": "Disable Account",
     "users_btn_enable": "Enable Account",
     "users_btn_delete": "Delete Account",
+    "users_status_updated": "Account status updated",
+    "users_role_updated": "Account role updated",
     "users_tab_security": "Security & Permissions",
     "users_tab_logs": "Login Logs",
     "users_tab_prefs": "Preferences",

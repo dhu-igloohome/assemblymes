@@ -1250,6 +1250,8 @@
     "users_btn_disable": "禁用账号",
     "users_btn_enable": "启用账号",
     "users_btn_delete": "彻底删除",
+    "users_status_updated": "账号状态已更新",
+    "users_role_updated": "账号角色已更新",
     "users_tab_security": "权限与安全",
     "users_tab_logs": "登录日志",
     "users_tab_prefs": "偏好设置",
