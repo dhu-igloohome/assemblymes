@@ -311,7 +311,16 @@ export default function InventoryPage() {
                         <TableCell className="text-xs font-bold text-slate-600">{w.name}</TableCell>
                         <TableCell><span className="bg-slate-100 px-2 py-0.5 rounded text-[10px] font-black text-slate-500">{w.locations.length}</span></TableCell>
                         <TableCell className="text-right pr-8">
-                          <Button variant="ghost" size="sm" className="font-black text-indigo-600">{t('btn_manage_loc')}</Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="font-black text-indigo-600"
+                            onClick={() => toast.info(`Managing locations for ${w.warehouseCode}`, {
+                              description: 'Detailed storage location management is coming soon.'
+                            })}
+                          >
+                            {t('btn_manage_loc')}
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}

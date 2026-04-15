@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { toast } from 'sonner';
 import { 
   ShoppingBag, 
   Truck, 
@@ -233,6 +234,7 @@ export default function O2CPage() {
       const payload = (await res.json().catch(() => null)) as { error?: string } | null;
       if (!res.ok) {
         setFormError(mapError(payload?.error ?? ''));
+        toast.error(t('save_failed'), { description: mapError(payload?.error ?? '') });
         return;
       }
       setOrderNo('');
@@ -244,10 +246,12 @@ export default function O2CPage() {
       setStatus('DRAFT');
       setDueDate('');
       setMessage(t('create_success'));
+      toast.success(t('create_success'));
       setIsCreateDialogOpen(false);
       await loadData();
     } catch {
       setFormError(t('save_failed'));
+      toast.error(t('save_failed'));
     } finally {
       setIsSubmitting(false);
     }
@@ -257,6 +261,7 @@ export default function O2CPage() {
     setActionSubmitting(true);
     setFormError('');
     setMessage('');
+    toast.loading(tc('submitting'), { id: 'o2c-action' });
     try {
       const res = await fetch(url, {
         method: 'POST',
@@ -265,13 +270,17 @@ export default function O2CPage() {
       });
       const body = (await res.json().catch(() => null)) as { error?: string } | null;
       if (!res.ok) {
-        setFormError(mapError(body?.error ?? ''));
+        const err = mapError(body?.error ?? '');
+        setFormError(err);
+        toast.error(t('save_failed'), { id: 'o2c-action', description: err });
         return;
       }
       setMessage(successMsg);
+      toast.success(successMsg, { id: 'o2c-action' });
       await loadData();
     } catch {
       setFormError(t('save_failed'));
+      toast.error(t('save_failed'), { id: 'o2c-action' });
     } finally {
       setActionSubmitting(false);
     }

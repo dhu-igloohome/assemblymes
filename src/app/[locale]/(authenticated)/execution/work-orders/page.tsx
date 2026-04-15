@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { toast } from 'sonner';
 import { 
   ClipboardList, 
   Settings2, 
@@ -215,16 +216,20 @@ export default function WorkOrdersPage() {
       });
       const payload = (await res.json().catch(() => null)) as { error?: string } | null;
       if (!res.ok) {
-        setDialogError(mapError(payload?.error ?? ''));
+        const err = mapError(payload?.error ?? '');
+        setDialogError(err);
+        toast.error(t('save_failed'), { description: err });
         return;
       }
       setDialogOpen(false);
       resetForm();
       setListMessage(t('create_success'));
+      toast.success(t('create_success'));
       await loadRows();
       return;
     } catch {
       setDialogError(t('save_failed'));
+      toast.error(t('save_failed'));
     } finally {
       setIsSubmitting(false);
     }
@@ -234,6 +239,7 @@ export default function WorkOrdersPage() {
     setListError('');
     setListMessage('');
     setIsUpdatingStatus(true);
+    toast.loading(tc('submitting'), { id: 'wo-status' });
     try {
       const res = await fetch(`/api/work-orders/${row.id}`, {
         method: 'PATCH',
@@ -242,13 +248,17 @@ export default function WorkOrdersPage() {
       });
       const payload = (await res.json().catch(() => null)) as { error?: string } | null;
       if (!res.ok) {
-        setListError(mapError(payload?.error ?? ''));
+        const err = mapError(payload?.error ?? '');
+        setListError(err);
+        toast.error(t('save_failed'), { id: 'wo-status', description: err });
         return;
       }
       setListMessage(t('update_success'));
+      toast.success(t('update_success'), { id: 'wo-status' });
       await loadRows();
     } catch {
       setListError(t('save_failed'));
+      toast.error(t('save_failed'), { id: 'wo-status' });
     } finally {
       setIsUpdatingStatus(false);
     }
