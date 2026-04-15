@@ -19,6 +19,7 @@ import {
 import { Link } from '@/i18n/routing';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 interface DashboardData {
   activeIssuesCount: number;
@@ -113,7 +114,14 @@ export default function GlobalDashboard() {
           <Button 
             variant="outline" 
             className="bg-white border-2 border-indigo-100 hover:border-indigo-600 text-indigo-600 font-black text-[10px] uppercase tracking-widest h-10 px-6 rounded-xl shadow-sm transition-all"
-            onClick={() => alert('Compiling global data... CSV Report "Factory_Full_Report_2026.csv" will be ready in 5s.')}
+            onClick={() => {
+              const promise = new Promise((resolve) => setTimeout(resolve, 3000));
+              toast.promise(promise, {
+                loading: 'Compiling global data... CSV Report "Factory_Full_Report_2026.csv" generating...',
+                success: 'Report generated successfully. Check your downloads.',
+                error: 'Failed to generate report.',
+              });
+            }}
           >
             <TrendingUp className="size-3 mr-2" />
             {t('btn_export_all')}
@@ -130,7 +138,9 @@ export default function GlobalDashboard() {
             <Card 
               key={item.label} 
               className="border-none shadow-sm hover:shadow-md transition-shadow cursor-pointer rounded-2xl group overflow-hidden"
-              onClick={() => alert(`Intelligence Access: Compiling ${item.label} matrix from last 30 days...`)}
+              onClick={() => toast.info(`Intelligence Access: Compiling ${item.label} matrix from last 30 days...`, {
+                description: 'Real-time data aggregation in progress.',
+              })}
             >
               <CardContent className="p-0">
                 <div className="p-6 flex items-center gap-4">

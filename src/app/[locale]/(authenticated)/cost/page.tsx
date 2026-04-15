@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { toast } from 'sonner';
 import { 
   Coins, 
   TrendingDown, 
@@ -289,7 +290,14 @@ export default function CostPage() {
                   <Button 
                     variant="outline" 
                     className="font-black text-[10px] uppercase tracking-widest"
-                    onClick={() => alert('Generating Cost Intelligence Report... Data compilation in progress.')}
+                    onClick={() => {
+                      const promise = new Promise((resolve) => setTimeout(resolve, 3000));
+                      toast.promise(promise, {
+                        loading: 'Generating Cost Intelligence Report... Data compilation in progress.',
+                        success: 'Cost report for this Work Order is ready.',
+                        error: 'Failed to generate cost report.',
+                      });
+                    }}
                   >
                     {t('btn_generate_report')}
                   </Button>

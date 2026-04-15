@@ -22,6 +22,7 @@ export const metadata: Metadata = {
 };
 
 import { setRequestLocale } from 'next-intl/server';
+import { Toaster } from 'sonner';
 
 export async function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -52,6 +53,7 @@ export default async function LocaleLayout({
       <body className="min-h-full flex flex-col">
         <NextIntlClientProvider messages={messages} locale={locale} timeZone="Asia/Shanghai">
           {children}
+          <Toaster position="top-center" expand={true} richColors closeButton />
         </NextIntlClientProvider>
       </body>
     </html>

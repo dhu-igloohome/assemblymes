@@ -17,6 +17,7 @@ import {
   Package
 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { toast } from 'sonner';
 
 interface PlanningSummary {
   workOrderCount: number;
@@ -214,7 +215,9 @@ export default function PlanningPage() {
                     className="p-5 hover:bg-slate-50 transition-colors group cursor-pointer"
                     onClick={() => {
                       if (!isAutoPlanning) {
-                        alert(`Order ${order.orderNo} selected. You can now convert it to a Work Order.`);
+                        toast.info(`Order ${order.orderNo} selected`, {
+                          description: 'You can now convert it to a Work Order using the button below.',
+                        });
                       }
                     }}
                   >
