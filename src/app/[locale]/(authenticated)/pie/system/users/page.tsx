@@ -287,7 +287,7 @@ export default function SystemUsersPage() {
                       <div className="flex items-center gap-2">
                         <Select 
                           value={selectedUser.role} 
-                          onValueChange={(v) => void handleUpdateRole(selectedUser.id, v)}
+                          onValueChange={(v) => selectedUser && v && void handleUpdateRole(selectedUser.id, v)}
                         >
                           <SelectTrigger className="h-7 min-w-[120px] bg-slate-100 border-none font-black text-[10px] uppercase tracking-widest rounded-lg px-2">
                             <SelectValue />
@@ -344,7 +344,7 @@ export default function SystemUsersPage() {
                             {t('users_permission_preview')}
                          </h3>
                          <div className="space-y-3">
-                            {(ROLE_PERMISSIONS[selectedUser.role] || []).map((perm, idx) => (
+                            {(selectedUser && ROLE_PERMISSIONS[selectedUser.role] || []).map((perm, idx) => (
                                <div key={idx} className={`flex items-center gap-3 p-4 rounded-2xl transition-all hover:scale-[1.02] border border-transparent hover:border-slate-100 ${perm.color}`}>
                                   <perm.icon className="size-4 shrink-0" />
                                   <span className="text-xs font-black uppercase tracking-tight">{perm.label}</span>

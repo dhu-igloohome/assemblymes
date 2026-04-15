@@ -173,12 +173,10 @@ export default function Sidebar({ locale, currentUser }: SidebarProps) {
 
       <nav className="flex flex-1 flex-col gap-2 px-3 py-4">
         {navModules.map((module) => {
-          if ('roles' in module && currentUser) {
-          const allowedRoles = (module as any).roles as string[];
-          if (currentUser && !allowedRoles.includes(currentUser.role)) {
+          const allowedRoles = (module as any).roles;
+          if (allowedRoles && currentUser && !allowedRoles.includes(currentUser.role)) {
             return null;
           }
-        }
         
         const ModuleIcon = module.icon;
         const isModuleActive = module.children.some(
@@ -208,12 +206,10 @@ export default function Sidebar({ locale, currentUser }: SidebarProps) {
 
             <div className={['overflow-hidden transition-all duration-200', isOpen ? 'max-h-[500px]' : 'max-h-0'].join(' ')}>
               <div className="space-y-1 px-2 pb-2">
-                {module.children.map((item) => {
-                  if ('roles' in item && currentUser) {
-                    const allowedRoles = (item as any).roles as string[];
-                    if (!allowedRoles.includes(currentUser.role)) {
-                      return null;
-                    }
+                {module.children.map((item: any) => {
+                  const itemRoles = item.roles;
+                  if (itemRoles && currentUser && !itemRoles.includes(currentUser.role)) {
+                    return null;
                   }
                     const Icon = item.icon;
                     const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);

@@ -22,6 +22,15 @@ interface CockpitData {
   recentEvents: { id: string; time: string; event: string; type: string }[];
 }
 
+interface KpiCardProps {
+  label: string;
+  value: string;
+  unit: string;
+  icon: React.ReactNode;
+  color: string;
+  trend: string;
+}
+
 export default function CockpitPage() {
   const t = useTranslations('Execution');
   const [data, setData] = useState<CockpitData | null>(null);
@@ -181,7 +190,7 @@ export default function CockpitPage() {
   );
 }
 
-function KpiCard({ label, value, unit, icon, color, trend }: { label: string; value: string; unit: string; icon: any; color: string; trend: string }) {
+function KpiCard({ label, value, unit, icon, color, trend }: KpiCardProps) {
   return (
     <div className="bg-slate-900/40 border border-white/5 rounded-[40px] p-8 flex items-center gap-8 hover:bg-slate-900/60 transition-colors group">
       <div className={`size-20 bg-white/5 rounded-3xl flex items-center justify-center ${color} group-hover:scale-110 transition-transform shadow-inner`}>
