@@ -812,3 +812,16 @@ model AuditLog {
   @@index([createdAt])
   @@map("audit_logs")
 }
+
+model VisitorLog {
+  id        String   @id @default(uuid())
+  ip        String?  @db.VarChar(128)
+  userAgent String?  @map("user_agent") @db.VarChar(255)
+  locale    String?  @db.VarChar(10)
+  path      String?  @db.VarChar(128)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@index([ip])
+  @@map("visitor_logs")
+}

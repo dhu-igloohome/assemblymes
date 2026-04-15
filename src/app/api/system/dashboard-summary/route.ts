@@ -134,6 +134,36 @@ export async function GET() {
       };
     });
 
+    // 7. 流量统计 (Public Traffic Analytics)
+    const [totalPV, uniqueIPs, localeGroups] = await Promise.all([
+      prisma.visitorLog.count(),
+      prisma.visitorLog.groupBy({
+        by: ['ip'],
+        _count: true
+      }),
+      prisma.visitorLog.groupBy({
+        by: ['locale'],
+        _count: {
+          id: true
+        },
+        orderBy: {
+          _count: {
+            id: 'desc'
+          }
+        }
+      })
+    ]);
+
+    const trafficStats = {
+      pv: totalPV,
+      uv: uniqueIPs.length,
+      regions: localeGroups.map(group => ({
+        region: group.locale === 'zh' ? 'China (Mainland)' : (group.locale === 'en' ? 'Global/English' : group.locale),
+        count: group._count.id,
+        pct: totalPV > 0 ? Math.round((group._count.id / totalPV) * 100) : 0
+      }))
+    };
+
     return NextResponse.json({
       activeIssuesCount: activeIssues.length,
       activeIssuesList: activeIssues,
@@ -142,6 +172,7 @@ export async function GET() {
       lineStatus: activeWOs > 0 ? 'RUNNING' : 'IDLE',
       recentOrders: formattedOrders,
       materialGaps: finalMaterialGaps,
+      trafficStats, // New data
       debugInfo: {
         timestamp: new Date().toISOString(),
         dbStatus: 'CONNECTED'

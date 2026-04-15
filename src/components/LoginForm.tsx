@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,6 +22,22 @@ export default function LoginForm() {
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Silent public traffic tracking
+  useEffect(() => {
+    const trackVisitor = async () => {
+      try {
+        await fetch('/api/public/track', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ path: window.location.pathname, locale }),
+        });
+      } catch (e) {
+        // Fail silently
+      }
+    };
+    trackVisitor();
+  }, [locale]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();

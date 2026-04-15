@@ -30,6 +30,15 @@ interface DashboardData {
   lineStatus: 'RUNNING' | 'IDLE';
   recentOrders: any[];
   materialGaps: any[];
+  trafficStats?: {
+    pv: number;
+    uv: number;
+    regions: Array<{
+      region: string;
+      count: number;
+      pct: number;
+    }>;
+  };
   debugInfo?: {
     timestamp: string;
     dbStatus: string;
@@ -329,10 +338,10 @@ export default function GlobalDashboard() {
             <CardContent className="pt-6">
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 {[
-                  { label: t('col_uv'), value: '418', sub: '+12% WoW' },
-                  { label: t('col_pv'), value: '1,200', sub: 'Avg 2.8/user' },
-                  { label: t('col_duration'), value: '03:47', sub: 'High Engagement' },
-                  { label: t('col_bounce'), value: '55.2%', sub: 'Healthy Range' },
+                  { label: t('col_uv'), value: (data?.trafficStats?.uv || 0).toLocaleString(), sub: 'Unique Visitors' },
+                  { label: t('col_pv'), value: (data?.trafficStats?.pv || 0).toLocaleString(), sub: `Avg ${(data?.trafficStats?.pv && data?.trafficStats?.uv) ? (data.trafficStats.pv / data.trafficStats.uv).toFixed(1) : 0}/user` },
+                  { label: t('col_duration'), value: '03:47', sub: 'Initial Est.' },
+                  { label: t('col_bounce'), value: '55.2%', sub: 'Initial Est.' },
                 ].map((stat, idx) => (
                   <div key={idx} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-center">
                     <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">{stat.label}</p>
@@ -342,26 +351,30 @@ export default function GlobalDashboard() {
                 ))}
               </div>
 
-              {/* Mock Regional Distribution List (Based on your Screenshot) */}
+              {/* Regional Distribution List from Database */}
               <div className="space-y-3">
                 <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                  Top Demand Regions (Potential Client Base)
+                  Top Demand Regions (Live Traffic Data)
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {[
-                    { region: 'China (Mainland)', count: 381, pct: 91, color: 'bg-indigo-500' },
-                    { region: 'Ireland', count: 17, pct: 4, color: 'bg-emerald-500' },
-                    { region: 'United States', count: 11, pct: 3, color: 'bg-amber-500' },
-                    { region: 'Others (Global)', count: 9, pct: 2, color: 'bg-slate-300' },
-                  ].map((row, idx) => (
-                    <div key={idx} className="flex items-center gap-3">
-                      <div className="w-24 text-[10px] font-bold text-slate-600 truncate">{row.region}</div>
-                      <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                        <div className={`h-full ${row.color} transition-all duration-1000`} style={{ width: `${row.pct}%` }} />
+                  {(data?.trafficStats?.regions || []).length > 0 ? (
+                    data?.trafficStats?.regions.map((row, idx) => (
+                      <div key={idx} className="flex items-center gap-3">
+                        <div className="w-24 text-[10px] font-bold text-slate-600 truncate">{row.region}</div>
+                        <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                          <div 
+                            className={`h-full ${idx === 0 ? 'bg-indigo-500' : (idx === 1 ? 'bg-emerald-500' : 'bg-slate-300')} transition-all duration-1000`} 
+                            style={{ width: `${row.pct}%` }} 
+                          />
+                        </div>
+                        <div className="w-12 text-[10px] font-black text-slate-900 text-right">{row.count}</div>
                       </div>
-                      <div className="w-12 text-[10px] font-black text-slate-900 text-right">{row.count}</div>
+                    ))
+                  ) : (
+                    <div className="col-span-2 text-center py-4 text-xs text-slate-400 italic">
+                      Waiting for incoming traffic data...
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
             </CardContent>
