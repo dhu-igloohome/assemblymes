@@ -127,7 +127,11 @@ export default function GlobalDashboard() {
             { label: t('report_cost_variance'), icon: BarChart3, color: 'text-amber-600', bg: 'bg-amber-50' },
             { label: t('report_delivery_lt'), icon: Clock, color: 'text-rose-600', bg: 'bg-rose-50' },
           ].map((item) => (
-            <Card key={item.label} className="border-none shadow-sm hover:shadow-md transition-shadow cursor-pointer rounded-2xl group overflow-hidden">
+            <Card 
+              key={item.label} 
+              className="border-none shadow-sm hover:shadow-md transition-shadow cursor-pointer rounded-2xl group overflow-hidden"
+              onClick={() => alert(`Intelligence Access: Compiling ${item.label} matrix from last 30 days...`)}
+            >
               <CardContent className="p-0">
                 <div className="p-6 flex items-center gap-4">
                   <div className={`p-3 rounded-xl ${item.bg} ${item.color} group-hover:scale-110 transition-transform`}>

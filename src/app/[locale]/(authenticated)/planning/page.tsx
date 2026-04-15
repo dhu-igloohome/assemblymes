@@ -209,7 +209,15 @@ export default function PlanningPage() {
             <CardContent className="p-0">
               <div className="divide-y divide-slate-50">
                 {pendingOrders.map((order) => (
-                  <div key={order.id} className="p-5 hover:bg-slate-50 transition-colors group cursor-pointer">
+                  <div 
+                    key={order.id} 
+                    className="p-5 hover:bg-slate-50 transition-colors group cursor-pointer"
+                    onClick={() => {
+                      if (!isAutoPlanning) {
+                        alert(`Order ${order.orderNo} selected. You can now convert it to a Work Order.`);
+                      }
+                    }}
+                  >
                     <div className="flex justify-between items-start mb-2">
                       <span className="text-[10px] font-black px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded uppercase tracking-tighter">
                         {order.orderNo}
