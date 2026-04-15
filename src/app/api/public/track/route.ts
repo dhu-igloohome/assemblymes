@@ -5,7 +5,7 @@ import { headers } from 'next/headers';
 export async function POST(request: NextRequest) {
   try {
     const headerList = await headers();
-    const ip = headerList.get('x-forwarded-for') || request.ip || 'unknown';
+    const ip = headerList.get('x-forwarded-for') || 'unknown';
     const userAgent = headerList.get('user-agent') || 'unknown';
     
     // Vercel Edge Geo-Location Headers

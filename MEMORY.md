@@ -21,6 +21,7 @@
 - **Framework**: Next.js (App Router) + Prisma + PostgreSQL.
 - **UI Logic**: Linear-inspired, dark-themed, high-contrast.
 - **Interaction Constraints**: 
+    - **Zero-Tolerance for Type Errors**: I am FORBIDDEN from pushing code that fails `npm run build` or `npm run type-check`. Local verification is now a hard dependency for deployment.
     - **No "Fake" Interactivity**: Any element with `cursor-pointer` or `Button` component MUST have an `onClick` or `Link`.
     - **Pre-Commit Audit**: I am FORBIDDEN from finishing a task until I have verified 100% of new UI interaction points.
     - **Full-Staged Feedback**: Buttons must show `isSubmitting` states and disabled props during async ops.

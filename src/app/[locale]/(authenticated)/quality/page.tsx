@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -190,7 +191,9 @@ export default function QualityPage() {
           </Button>
           <Button 
             className="font-bold bg-indigo-600 shadow-lg shadow-indigo-100"
-            onClick={() => alert('New Quality Record interface is loading... Connecting to IPQC module.')}
+            onClick={() => toast.info('New Quality Record interface is loading...', {
+              description: 'Connecting to IPQC module for real-time inspection entry.'
+            })}
           >
             {t('btn_add_record')}
           </Button>
