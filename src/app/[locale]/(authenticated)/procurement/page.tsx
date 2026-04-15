@@ -134,8 +134,9 @@ export default function ProcurementPage() {
       LOCATION_REQUIRED: 'location_required',
       LOCATION_NOT_FOUND: 'location_not_found',
       PURCHASE_ORDER_NOT_FOUND: 'po_not_found',
+      PURCHASE_ORDER_RECEIVE_FAILED: 'receive_failed_detail',
     };
-    return map[code] ? t(map[code]) : t('save_failed');
+    return map[code] ? t(map[code]) : (code ? `${t('save_failed')}: ${code}` : t('save_failed'));
   };
 
   const submitAction = async (url: string, payload: Record<string, unknown>, successMsg: string) => {

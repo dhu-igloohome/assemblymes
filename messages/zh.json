@@ -577,6 +577,7 @@
     "location_required": "库位必选",
     "location_not_found": "未找到库位",
     "po_not_found": "未找到订单",
+    "receive_failed_detail": "入库执行失败。请检查采购单状态或库位可用性。",
     "center_title": "采购与入库中心",
     "center_desc": "Supply Chain & Inbound Control",
     "btn_add_po": "新增采购订单",

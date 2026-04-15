@@ -20,6 +20,7 @@
 - **UI Logic**: Linear-inspired, dark-themed, high-contrast.
 - **Real-time Logic**: Polling mechanism (5s) chosen for stability.
 - **Integration Hub**: Asynchronous external system simulation with audit trail.
+- **Deployment Strategy**: **MANDATORY AUTO-DEPLOY**. Any successful code change must be synchronously pushed to GitHub for Vercel deployment.
 
 ## 📅 Session Logs
 ### 2026-04-15

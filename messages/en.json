@@ -577,6 +577,7 @@
     "location_required": "Location required",
     "location_not_found": "Location not found",
     "po_not_found": "Order not found",
+    "receive_failed_detail": "Inbound execution failed. Please check PO status or inventory availability.",
     "center_title": "Procurement & Inbound Center",
     "center_desc": "Supply Chain & Inbound Control",
     "btn_add_po": "New Purchase Order",
