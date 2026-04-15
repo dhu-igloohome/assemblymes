@@ -9,15 +9,21 @@
 | 2026-04-15 | **Global Scanner Integration** | Factory workers use barcode scanners; global key listening allows keyboard-free operation. | Implemented |
 | 2026-04-15 | **RBAC Implementation** | Security requirement to isolate Costing, Planning, and Engineering data by role. | Implemented |
 | 2026-04-15 | **Quality Poka-yoke** | Integrate QC standards directly into the production reporting workflow. | Implemented |
+| 2026-04-15 | **Zero-Dead-Button Policy** | Every interactive element must have explicit logic and visual feedback to ensure industrial reliability. | Implemented |
 
 ## 🚀 Active Milestones
 - [x] **P0: Core Flow & Real-time** (End-to-end tracking, MRP, Andon loop)
 - [x] **P1: Industrial UX** (Scanner, Poka-yoke, Auto-scheduling, Mobile UI)
 - [x] **P2: Security & Integration** (RBAC, Audit Logs, Integration Hub)
+- [x] **P3: Quality & Interaction Audit** (100% logic check for all interactive points)
 
 ## 🧠 Core Architecture & Constraints
 - **Framework**: Next.js (App Router) + Prisma + PostgreSQL.
 - **UI Logic**: Linear-inspired, dark-themed, high-contrast.
+- **Interaction Constraints**: 
+    - **No "Fake" Interactivity**: Any element with `cursor-pointer` MUST have an `onClick` or `Link`.
+    - **Full-Staged Feedback**: Buttons must show `isSubmitting` states and disabled props during async ops.
+    - **Industrial Feedback**: Use specialized feedback (Toasts/Modals) for all data-driven actions.
 - **Real-time Logic**: Polling mechanism (5s) chosen for stability.
 - **Integration Hub**: Asynchronous external system simulation with audit trail.
 - **Deployment Strategy**: **MANDATORY AUTO-DEPLOY**. Any successful code change must be synchronously pushed to GitHub for Vercel deployment.
