@@ -819,6 +819,8 @@ model VisitorLog {
   userAgent String?  @map("user_agent") @db.VarChar(255)
   locale    String?  @db.VarChar(10)
   path      String?  @db.VarChar(128)
+  country   String?  @db.VarChar(10)
+  region    String?  @db.VarChar(64)
   createdAt DateTime @default(now()) @map("created_at")
 
   @@index([createdAt])
