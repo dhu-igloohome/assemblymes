@@ -29,12 +29,55 @@ export async function GET() {
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     
-    const recentIssues = await prisma.issueRecord.findMany({
-      where: { reportedAt: { gte: sevenDaysAgo } },
-      select: { reportedAt: true, status: true }
+    const [recentIssues, resolvedIssues] = await Promise.all([
+      prisma.issueRecord.findMany({
+        where: { reportedAt: { gte: sevenDaysAgo } },
+        select: { reportedAt: true, status: true }
+      }),
+      prisma.issueRecord.findMany({
+        where: { 
+          reportedAt: { gte: sevenDaysAgo },
+          NOT: { respondedAt: null }
+        },
+        select: { reportedAt: true, respondedAt: true, resolvedAt: true }
+      })
+    ]);
+
+    // 4. Calculate MTTR (Mean Time to Respond) & MTTF (Mean Time to Fix)
+    let totalResponseTime = 0;
+    let responseCount = 0;
+    let totalFixTime = 0;
+    let fixCount = 0;
+
+    resolvedIssues.forEach(issue => {
+      if (issue.respondedAt) {
+        totalResponseTime += (issue.respondedAt.getTime() - issue.reportedAt.getTime()) / 1000;
+        responseCount++;
+      }
+      if (issue.resolvedAt) {
+        totalFixTime += (issue.resolvedAt.getTime() - issue.reportedAt.getTime()) / 1000;
+        fixCount++;
+      }
     });
 
-    // 4. Quality yield from ProductionReports
+    const mttr = responseCount > 0 ? Math.round(totalResponseTime / responseCount) : 0;
+    const mttf = fixCount > 0 ? Math.round(totalFixTime / fixCount) : 0;
+
+    // 5. Pareto Analysis (Type)
+    const sortedIssues = [...issuesByType].sort((a, b) => b._count._all - a._count._all);
+    const totalIssues = sortedIssues.reduce((sum, i) => sum + i._count._all, 0);
+    let cumulative = 0;
+    const paretoData = sortedIssues.map(i => {
+      cumulative += i._count._all;
+      return {
+        type: i.issueType,
+        count: i._count._all,
+        percentage: totalIssues > 0 ? (i._count._all / totalIssues * 100).toFixed(1) : 0,
+        cumulativePercentage: totalIssues > 0 ? (cumulative / totalIssues * 100).toFixed(1) : 0
+      };
+    });
+
+    // 6. Quality yield from ProductionReports
     const totalProduction = await prisma.productionReport.aggregate({
       _sum: { goodQty: true, scrapQty: true }
     });
@@ -50,7 +93,10 @@ export async function GET() {
       yieldRate: Number(yieldRate.toFixed(2)),
       totalGood,
       totalScrap,
-      recentTrend: recentIssues.length
+      recentTrend: recentIssues.length,
+      mttr,
+      mttf,
+      paretoData
     });
   } catch (error: unknown) {
     return NextResponse.json(

@@ -45,7 +45,22 @@ export default function QualityPage() {
   
   const [activeTab, setActiveTab] = useState('records');
   const [rows, setRows] = useState<InspectionRow[]>([]);
-  const [analytics, setAnalytics] = useState<any>(null);
+  const [analytics, setAnalytics] = useState<{
+    yieldRate: number;
+    totalGood: number;
+    totalScrap: number;
+    recentTrend: number;
+    mttr: number;
+    mttf: number;
+    paretoData: Array<{
+      type: string;
+      count: number;
+      percentage: string;
+      cumulativePercentage: string;
+    }>;
+    issuesByWorkCenter: Array<{ code: string; count: number }>;
+    issuesByType: Array<{ type: string; count: number }>;
+  } | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -409,71 +424,137 @@ export default function QualityPage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="analytics" className="animate-in slide-in-from-right-4 duration-500">
-          <div className="grid gap-8 md:grid-cols-2">
+        <TabsContent value="analytics" className="animate-in slide-in-from-right-4 duration-500 space-y-8">
+          {/* Management Efficiency Row */}
+          <div className="grid gap-6 md:grid-cols-3">
+             <Card className="border-none shadow-sm rounded-3xl p-6 bg-white border-l-4 border-l-indigo-500">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Management Response (MTTR)</p>
+                <div className="flex items-baseline gap-2">
+                   <h4 className="text-3xl font-black text-slate-900">{analytics?.mttr ? Math.round(analytics.mttr / 60) : '—'}</h4>
+                   <span className="text-xs font-bold text-slate-500 uppercase">Minutes</span>
+                </div>
+                <p className="text-[10px] text-slate-400 font-medium mt-1">Mean Time To Respond (Last 7 Days)</p>
+             </Card>
+             <Card className="border-none shadow-sm rounded-3xl p-6 bg-white border-l-4 border-l-violet-500">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Resolution Speed (MTTF)</p>
+                <div className="flex items-baseline gap-2">
+                   <h4 className="text-3xl font-black text-slate-900">{analytics?.mttf ? Math.round(analytics.mttf / 3600) : '—'}</h4>
+                   <span className="text-xs font-bold text-slate-500 uppercase">Hours</span>
+                </div>
+                <p className="text-[10px] text-slate-400 font-medium mt-1">Mean Time To Fix (Last 7 Days)</p>
+             </Card>
+             <Card className="border-none shadow-sm rounded-3xl p-6 bg-slate-900 text-white border-l-4 border-l-emerald-500">
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Overall Yield Stability</p>
+                <div className="flex items-baseline gap-2">
+                   <h4 className="text-3xl font-black text-emerald-400">{analytics?.yieldRate || '—'}%</h4>
+                   <span className="text-xs font-bold text-slate-500 uppercase">FTY</span>
+                </div>
+                <p className="text-[10px] text-slate-500 font-medium mt-1">First-Time Yield across all lines</p>
+             </Card>
+          </div>
+
+          <div className="grid gap-8 lg:grid-cols-12">
+            {/* Pareto Analysis Chart (Tailwind Native) */}
+            <Card className="lg:col-span-8 border-none shadow-xl rounded-[32px] overflow-hidden bg-white">
+              <CardHeader className="pb-6 border-b border-slate-50 flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
+                    <BarChart3 className="size-5 text-indigo-500" />
+                    Pareto Analysis: Defect Sources
+                  </CardTitle>
+                  <CardDescription>Visualizing the 80/20 rule of quality failures.</CardDescription>
+                </div>
+                <div className="text-[10px] font-black bg-slate-100 px-3 py-1 rounded-full uppercase tracking-widest text-slate-500">
+                  Last 30 Days
+                </div>
+              </CardHeader>
+              <CardContent className="pt-8">
+                <div className="relative h-64 w-full flex items-end gap-4 px-4 border-b border-slate-100">
+                  {(analytics?.paretoData || []).map((item, idx) => (
+                    <div key={item.type} className="flex-1 flex flex-col items-center group relative">
+                      {/* Cumulative Line (Mocked via Absolute points for visual effect) */}
+                      <div 
+                        className="absolute w-2 h-2 bg-indigo-600 rounded-full z-20 transition-all duration-1000 border-2 border-white"
+                        style={{ bottom: `${item.cumulativePercentage}%`, left: '50%', transform: 'translateX(-50%)' }}
+                      />
+                      {/* Bar */}
+                      <div 
+                        className={`w-full rounded-t-lg transition-all duration-1000 relative group-hover:brightness-110 ${idx < 2 ? 'bg-indigo-600' : 'bg-slate-200'}`}
+                        style={{ height: `${(item.count / (analytics?.paretoData[0]?.count || 1)) * 90}%` }}
+                      >
+                        <div className="opacity-0 group-hover:opacity-100 absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] font-black px-2 py-1 rounded whitespace-nowrap z-30 transition-opacity">
+                          {item.count} Cases ({item.percentage}%)
+                        </div>
+                      </div>
+                      <p className="absolute -bottom-8 text-[8px] font-black text-slate-400 uppercase tracking-widest text-center truncate w-full">
+                        {item.type}
+                      </p>
+                    </div>
+                  ))}
+                  {(!analytics?.paretoData?.length) && (
+                    <div className="absolute inset-0 flex items-center justify-center text-slate-300 italic text-sm">
+                      Insufficient failure data for Pareto analysis.
+                    </div>
+                  )}
+                </div>
+                
+                {/* Legend & Details */}
+                <div className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {(analytics?.paretoData || []).slice(0, 4).map((item, idx) => (
+                    <div key={item.type} className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                       <p className="text-[10px] font-black text-slate-400 uppercase mb-1">{item.type}</p>
+                       <div className="flex justify-between items-end">
+                          <span className="text-lg font-black text-slate-900">{item.count}</span>
+                          <span className={`text-[10px] font-bold ${idx < 2 ? 'text-red-500' : 'text-slate-400'}`}>
+                             {item.cumulativePercentage}% Cum.
+                          </span>
+                       </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Workstation Hotspots */}
-            <Card className="border-none shadow-xl rounded-[32px] overflow-hidden bg-white">
-              <CardHeader className="pb-6 border-b border-slate-50">
-                <CardTitle className="text-lg font-black text-slate-900 uppercase tracking-tight flex items-center gap-2">
-                  <Activity className="size-5 text-indigo-500" />
-                  {t('issue_heat')}
+            <Card className="lg:col-span-4 border-none shadow-xl rounded-[32px] overflow-hidden bg-slate-900 text-white">
+              <CardHeader className="pb-6 border-b border-white/5">
+                <CardTitle className="text-lg font-black text-white uppercase tracking-tight flex items-center gap-2">
+                  <Activity className="size-5 text-indigo-400" />
+                  Workstation Hotspots
                 </CardTitle>
-                <CardDescription>Identifying workstations with highest failure rates.</CardDescription>
+                <CardDescription className="text-slate-400">Station-level quality failure frequency.</CardDescription>
               </CardHeader>
               <CardContent className="pt-8 space-y-6">
-                {(analytics?.issuesByWorkCenter || []).sort((a: any, b: any) => b.count - a.count).map((wc: any) => (
-                  <div key={wc.code} className="space-y-2">
+                {(analytics?.issuesByWorkCenter || []).sort((a: any, b: any) => b.count - a.count).map((wc: any, idx: number) => (
+                  <div key={wc.code} className="space-y-2 group">
                     <div className="flex justify-between items-end">
-                      <span className="text-xs font-black text-slate-700 uppercase tracking-widest">{wc.code}</span>
-                      <span className="text-xs font-black text-indigo-600">{wc.count} ISSUES</span>
+                      <span className="text-xs font-black text-slate-300 uppercase tracking-widest group-hover:text-white transition-colors">{wc.code}</span>
+                      <span className="text-xs font-black text-indigo-400">{wc.count} ISSUES</span>
                     </div>
-                    <div className="h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-200/50">
+                    <div className="h-2.5 bg-white/5 rounded-full overflow-hidden border border-white/10">
                       <div 
-                        className="h-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-all duration-1000" 
+                        className={`h-full transition-all duration-1000 ${idx === 0 ? 'bg-red-500' : 'bg-indigo-500'}`} 
                         style={{ width: `${Math.min(100, (wc.count / (analytics?.issuesByWorkCenter[0]?.count || 1)) * 100)}%` }} 
                       />
                     </div>
                   </div>
                 ))}
                 {(!analytics?.issuesByWorkCenter?.length) && (
-                  <div className="py-20 text-center text-slate-400 italic text-xs uppercase font-black">
-                     No anomalies detected at workstations yet.
+                  <div className="py-20 text-center text-slate-600 italic text-xs uppercase font-black">
+                     No workstation hotspots identified.
                   </div>
                 )}
-              </CardContent>
-            </Card>
-
-            {/* Issue Category Pie (Simplified as list with percentages) */}
-            <Card className="border-none shadow-xl rounded-[32px] overflow-hidden bg-slate-900 text-white">
-              <CardHeader className="pb-6 border-b border-white/5">
-                <CardTitle className="text-lg font-black text-white uppercase tracking-tight flex items-center gap-2">
-                  <AlertTriangle className="size-5 text-amber-400" />
-                  {t('issue_types')}
-                </CardTitle>
-                <CardDescription className="text-slate-400">Root cause distribution across the factory.</CardDescription>
-              </CardHeader>
-              <CardContent className="pt-8 space-y-4">
-                {(analytics?.issuesByType || []).map((type: any) => {
-                  const total = analytics.issuesByType.reduce((sum: number, t: any) => sum + t.count, 0);
-                  const pct = Math.round((type.count / total) * 100);
-                  return (
-                    <div key={type.type} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors">
-                      <div className="flex items-center gap-3">
-                        <div className={`size-3 rounded-full ${type.type === 'QUALITY' ? 'bg-red-400' : 'bg-indigo-400'}`} />
-                        <span className="text-xs font-black uppercase tracking-widest">{type.type}</span>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <span className="text-lg font-black">{pct}%</span>
-                        <span className="text-[10px] font-bold text-slate-500 uppercase">{type.count} Cases</span>
-                      </div>
-                    </div>
-                  );
-                })}
-                {(!analytics?.issuesByType?.length) && (
-                  <div className="py-20 text-center text-slate-500 italic text-xs uppercase font-black">
-                     Zero issues reported. Factory status: OK.
-                  </div>
-                )}
+                
+                <div className="pt-6 mt-6 border-t border-white/5">
+                   <div className="p-4 bg-indigo-500/10 rounded-2xl border border-indigo-500/20">
+                      <p className="text-[10px] font-black text-indigo-300 uppercase tracking-widest mb-1">AI Recommendation</p>
+                      <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                        {analytics?.issuesByWorkCenter?.[0] 
+                          ? `High failure rate at ${analytics.issuesByWorkCenter[0].code} suggests tooling wear or operator training gap.`
+                          : "Line performance is within optimal range. Continue current QC sampling rate."}
+                      </p>
+                   </div>
+                </div>
               </CardContent>
             </Card>
           </div>
