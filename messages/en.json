@@ -50,7 +50,10 @@
     "updated_at": "Updated At",
     "version": "Version",
     "all": "All",
-    "refresh": "Refresh"
+    "refresh": "Refresh",
+    "btn_save": "Save Changes",
+    "btn_cancel": "Cancel",
+    "btn_add": "Add New"
   },
   "Sidebar": {
     "control_center": "Control Center",
@@ -401,6 +404,7 @@
     "stat_received_total": "Received Total",
     "stat_ar_total": "AR Total",
     "archive_title": "Sales Order Archive",
+    "create_order": "NEW SALES ORDER",
     "search_placeholder": "Search order no, customer name...",
     "order_no_label": "Order No",
     "customer_label": "Customer",
