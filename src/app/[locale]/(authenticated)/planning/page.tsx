@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -28,10 +28,17 @@ interface PlanningSummary {
 interface ShortageRow {
   workOrderNo: string;
   skuItemCode: string;
+  skuName: string;
   plannedQty: number;
-  availableQty: number;
-  shortageQty: number;
   status: string;
+  isReady: boolean;
+  componentGaps: {
+    componentCode: string;
+    componentName: string;
+    required: number;
+    available: number;
+    gap: number;
+  }[];
 }
 
 interface SafetyWarningRow {
@@ -63,6 +70,7 @@ export default function PlanningPage() {
   const [error, setError] = useState('');
   const [data, setData] = useState<OverviewResponse | null>(null);
   const [pendingOrders, setPendingOrders] = useState<any[]>([]);
+  const [expandedWO, setExpandedWO] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
@@ -181,45 +189,85 @@ export default function PlanningPage() {
                   </TableHeader>
                   <TableBody>
                     {(data?.shortage || []).map((row) => (
-                      <TableRow key={row.workOrderNo} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
-                        <TableCell className="pl-8 py-5">
-                          <div className="space-y-1">
-                            <p className="text-xs font-black text-slate-900">{row.workOrderNo}</p>
-                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">SKU: {row.skuItemCode}</p>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-xs font-black text-slate-700">{row.plannedQty} <span className="text-[10px] text-slate-400">PCS</span></div>
-                        </TableCell>
-                        <TableCell>
-                          {row.shortageQty > 0 ? (
-                            <span className="inline-flex items-center border border-red-100 bg-red-50 text-red-600 font-black text-[10px] uppercase px-2 py-0.5 rounded-full">
-                              <AlertTriangle className="size-3 mr-1" /> {t('status_shortage', { qty: row.shortageQty })}
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center border border-emerald-100 bg-emerald-50 text-emerald-600 font-black text-[10px] uppercase px-2 py-0.5 rounded-full">
-                              <CheckCircle2 className="size-3 mr-1" /> {t('status_ready')}
-                            </span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="w-24 space-y-1">
-                            <div className="flex justify-between text-[8px] font-black uppercase text-slate-400">
-                              <span>Progress</span>
-                              <span>{Math.round((row.availableQty / row.plannedQty) * 100)}%</span>
+                      <React.Fragment key={row.workOrderNo}>
+                        <TableRow 
+                          className={`border-b border-slate-50 hover:bg-slate-50/50 transition-colors cursor-pointer ${expandedWO === row.workOrderNo ? 'bg-indigo-50/30' : ''}`}
+                          onClick={() => setExpandedWO(expandedWO === row.workOrderNo ? null : row.workOrderNo)}
+                        >
+                          <TableCell className="pl-8 py-5">
+                            <div className="space-y-1">
+                              <p className="text-xs font-black text-slate-900">{row.workOrderNo}</p>
+                              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">{row.skuName}</p>
                             </div>
-                            <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
-                              <div 
-                                className={`h-full ${row.shortageQty > 0 ? 'bg-amber-400' : 'bg-indigo-600'}`} 
-                                style={{ width: `${Math.min(100, (row.availableQty / row.plannedQty) * 100)}%` }} 
-                              />
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-xs font-black text-slate-700">{row.plannedQty} <span className="text-[10px] text-slate-400">PCS</span></div>
+                          </TableCell>
+                          <TableCell>
+                            {!row.isReady ? (
+                              <span className="inline-flex items-center border border-red-100 bg-red-50 text-red-600 font-black text-[10px] uppercase px-2 py-0.5 rounded-full">
+                                <AlertTriangle className="size-3 mr-1" /> {t('status_shortage', { qty: row.componentGaps.length })}
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center border border-emerald-100 bg-emerald-50 text-emerald-600 font-black text-[10px] uppercase px-2 py-0.5 rounded-full">
+                                <CheckCircle2 className="size-3 mr-1" /> {t('status_ready')}
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <div className="w-24 space-y-1">
+                              <div className="flex justify-between text-[8px] font-black uppercase text-slate-400">
+                                <span>MRP Match</span>
+                                <span>{row.isReady ? '100' : Math.round(((row.componentGaps.length === 0 ? 1 : 0.5)) * 100)}%</span>
+                              </div>
+                              <div className="h-1 bg-slate-100 rounded-full overflow-hidden">
+                                <div 
+                                  className={`h-full ${!row.isReady ? 'bg-amber-400' : 'bg-indigo-600'}`} 
+                                  style={{ width: `${row.isReady ? 100 : 50}%` }} 
+                                />
+                              </div>
                             </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right pr-8">
-                           <Button variant="ghost" size="sm" className="font-black text-indigo-600 text-[10px] uppercase">{t('btn_adjust')}</Button>
-                        </TableCell>
-                      </TableRow>
+                          </TableCell>
+                          <TableCell className="text-right pr-8">
+                             <Button variant="ghost" size="sm" className="font-black text-indigo-600 text-[10px] uppercase">
+                               {expandedWO === row.workOrderNo ? 'Close' : t('btn_check_material')}
+                             </Button>
+                          </TableCell>
+                        </TableRow>
+                        
+                        {/* Expanded Component Shortage View */}
+                        {expandedWO === row.workOrderNo && (
+                          <TableRow className="bg-slate-50/50 border-none">
+                            <TableCell colSpan={5} className="p-0">
+                               <div className="px-8 py-6 space-y-4">
+                                  <div className="flex items-center gap-2 mb-2">
+                                     <Package className="size-4 text-slate-400" />
+                                     <h5 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Component Shortage Breakdown</h5>
+                                  </div>
+                                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                     {row.componentGaps.map(gap => (
+                                        <div key={gap.componentCode} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex justify-between items-center">
+                                           <div>
+                                              <p className="text-[10px] font-black text-indigo-600">{gap.componentCode}</p>
+                                              <p className="text-xs font-bold text-slate-800">{gap.componentName}</p>
+                                           </div>
+                                           <div className="text-right">
+                                              <p className="text-[10px] font-black text-red-500 uppercase">Short: {gap.gap}</p>
+                                              <p className="text-[10px] text-slate-400 font-medium">Inv: {gap.available} / Req: {gap.required}</p>
+                                           </div>
+                                        </div>
+                                     ))}
+                                     {row.componentGaps.length === 0 && (
+                                        <div className="col-span-full py-4 text-center text-xs text-emerald-600 font-bold bg-emerald-50 rounded-xl border border-emerald-100">
+                                           All components are fully matched for this order.
+                                        </div>
+                                     )}
+                                  </div>
+                               </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </React.Fragment>
                     ))}
                     {(data?.shortage?.length ?? 0) === 0 && (
                       <TableRow>

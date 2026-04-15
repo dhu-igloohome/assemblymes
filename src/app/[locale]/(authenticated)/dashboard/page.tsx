@@ -43,15 +43,26 @@ export default function GlobalDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const loadDashboardData = async () => {
+    try {
+      const res = await fetch('/api/system/dashboard-summary', { cache: 'no-store' });
+      if (!res.ok) throw new Error('API_LOAD_FAILED');
+      const payload = await res.json();
+      setData(payload);
+      setError(null);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetch('/api/system/dashboard-summary')
-      .then(async (res) => {
-        if (!res.ok) throw new Error('API_LOAD_FAILED');
-        return res.json();
-      })
-      .then(setData)
-      .catch(err => setError(err.message))
-      .finally(() => setLoading(false));
+    void loadDashboardData();
+    const timer = setInterval(() => {
+      void loadDashboardData();
+    }, 5000); // 5s refresh for real-time factory monitoring
+    return () => clearInterval(timer);
   }, []);
 
   if (loading) return <div className="p-8 text-slate-500">{tc('loading')}</div>;
