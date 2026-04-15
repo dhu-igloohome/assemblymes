@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslations } from 'next-intl';
+import { Html5Qrcode } from 'html5-qrcode';
+import { toast } from 'sonner';
 import { 
   Scan, 
   Search, 
@@ -26,55 +28,122 @@ export default function MobileReportPage() {
   const [selectedWo, setSelectedWo] = useState<any>(null);
   const [reportQty, setReportQty] = useState('0');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [message, setMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
+  const [isScanning, setIsScanning] = useState(false);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
+
+  // Stop scanner when component unmounts or step changes
+  const stopScanner = useCallback(async () => {
+    if (scannerRef.current && scannerRef.current.isScanning) {
+      await scannerRef.current.stop();
+      scannerRef.current = null;
+    }
+    setIsScanning(false);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      void stopScanner();
+    };
+  }, [stopScanner]);
+
+  const startScanner = async () => {
+    setIsScanning(true);
+    const scanner = new Html5Qrcode('qr-reader');
+    scannerRef.current = scanner;
+    try {
+      await scanner.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        (decodedText) => {
+          setWoSearch(decodedText);
+          void handleSearch(undefined, decodedText);
+          void stopScanner();
+        },
+        () => {}
+      );
+    } catch (err) {
+      toast.error('Camera access failed', { description: 'Please ensure camera permissions are granted.' });
+      setIsScanning(false);
+    }
+  };
 
   // Handle Scan/Search
-  const handleSearch = async (e?: React.FormEvent) => {
+  const handleSearch = async (e?: React.FormEvent, overrideCode?: string) => {
     e?.preventDefault();
-    if (!woSearch.trim()) return;
+    const code = overrideCode || woSearch.trim();
+    if (!code) return;
     
-    try {
-      const res = await fetch(`/api/work-orders?workOrderNo=${woSearch.trim()}`);
-      if (res.ok) {
+    const promise = fetch(`/api/work-orders?workOrderNo=${code}`);
+    toast.promise(promise, {
+      loading: `Searching for Work Order ${code}...`,
+      success: async (res) => {
+        if (!res.ok) throw new Error('NOT_FOUND');
         const data = await res.json();
         if (data.length > 0) {
           setSelectedWo(data[0]);
           setReportQty(String(data[0].plannedQty - (data[0].completedQty || 0)));
           setStep('report');
+          return `Work Order ${code} Loaded`;
         }
-      }
-    } catch (err) {
-      console.error(err);
+        throw new Error('NOT_FOUND');
+      },
+      error: 'Work Order not found or inactive.'
+    });
+  };
+
+  const handleAndonCall = async () => {
+    if (!selectedWo) {
+      toast.error('No Active Work Order', { description: 'Please scan a WO before calling Andon.' });
+      return;
     }
+    
+    const promise = fetch('/api/execution/issues', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        workOrderNo: selectedWo.workOrderNo,
+        issueType: 'OTHER',
+        description: `Mobile Emergency Call from Station 001`,
+        reporter: 'Operator'
+      })
+    });
+
+    toast.promise(promise, {
+      loading: 'Triggering Emergency Andon Call...',
+      success: 'Andon Signal Sent. Management notified.',
+      error: 'Failed to trigger alert.'
+    });
   };
 
   // Submit Production
   const handleSubmit = async () => {
     if (!selectedWo || isSubmitting) return;
     setIsSubmitting(true);
-    try {
-      const res = await fetch('/api/execution/report', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          workOrderId: selectedWo.id,
-          goodQty: parseInt(reportQty, 10) || 0,
-        })
-      });
-      if (res.ok) {
-        setMessage({type: 'success', text: t('mobile_submit_success')});
+    
+    const promise = fetch('/api/execution/report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        workOrderId: selectedWo.id,
+        goodQty: parseInt(reportQty, 10) || 0,
+      })
+    });
+
+    toast.promise(promise, {
+      loading: 'Submitting production report...',
+      success: (res) => {
+        if (!res.ok) throw new Error('FAILED');
         setTimeout(() => {
           setStep('scan');
           setWoSearch('');
           setSelectedWo(null);
-          setMessage(null);
         }, 2000);
-      }
-    } catch (err) {
-      setMessage({type: 'error', text: 'Failed'});
-    } finally {
-      setIsSubmitting(false);
-    }
+        return t('mobile_submit_success');
+      },
+      error: 'Submission failed. Please check network.'
+    });
+    
+    setIsSubmitting(false);
   };
 
   const addDigit = (digit: string) => {
@@ -102,33 +171,66 @@ export default function MobileReportPage() {
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <Card className="bg-slate-900 border-slate-800 shadow-2xl rounded-[32px] overflow-hidden">
             <CardContent className="p-8 text-center space-y-6">
-              <div className="size-24 bg-indigo-500/10 rounded-full flex items-center justify-center mx-auto border border-indigo-500/20">
-                <Scan className="size-12 text-indigo-400" />
-              </div>
+              {isScanning ? (
+                <div id="qr-reader" className="w-full aspect-square rounded-2xl overflow-hidden bg-black" />
+              ) : (
+                <div 
+                  className="size-24 bg-indigo-500/10 rounded-full flex items-center justify-center mx-auto border border-indigo-500/20 cursor-pointer active:scale-95 transition-transform"
+                  onClick={startScanner}
+                >
+                  <Scan className="size-12 text-indigo-400" />
+                </div>
+              )}
+              
               <div>
-                <h2 className="text-xl font-bold text-white mb-2">{t('mobile_scan_hint')}</h2>
-                <p className="text-slate-400 text-sm">Waiting for barcode scanner input...</p>
+                <h2 className="text-xl font-bold text-white mb-2">
+                  {isScanning ? 'SCANNING...' : t('mobile_scan_hint')}
+                </h2>
+                <p className="text-slate-400 text-sm">
+                  {isScanning ? 'Align QR code within the box' : 'Waiting for barcode scanner input...'}
+                </p>
               </div>
-              <form onSubmit={handleSearch} className="relative">
-                <Input 
-                  value={woSearch}
-                  onChange={e => setWoSearch(e.target.value.toUpperCase())}
-                  placeholder="Input WO No..."
-                  className="h-16 bg-slate-800 border-slate-700 text-center text-xl font-black tracking-widest rounded-2xl focus:ring-4 focus:ring-indigo-500/20"
-                />
-                <Button type="submit" className="absolute right-2 top-2 h-12 w-12 rounded-xl bg-indigo-600">
-                  <ChevronRight />
+
+              {isScanning && (
+                <Button 
+                  variant="outline" 
+                  className="w-full border-slate-700 text-slate-400 font-bold"
+                  onClick={stopScanner}
+                >
+                  CANCEL SCAN
                 </Button>
-              </form>
+              )}
+
+              {!isScanning && (
+                <form onSubmit={handleSearch} className="relative">
+                  <Input 
+                    value={woSearch}
+                    onChange={e => setWoSearch(e.target.value.toUpperCase())}
+                    placeholder="Input WO No..."
+                    className="h-16 bg-slate-800 border-slate-700 text-center text-xl font-black tracking-widest rounded-2xl focus:ring-4 focus:ring-indigo-500/20"
+                  />
+                  <Button type="submit" className="absolute right-2 top-2 h-12 w-12 rounded-xl bg-indigo-600">
+                    <ChevronRight />
+                  </Button>
+                </form>
+              )}
             </CardContent>
           </Card>
 
           <div className="grid grid-cols-2 gap-4">
-             <Button variant="outline" className="h-24 rounded-3xl border-slate-800 bg-slate-900 flex flex-col gap-2 font-bold text-slate-400">
+             <Button 
+                variant="outline" 
+                className="h-24 rounded-3xl border-slate-800 bg-slate-900 flex flex-col gap-2 font-bold text-slate-400"
+                onClick={() => toast.info('Production History', { description: 'Accessing your last 50 reports...' })}
+             >
                 <History className="size-6" />
                 History
              </Button>
-             <Button variant="outline" className="h-24 rounded-3xl border-red-900/30 bg-red-950/20 flex flex-col gap-2 font-bold text-red-500 animate-pulse">
+             <Button 
+                variant="outline" 
+                className="h-24 rounded-3xl border-red-900/30 bg-red-950/20 flex flex-col gap-2 font-bold text-red-500 animate-pulse"
+                onClick={handleAndonCall}
+             >
                 <PhoneCall className="size-6" />
                 {t('mobile_andon_call')}
              </Button>
@@ -182,22 +284,24 @@ export default function MobileReportPage() {
               </span>
             )}
           </Button>
-
-          {message && (
-            <div className={`p-4 rounded-2xl text-center font-bold animate-bounce ${message.type === 'success' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
-              {message.text}
-            </div>
-          )}
         </div>
       )}
 
       {/* Navigation Bar (Mobile) */}
       <div className="fixed bottom-0 left-0 right-0 bg-slate-900/80 backdrop-blur-xl border-t border-slate-800 p-2 flex justify-around items-center">
-         <Button variant="ghost" className="flex flex-col h-14 w-20 gap-1 text-indigo-400 bg-indigo-500/10">
+         <Button 
+          variant="ghost" 
+          className={`flex flex-col h-14 w-20 gap-1 ${step === 'scan' ? 'text-indigo-400 bg-indigo-500/10' : 'text-slate-500'}`}
+          onClick={() => setStep('scan')}
+         >
             <Scan className="size-5" />
             <span className="text-[10px] font-bold">Report</span>
          </Button>
-         <Button variant="ghost" className="flex flex-col h-14 w-20 gap-1 text-slate-500">
+         <Button 
+          variant="ghost" 
+          className="flex flex-col h-14 w-20 gap-1 text-slate-500"
+          onClick={() => toast.info('System Menu', { description: 'Mobile menu will be available in next update.' })}
+         >
             <LayoutGrid className="size-5" />
             <span className="text-[10px] font-bold">Menu</span>
          </Button>
