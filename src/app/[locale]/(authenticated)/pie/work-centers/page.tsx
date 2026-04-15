@@ -36,6 +36,7 @@ interface WorkCenterRow {
 
 export default function WorkCentersPage() {
   const t = useTranslations('WorkCenters');
+  const tc = useTranslations('Common');
   const [rows, setRows] = useState<WorkCenterRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -252,7 +253,7 @@ export default function WorkCentersPage() {
             <CardContent className="p-0 max-h-[600px] overflow-y-auto">
               <div className="divide-y divide-slate-50">
                 {isLoading ? (
-                   <div className="p-12 text-center text-slate-400 italic">{t('Common.loading')}</div>
+                   <div className="p-12 text-center text-slate-400 italic">{tc('loading')}</div>
                 ) : filteredRows.map((row) => (
                   <div 
                     key={row.id} 
@@ -271,11 +272,11 @@ export default function WorkCentersPage() {
                     <h4 className="font-bold text-slate-800 mb-1">{row.name}</h4>
                     <div className="flex justify-between items-end mt-4">
                       <p className="text-[10px] text-slate-400 font-bold uppercase flex items-center gap-1">
-                        <Zap className="size-3" /> {t('daily_capacity')}: {row.dailyCapacity ?? t('Common.empty')}
+                        <Zap className="size-3" /> {t('daily_capacity')}: {row.dailyCapacity ?? tc('empty')}
                       </p>
                       <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                         <Button variant="ghost" size="xs" className="text-indigo-600 font-bold" onClick={(e) => { e.stopPropagation(); openEdit(row); }}>{t('Common.edit')}</Button>
-                         <Button variant="ghost" size="xs" className="text-red-400 font-bold" onClick={(e) => { e.stopPropagation(); void handleDelete(row); }}>{t('Common.delete')}</Button>
+                         <Button variant="ghost" size="xs" className="text-indigo-600 font-bold" onClick={(e) => { e.stopPropagation(); openEdit(row); }}>{tc('edit')}</Button>
+                         <Button variant="ghost" size="xs" className="text-red-400 font-bold" onClick={(e) => { e.stopPropagation(); void handleDelete(row); }}>{tc('delete')}</Button>
                       </div>
                     </div>
                   </div>
@@ -382,7 +383,7 @@ export default function WorkCentersPage() {
                             onClick={() => void submitWorkCenter()}
                             disabled={isSubmitting}
                           >
-                            {isSubmitting ? t('Common.submitting') : t('btn_update_config')}
+                            {isSubmitting ? tc('submitting') : t('btn_update_config')}
                           </Button>
                        </div>
                     </div>
@@ -464,7 +465,7 @@ export default function WorkCentersPage() {
                 onClick={() => void submitWorkCenter()}
                 disabled={isSubmitting}
               >
-                {isSubmitting ? t('Common.submitting') : t('btn_confirm_create')}
+                {isSubmitting ? tc('submitting') : t('btn_confirm_create')}
               </Button>
            </div>
         </DialogContent>

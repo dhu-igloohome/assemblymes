@@ -52,6 +52,7 @@ interface WarehouseOption {
 
 export default function ProcurementPage() {
   const t = useTranslations('Procurement');
+  const tc = useTranslations('Common');
   const [rows, setRows] = useState<PurchaseOrderRow[]>([]);
   const [warehouses, setWarehouses] = useState<WarehouseOption[]>([]);
   const [selectedPoId, setSelectedPoId] = useState('');
@@ -193,7 +194,7 @@ export default function ProcurementPage() {
         </div>
         <div className="flex gap-3">
           <Button variant="outline" className="font-bold border-slate-200" onClick={() => void loadData()}>
-            {t('Common.refresh')}
+            {tc('refresh')}
           </Button>
           <Button className="font-bold bg-indigo-600 shadow-lg shadow-indigo-100" onClick={() => setIsCreateDialogOpen(true)}>
             <Plus className="size-4 mr-2" /> {t('btn_add_po')}
@@ -223,7 +224,7 @@ export default function ProcurementPage() {
             <CardContent className="p-0 max-h-[600px] overflow-y-auto">
               <div className="divide-y divide-slate-50">
                 {isLoading ? (
-                   <div className="p-12 text-center text-slate-400 italic">{t('Common.loading')}</div>
+                   <div className="p-12 text-center text-slate-400 italic">{tc('loading')}</div>
                 ) : filteredPOs.map((row) => (
                   <div 
                     key={row.id} 
@@ -240,7 +241,7 @@ export default function ProcurementPage() {
                     <div className="flex justify-between items-end mt-4">
                       <div>
                          <p className="text-[10px] text-slate-400 font-bold uppercase flex items-center gap-1">
-                           <Package className="size-3" /> {t('lines_label')}: {row.lines.length} {t('Common.view_details')}
+                           <Package className="size-3" /> {t('lines_label')}: {row.lines.length} {tc('view_details')}
                          </p>
                          <p className="text-[10px] text-slate-400 font-bold uppercase flex items-center gap-1">
                            <Truck className="size-3" /> {t('supplier_label')}: {row.supplier.supplierCode}
@@ -329,7 +330,7 @@ export default function ProcurementPage() {
                           <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_ordered')}</TableHead>
                           <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_received')}</TableHead>
                           <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_pending')}</TableHead>
-                          <TableHead className="text-right pr-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('Common.status')}</TableHead>
+                          <TableHead className="text-right pr-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">{tc('status')}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -584,40 +585,40 @@ export default function ProcurementPage() {
               </div>
            </div>
            {error && <p className="text-xs font-bold text-red-500 bg-red-50 p-3 rounded-xl mt-4">{error}</p>}
-           <div className="flex gap-4 mt-8">
-              <Button 
-                variant="outline"
-                className="flex-1 h-14 font-black rounded-2xl"
-                onClick={() => setIsCreateDialogOpen(false)}
-              >
-                {t('Common.cancel')}
-              </Button>
-              <Button 
-                className="flex-1 h-14 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl shadow-xl shadow-indigo-100"
-                onClick={() =>
-                  void submitAction(
-                    '/api/procurement/orders',
-                    {
-                      poNo,
-                      supplierCode,
-                      supplierName,
-                      createdBy,
-                      line: {
-                        itemCode,
-                        orderedQty: Number.parseFloat(orderedQty),
-                        unitPrice: Number.parseFloat(unitPrice),
-                      },
-                      currency,
-                      expectedDate: expectedDate || null,
-                    },
-                    t('create_success')
-                  )
-                }
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? t('Common.submitting') : t('btn_publish_po')}
-              </Button>
-           </div>
+          <div className="flex gap-4 mt-8">
+             <Button 
+               variant="outline"
+               className="flex-1 h-14 font-black rounded-2xl"
+               onClick={() => setIsCreateDialogOpen(false)}
+             >
+               {tc('cancel')}
+             </Button>
+             <Button 
+               className="flex-1 h-14 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl shadow-xl shadow-indigo-100"
+               onClick={() =>
+                 void submitAction(
+                   '/api/procurement/orders',
+                   {
+                     poNo,
+                     supplierCode,
+                     supplierName,
+                     createdBy,
+                     line: {
+                       itemCode,
+                       orderedQty: Number.parseFloat(orderedQty),
+                       unitPrice: Number.parseFloat(unitPrice),
+                     },
+                     currency,
+                     expectedDate: expectedDate || null,
+                   },
+                   t('create_success')
+                 )
+               }
+               disabled={isSubmitting}
+             >
+               {isSubmitting ? tc('submitting') : t('btn_publish_po')}
+             </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

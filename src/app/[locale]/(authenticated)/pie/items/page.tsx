@@ -175,6 +175,7 @@ function createItemSchema(t: ReturnType<typeof useTranslations<'Items'>>) {
 
 export default function ItemsPage() {
   const t = useTranslations('Items');
+  const tc = useTranslations('Common');
   const locale = useLocale();
   const [items, setItems] = useState<Item[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -757,8 +758,8 @@ export default function ItemsPage() {
                   <SelectTrigger className="w-full">
                     <span className="truncate">
                       {watchedStatus === 'ENABLED'
-                        ? `${t('status')}: ${t('status_enabled')}`
-                        : `${t('status')}: ${t('status_disabled')}`}
+                        ? `${tc('status')}: ${t('status_enabled')}`
+                        : `${tc('status')}: ${t('status_disabled')}`}
                     </span>
                   </SelectTrigger>
                   <SelectContent>
@@ -797,13 +798,13 @@ export default function ItemsPage() {
                   <SelectTrigger className="w-full">
                     <span className="truncate">
                       {watchedIsPurchasable
-                        ? `${t('is_purchasable')}: ${t('yes')}`
-                        : `${t('is_purchasable')}: ${t('no')}`}
+                        ? `${t('is_purchasable')}: ${tc('yes')}`
+                        : `${t('is_purchasable')}: ${tc('no')}`}
                     </span>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="true">{t('yes')}</SelectItem>
-                    <SelectItem value="false">{t('no')}</SelectItem>
+                    <SelectItem value="true">{tc('yes')}</SelectItem>
+                    <SelectItem value="false">{tc('no')}</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select
@@ -818,13 +819,13 @@ export default function ItemsPage() {
                   <SelectTrigger className="w-full">
                     <span className="truncate">
                       {watchedRequiresFlashing
-                        ? `${t('requires_flashing')}: ${t('yes')}`
-                        : `${t('requires_flashing')}: ${t('no')}`}
+                        ? `${t('requires_flashing')}: ${tc('yes')}`
+                        : `${t('requires_flashing')}: ${tc('no')}`}
                     </span>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="true">{t('yes')}</SelectItem>
-                    <SelectItem value="false">{t('no')}</SelectItem>
+                    <SelectItem value="true">{tc('yes')}</SelectItem>
+                    <SelectItem value="false">{tc('no')}</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select
@@ -839,13 +840,13 @@ export default function ItemsPage() {
                   <SelectTrigger className="w-full">
                     <span className="truncate">
                       {watchedRequiresTraceability
-                        ? `${t('requires_traceability')}: ${t('yes')}`
-                        : `${t('requires_traceability')}: ${t('no')}`}
+                        ? `${t('requires_traceability')}: ${tc('yes')}`
+                        : `${t('requires_traceability')}: ${tc('no')}`}
                     </span>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="true">{t('yes')}</SelectItem>
-                    <SelectItem value="false">{t('no')}</SelectItem>
+                    <SelectItem value="true">{tc('yes')}</SelectItem>
+                    <SelectItem value="false">{tc('no')}</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select
@@ -860,13 +861,13 @@ export default function ItemsPage() {
                   <SelectTrigger className="w-full">
                     <span className="truncate">
                       {watchedRequiresDfu
-                        ? `${t('requires_dfu')}: ${t('yes')}`
-                        : `${t('requires_dfu')}: ${t('no')}`}
+                        ? `${t('requires_dfu')}: ${tc('yes')}`
+                        : `${t('requires_dfu')}: ${tc('no')}`}
                     </span>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="true">{t('yes')}</SelectItem>
-                    <SelectItem value="false">{t('no')}</SelectItem>
+                    <SelectItem value="true">{tc('yes')}</SelectItem>
+                    <SelectItem value="false">{tc('no')}</SelectItem>
                   </SelectContent>
                 </Select>
                 <div className="space-y-2">
@@ -898,7 +899,7 @@ export default function ItemsPage() {
                       <option key={remark} value={remark} />
                     ))}
                 </datalist>
-                <Input placeholder={t('remarks')} list="item-master-remarks-options" {...register('remarks')} />
+                <Input placeholder={tc('remarks')} list="item-master-remarks-options" {...register('remarks')} />
               </div>
               <p className="text-xs text-gray-500">{t('unit_auto_default')}</p>
               {submitError ? (
@@ -914,7 +915,7 @@ export default function ItemsPage() {
                   }}
                 >
                   {isSubmitting
-                    ? t('submitting')
+                    ? tc('submitting')
                     : isEditing
                       ? t('save_changes')
                       : t('save_and_close')}
@@ -929,7 +930,7 @@ export default function ItemsPage() {
                       submitModeRef.current = 'continue';
                     }}
                   >
-                    {isSubmitting ? t('submitting') : t('save_and_continue')}
+                    {isSubmitting ? tc('submitting') : t('save_and_continue')}
                   </Button>
                 ) : null}
               </div>
@@ -973,7 +974,7 @@ export default function ItemsPage() {
                         <div key={entry.id} className="rounded border p-2">
                           <div>{`${entry.parentItemCode} / ${entry.parentItem.itemName}`}</div>
                           <div>{`${t('version_label')}: ${entry.version}`}</div>
-                          <div>{`${t('current_version_label')}: ${entry.isActive ? t('yes') : t('no')}`}</div>
+                          <div>{`${t('current_version_label')}: ${entry.isActive ? tc('yes') : tc('no')}`}</div>
                           <div className="mt-2">
                             <Link
                               href={{
@@ -1140,10 +1141,10 @@ export default function ItemsPage() {
               <TableHead className="min-w-[200px]">{t('item_name')}</TableHead>
               <TableHead>{t('item_type')}</TableHead>
               <TableHead>{t('col_core_config')}</TableHead>
-              <TableHead>{t('status')}</TableHead>
+              <TableHead>{tc('status')}</TableHead>
               <TableHead>{t('unit')}</TableHead>
               <TableHead>{t('safety_stock')}</TableHead>
-              <TableHead className="text-right">{t('actions')}</TableHead>
+              <TableHead className="text-right">{tc('actions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

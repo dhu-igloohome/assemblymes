@@ -44,6 +44,7 @@ interface SystemUserRow {
 
 export default function SystemUsersPage() {
   const t = useTranslations('System');
+  const tc = useTranslations('Common');
   const [users, setUsers] = useState<SystemUserRow[]>([]);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -163,7 +164,7 @@ export default function SystemUsersPage() {
         </div>
         <div className="flex gap-3">
           <Button variant="outline" className="font-bold border-slate-200" onClick={() => void loadData()}>
-            {t('Common.refresh')}
+            {tc('refresh')}
           </Button>
           <Button className="font-bold bg-indigo-600 shadow-lg shadow-indigo-100" onClick={() => { resetForm(); setDialogOpen(true); }}>
             <UserPlus className="size-4 mr-2" /> {t('add_user')}
@@ -193,7 +194,7 @@ export default function SystemUsersPage() {
             <CardContent className="p-0 max-h-[600px] overflow-y-auto">
               <div className="divide-y divide-slate-50">
                 {isLoading ? (
-                   <div className="p-12 text-center text-slate-400 italic">{t('Common.loading')}</div>
+                   <div className="p-12 text-center text-slate-400 italic">{tc('loading')}</div>
                 ) : filteredUsers.map((user) => (
                   <div 
                     key={user.id} 
@@ -221,7 +222,7 @@ export default function SystemUsersPage() {
                   </div>
                 ))}
                 {filteredUsers.length === 0 && !isLoading && (
-                   <div className="p-12 text-center text-slate-300 italic text-xs uppercase font-black tracking-widest">{t('Common.empty')}</div>
+                   <div className="p-12 text-center text-slate-300 italic text-xs uppercase font-black tracking-widest">{tc('empty')}</div>
                 )}
               </div>
             </CardContent>
@@ -406,13 +407,13 @@ export default function SystemUsersPage() {
             
             {error && <p className="text-xs font-bold text-red-500 bg-red-50 p-3 rounded-xl mt-2">{error}</p>}
             <div className="flex gap-3 mt-8">
-               <Button variant="outline" className="flex-1 h-12 font-black rounded-xl" onClick={() => setDialogOpen(false)}>{t('Common.cancel')}</Button>
+               <Button variant="outline" className="flex-1 h-12 font-black rounded-xl" onClick={() => setDialogOpen(false)}>{tc('cancel')}</Button>
                <Button 
                  className="flex-1 h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl shadow-xl shadow-indigo-100"
                  onClick={handleCreateUser} 
                  disabled={isSubmitting || !username || !password || !employeeId}
                >
-                 {isSubmitting ? t('Common.submitting') : t('confirm')}
+                 {isSubmitting ? tc('submitting') : t('confirm')}
                </Button>
             </div>
           </div>

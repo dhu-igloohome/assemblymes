@@ -131,6 +131,7 @@ function BomTree({
 
 export default function BomsPage() {
   const t = useTranslations('Boms');
+  const tc = useTranslations('Common');
   const searchParams = useSearchParams();
   const [items, setItems] = useState<Item[]>([]);
   const [parentItemCode, setParentItemCode] = useState<string | null>(null);
@@ -455,7 +456,7 @@ export default function BomsPage() {
             <CardContent className="p-0 max-h-[600px] overflow-y-auto">
               <div className="divide-y divide-slate-50">
                 {isLoadingExistingList ? (
-                   <div className="p-12 text-center text-slate-400 italic">{t('Common.loading')}</div>
+                   <div className="p-12 text-center text-slate-400 italic">{tc('loading')}</div>
                 ) : filteredExisting.map((record) => (
                   <div 
                     key={record.id} 
@@ -541,7 +542,7 @@ export default function BomsPage() {
                           <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_component_info')}</TableHead>
                           <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_qty')}</TableHead>
                           <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_scrap')}</TableHead>
-                          <TableHead className="text-right pr-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('Common.actions')}</TableHead>
+                          <TableHead className="text-right pr-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">{tc('actions')}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>

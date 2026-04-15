@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 
 export default function ExecutionPage() {
   const t = useTranslations('Execution');
+  const tc = useTranslations('Common');
   const [activeTab, setActiveTab] = useState('operations');
   const [listMessage, setListMessage] = useState('');
   const [listError, setListError] = useState('');
@@ -246,7 +247,7 @@ export default function ExecutionPage() {
                   </div>
                 </div>
                 <Button type="submit" size="lg" disabled={isSearchingWo} className="h-12 px-8 bg-indigo-600 hover:bg-indigo-700 shadow-md">
-                  {isSearchingWo ? t('Common.loading') : t('Common.search')}
+                  {isSearchingWo ? tc('loading') : tc('search')}
                 </Button>
               </form>
 
@@ -345,7 +346,7 @@ export default function ExecutionPage() {
                <h3 className="text-sm font-bold text-slate-700 uppercase tracking-widest">{t('overview')}</h3>
                <Button variant="ghost" size="sm" onClick={loadOperations} className="text-slate-400 hover:text-indigo-600">
                  <Clock className="size-4 mr-2" />
-                 {t('Common.refresh')}
+                 {tc('refresh')}
                </Button>
             </div>
             <Table>
@@ -515,9 +516,9 @@ export default function ExecutionPage() {
                 {reportError && <div className="p-3 bg-red-50 border border-red-100 rounded-xl text-xs text-red-600 font-bold animate-shake">{reportError}</div>}
 
                 <div className="flex gap-3 pt-4">
-                  <Button variant="ghost" className="flex-1 h-14 font-bold text-slate-400" onClick={() => setReportDialogOpen(false)}>{t('Common.cancel')}</Button>
+                  <Button variant="ghost" className="flex-1 h-14 font-bold text-slate-400" onClick={() => setReportDialogOpen(false)}>{tc('cancel')}</Button>
                   <Button onClick={handleReportProduction} disabled={isReporting} className="flex-[2] h-14 bg-indigo-600 hover:bg-indigo-700 shadow-xl shadow-indigo-100 font-black text-lg">
-                    {isReporting ? t('Common.submitting') : t('btn_confirm_report')}
+                    {isReporting ? tc('submitting') : t('btn_confirm_report')}
                   </Button>
                 </div>
               </div>

@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 
 export default function DebugPage() {
   const t = useTranslations('Debug');
+  const tc = useTranslations('Common');
   const [info, setInfo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -19,7 +20,7 @@ export default function DebugPage() {
     <div className="p-8 space-y-4">
       <h1 className="text-2xl font-bold">{t('title')}</h1>
       {loading ? (
-        <p>{t('loading')}</p>
+        <p>{tc('loading')}</p>
       ) : (
         <div className="space-y-4">
           <div className="bg-slate-100 p-4 rounded border">
@@ -54,7 +55,7 @@ export default function DebugPage() {
                   {o.orderNo} - {o.customerName} - {o.status} - {o.createdAt}
                 </div>
               ))}
-              {(!info?.recentOrders || info.recentOrders.length === 0) && <p className="text-slate-400">{t('no_data')}</p>}
+              {(!info?.recentOrders || info.recentOrders.length === 0) && <p className="text-slate-400">{tc('empty')}</p>}
             </div>
           </div>
         </div>

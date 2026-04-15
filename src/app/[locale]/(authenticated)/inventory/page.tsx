@@ -68,6 +68,7 @@ interface WoMaterialRow {
 
 export default function InventoryPage() {
   const t = useTranslations('Inventory');
+  const tc = useTranslations('Common');
   const [warehouses, setWarehouses] = useState<WarehouseRow[]>([]);
   const [balances, setBalances] = useState<BalanceRow[]>([]);
   const [txns, setTxns] = useState<TxnRow[]>([]);
@@ -300,7 +301,7 @@ export default function InventoryPage() {
                       <TableHead className="pl-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_wh_code')}</TableHead>
                       <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_wh_name')}</TableHead>
                       <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_loc_count')}</TableHead>
-                      <TableHead className="text-right pr-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('Common.actions')}</TableHead>
+                      <TableHead className="text-right pr-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">{tc('actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>

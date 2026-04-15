@@ -19,6 +19,7 @@ interface Feedback {
 
 export default function VisitorFeedbackPage() {
   const t = useTranslations('System');
+  const tc = useTranslations('Common');
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -58,7 +59,7 @@ export default function VisitorFeedbackPage() {
         </div>
         <div className="flex gap-3">
           <Button variant="outline" className="font-bold border-slate-200" onClick={() => window.location.reload()}>
-            {t('Common.refresh')}
+            {tc('refresh')}
           </Button>
         </div>
       </div>
@@ -81,7 +82,7 @@ export default function VisitorFeedbackPage() {
         </CardHeader>
         <CardContent className="p-0">
           {isLoading ? (
-            <div className="p-20 text-center text-slate-400 italic">{t('Common.loading')}</div>
+            <div className="p-20 text-center text-slate-400 italic">{tc('loading')}</div>
           ) : error ? (
             <div className="p-20 text-center text-red-500 font-bold uppercase tracking-widest">{error}</div>
           ) : (

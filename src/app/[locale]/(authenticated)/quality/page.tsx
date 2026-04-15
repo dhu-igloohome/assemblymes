@@ -40,6 +40,7 @@ const RESULTS: InspectionResult[] = ['PENDING', 'PASS', 'FAIL'];
 
 export default function QualityPage() {
   const t = useTranslations('Quality');
+  const tc = useTranslations('Common');
   const [rows, setRows] = useState<InspectionRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -133,10 +134,10 @@ export default function QualityPage() {
       setIssueSummary('');
       setDisposition('');
       setInspectedBy('');
-      setMessage(t('create_success'));
+      setMessage(tc('success'));
       await loadRows();
     } catch {
-      setFormError(t('save_failed'));
+      setFormError(tc('failed'));
     } finally {
       setIsSubmitting(false);
     }
@@ -293,7 +294,7 @@ export default function QualityPage() {
 
               <div className="space-y-2 pt-4">
                 <Button className="w-full h-14 bg-indigo-600 hover:bg-indigo-700 text-lg font-black shadow-lg shadow-indigo-100 rounded-2xl" disabled={isSubmitting} onClick={() => void handleSubmit()}>
-                  {isSubmitting ? t('submitting') : t('btn_confirm_publish')}
+                  {isSubmitting ? tc('submitting') : tc('save')}
                 </Button>
                 {formError && <p className="text-center text-xs text-red-600 font-bold">{formError}</p>}
                 {message && <p className="text-center text-xs text-emerald-600 font-bold">{message}</p>}
@@ -321,7 +322,7 @@ export default function QualityPage() {
                     <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_details')}</TableHead>
                     <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_defect')}</TableHead>
                     <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_inspector')}</TableHead>
-                    <TableHead className="text-right pr-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_actions')}</TableHead>
+                    <TableHead className="text-right pr-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">{tc('actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -356,7 +357,7 @@ export default function QualityPage() {
                       <TableCell className="text-xs font-bold text-slate-600">{row.inspectedBy || t('system_auto')}</TableCell>
                       <TableCell className="text-right pr-8">
                         <Button variant="ghost" size="sm" className="font-black text-indigo-600 hover:bg-indigo-50">
-                          {t('col_actions')}
+                          {tc('actions')}
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -365,7 +366,7 @@ export default function QualityPage() {
                     <TableRow>
                       <TableCell colSpan={5} className="py-20 text-center">
                         <Package className="size-12 text-slate-100 mx-auto mb-4" />
-                        <p className="text-xs text-slate-400 font-black uppercase italic">{t('empty')}</p>
+                        <p className="text-xs text-slate-400 font-black uppercase italic">{tc('empty')}</p>
                       </TableCell>
                     </TableRow>
                   )}

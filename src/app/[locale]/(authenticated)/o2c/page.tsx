@@ -85,6 +85,7 @@ const STATUS_OPTIONS: SalesOrderStatus[] = ['DRAFT', 'CONFIRMED', 'PARTIALLY_SHI
 
 export default function O2CPage() {
   const t = useTranslations('O2c');
+  const tc = useTranslations('Common');
   const [rows, setRows] = useState<SalesOrderRow[]>([]);
   const [dashboard, setDashboard] = useState<DashboardPayload | null>(null);
   const [warehouses, setWarehouses] = useState<WarehouseOption[]>([]);
@@ -297,7 +298,7 @@ export default function O2CPage() {
         </div>
         <div className="flex gap-3">
           <Button variant="outline" className="font-bold border-slate-200" onClick={() => void loadData()}>
-            {t('Common.refresh')}
+            {tc('refresh')}
           </Button>
           <Button className="font-bold bg-indigo-600 shadow-lg shadow-indigo-100" onClick={() => setIsCreateDialogOpen(true)}>
             <Plus className="size-4 mr-2" /> {t('create_order')}
@@ -358,7 +359,7 @@ export default function O2CPage() {
             <CardContent className="p-0 max-h-[600px] overflow-y-auto">
               <div className="divide-y divide-slate-50">
                 {isLoading ? (
-                   <div className="p-12 text-center text-slate-400 italic">{t('Common.loading')}</div>
+                   <div className="p-12 text-center text-slate-400 italic">{tc('loading')}</div>
                 ) : filteredOrders.map((row) => (
                   <div 
                     key={row.id} 
@@ -695,7 +696,7 @@ export default function O2CPage() {
                                     <TableHead className="pl-6 text-[10px] font-black uppercase text-slate-400">{t('col_invoice_no')}</TableHead>
                                     <TableHead className="text-[10px] font-black uppercase text-slate-400">{t('col_amount')}</TableHead>
                                     <TableHead className="text-[10px] font-black uppercase text-slate-400">{t('col_paid')}</TableHead>
-                                    <TableHead className="text-[10px] font-black uppercase text-slate-400">{t('Common.status')}</TableHead>
+                                    <TableHead className="text-[10px] font-black uppercase text-slate-400">{tc('status')}</TableHead>
                                     <TableHead className="text-[10px] font-black uppercase text-slate-400 pr-6">{t('col_due_date')}</TableHead>
                                  </TableRow>
                               </TableHeader>
@@ -833,14 +834,14 @@ export default function O2CPage() {
                 className="flex-1 h-14 font-black rounded-2xl"
                 onClick={() => setIsCreateDialogOpen(false)}
               >
-                {t('Common.cancel')}
+                {tc('cancel')}
               </Button>
               <Button 
                 className="flex-1 h-14 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl shadow-xl shadow-indigo-100"
                 onClick={() => void createOrder()}
                 disabled={isSubmitting}
               >
-                {isSubmitting ? t('Common.submitting') : t('btn_confirm_create')}
+                {isSubmitting ? tc('submitting') : t('btn_confirm_create')}
               </Button>
            </div>
         </DialogContent>

@@ -36,6 +36,7 @@ interface EmployeeRow {
 
 export default function EmployeesPage() {
   const t = useTranslations('Employees');
+  const tc = useTranslations('Common');
   const [rows, setRows] = useState<EmployeeRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [listMessage, setListMessage] = useState('');
@@ -240,7 +241,7 @@ export default function EmployeesPage() {
         </div>
         <div className="flex gap-3">
           <Button variant="outline" className="font-bold border-slate-200" onClick={() => void loadRows()}>
-            {t('Common.refresh')}
+            {tc('refresh')}
           </Button>
           <Button className="font-bold bg-indigo-600 shadow-lg shadow-indigo-100" onClick={openCreate}>
             <UserPlus className="size-4 mr-2" /> {t('btn_add')}
@@ -270,7 +271,7 @@ export default function EmployeesPage() {
             <CardContent className="p-0 max-h-[600px] overflow-y-auto">
               <div className="divide-y divide-slate-50">
                 {isLoading ? (
-                   <div className="p-12 text-center text-slate-400 italic">{t('Common.loading')}</div>
+                   <div className="p-12 text-center text-slate-400 italic">{tc('loading')}</div>
                 ) : filteredRows.map((row) => (
                   <div 
                     key={row.id} 
@@ -329,7 +330,7 @@ export default function EmployeesPage() {
                 </div>
                 <div className="flex items-center justify-end gap-3">
                   <Button variant="outline" className="font-black text-[10px] uppercase tracking-widest" onClick={() => openEdit(selectedEmployee)}>
-                    <Settings2 className="size-4 mr-2" /> {t('Common.edit')}
+                    <Settings2 className="size-4 mr-2" /> {tc('edit')}
                   </Button>
                   <Button variant="outline" className="font-black text-[10px] uppercase tracking-widest border-red-100 text-red-500 hover:bg-red-50" onClick={() => void handleDelete(selectedEmployee)}>
                     {t('btn_remove')}
@@ -516,13 +517,13 @@ export default function EmployeesPage() {
             
             {dialogError ? <p className="text-xs font-bold text-red-500 bg-red-50 p-3 rounded-xl mt-2">{dialogError}</p> : null}
             <div className="flex gap-3 mt-8">
-               <Button variant="outline" className="flex-1 h-12 font-black rounded-xl" onClick={() => setDialogOpen(false)}>{t('Common.cancel')}</Button>
+               <Button variant="outline" className="flex-1 h-12 font-black rounded-xl" onClick={() => setDialogOpen(false)}>{tc('cancel')}</Button>
                <Button
                  className="flex-1 h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl shadow-xl shadow-indigo-100"
                  disabled={isSubmitting}
                  onClick={() => void submitEmployee()}
                >
-                 {isSubmitting ? t('Common.submitting') : t('btn_save')}
+                 {isSubmitting ? tc('submitting') : t('btn_save')}
                </Button>
             </div>
           </div>

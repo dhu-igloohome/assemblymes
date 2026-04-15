@@ -58,6 +58,7 @@ interface OverviewResponse {
 
 export default function PlanningPage() {
   const t = useTranslations('Planning');
+  const tc = useTranslations('Common');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [data, setData] = useState<OverviewResponse | null>(null);
@@ -175,7 +176,7 @@ export default function PlanningPage() {
                       <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_planned_output')}</TableHead>
                       <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_material_status')}</TableHead>
                       <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_current_progress')}</TableHead>
-                      <TableHead className="text-right pr-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('Common.actions')}</TableHead>
+                      <TableHead className="text-right pr-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">{tc('actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>

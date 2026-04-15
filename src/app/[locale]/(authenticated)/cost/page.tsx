@@ -67,6 +67,7 @@ const ENTRY_TYPES: CostEntryType[] = ['MATERIAL', 'LABOR', 'OVERHEAD', 'ADJUSTME
 
 export default function CostPage() {
   const t = useTranslations('Cost');
+  const tc = useTranslations('Common');
   const [entries, setEntries] = useState<CostEntryRow[]>([]);
   const [summary, setSummary] = useState<CostSummaryRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -194,7 +195,7 @@ export default function CostPage() {
         </div>
         <div className="flex gap-3">
           <Button variant="outline" className="font-bold border-slate-200" onClick={() => void loadData()}>
-            {t('Common.refresh')}
+            {tc('refresh')}
           </Button>
           <Button className="font-bold bg-indigo-600 shadow-lg shadow-indigo-100" onClick={() => setIsCreateDialogOpen(true)}>
             <Plus className="size-4 mr-2" /> {t('btn_add_adjustment')}
@@ -224,7 +225,7 @@ export default function CostPage() {
             <CardContent className="p-0 max-h-[600px] overflow-y-auto">
               <div className="divide-y divide-slate-50">
                 {isLoading ? (
-                   <div className="p-12 text-center text-slate-400 italic">{t('Common.loading')}</div>
+                   <div className="p-12 text-center text-slate-400 italic">{tc('loading')}</div>
                 ) : filteredSummary.map((row) => (
                   <div 
                     key={row.workOrderNo} 
@@ -470,13 +471,13 @@ export default function CostPage() {
             
             {formError && <p className="text-xs font-bold text-red-500 bg-red-50 p-3 rounded-xl mt-2">{formError}</p>}
             <div className="flex gap-3 mt-8">
-               <Button variant="outline" className="flex-1 h-12 font-black rounded-xl" onClick={() => setIsCreateDialogOpen(false)}>{t('btn_cancel')}</Button>
+               <Button variant="outline" className="flex-1 h-12 font-black rounded-xl" onClick={() => setIsCreateDialogOpen(false)}>{tc('cancel')}</Button>
                <Button
                  className="flex-1 h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl shadow-xl shadow-indigo-100"
                  disabled={isSubmitting}
                  onClick={() => void createEntry()}
                >
-                 {isSubmitting ? t('submitting') : t('btn_confirm')}
+                 {isSubmitting ? tc('submitting') : tc('save')}
                </Button>
             </div>
           </div>

@@ -69,6 +69,7 @@ interface WorkCenter {
 
 export default function RoutingsPage() {
   const t = useTranslations('Routings');
+  const tc = useTranslations('Common');
   const searchParams = useSearchParams();
   const [items, setItems] = useState<Item[]>([]);
   const [itemCode, setItemCode] = useState<string | null>(null);
@@ -328,7 +329,7 @@ export default function RoutingsPage() {
             <CardContent className="p-0 max-h-[600px] overflow-y-auto">
               <div className="divide-y divide-slate-50">
                 {isLoadingExistingList ? (
-                   <div className="p-12 text-center text-slate-400 italic">{t('Common.loading')}</div>
+                   <div className="p-12 text-center text-slate-400 italic">{tc('loading')}</div>
                 ) : filteredRoutings.map((record) => (
                   <div 
                     key={record.id} 
@@ -418,7 +419,7 @@ export default function RoutingsPage() {
                           <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_wc')}</TableHead>
                           <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest w-32">{t('col_std_time')}</TableHead>
                           <TableHead className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('col_qc_point')}</TableHead>
-                          <TableHead className="text-right pr-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">{t('Common.actions')}</TableHead>
+                          <TableHead className="text-right pr-8 text-[10px] font-black uppercase text-slate-400 tracking-widest">{tc('actions')}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>

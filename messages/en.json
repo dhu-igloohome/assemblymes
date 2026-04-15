@@ -1231,6 +1231,7 @@
     "module_cost": "Costing",
     "cost_description": "Analyze cost structure and trends",
     "module_planning": "Planning",
+    "planning_description": "Auto-calculate supply and demand balance based on MRP",
     "module_o2c": "Sales",
     "o2c_description": "Drive end-to-end order delivery",
     "current_user": "Current User",

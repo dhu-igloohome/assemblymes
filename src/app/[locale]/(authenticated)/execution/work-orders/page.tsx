@@ -83,6 +83,7 @@ interface ItemOption {
 
 export default function WorkOrdersPage() {
   const t = useTranslations('WorkOrders');
+  const tc = useTranslations('Common');
   const [rows, setRows] = useState<WorkOrderRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -305,7 +306,7 @@ export default function WorkOrdersPage() {
         </div>
         <div className="flex gap-3">
           <Button variant="outline" className="font-bold border-slate-200" onClick={() => loadRows()}>
-            {t('Common.refresh')}
+            {tc('refresh')}
           </Button>
           <Button className="font-bold bg-indigo-600 shadow-lg shadow-indigo-100" onClick={() => setDialogOpen(true)}>
             <Plus className="size-4 mr-2" /> {t('add')}
@@ -335,7 +336,7 @@ export default function WorkOrdersPage() {
             <CardContent className="p-0 max-h-[600px] overflow-y-auto">
               <div className="divide-y divide-slate-50">
                 {isLoading ? (
-                   <div className="p-12 text-center text-slate-400 italic">{t('Common.loading')}</div>
+                   <div className="p-12 text-center text-slate-400 italic">{tc('loading')}</div>
                 ) : filteredRows.map((row) => (
                   <div 
                     key={row.id} 
@@ -667,7 +668,7 @@ export default function WorkOrdersPage() {
               />
             </div>
             <div className="md:col-span-2 space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('Common.remarks')}</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{tc('remarks')}</label>
               <Input
                 placeholder={t('field_notes')}
                 value={notes}
@@ -678,13 +679,13 @@ export default function WorkOrdersPage() {
           </div>
           {dialogError && <p className="text-xs font-bold text-red-500 bg-red-50 p-3 rounded-xl mt-4">{dialogError}</p>}
           <div className="flex gap-4 mt-8">
-             <Button variant="outline" className="flex-1 h-14 font-black rounded-2xl" onClick={() => setDialogOpen(false)}>{t('Common.cancel')}</Button>
+             <Button variant="outline" className="flex-1 h-14 font-black rounded-2xl" onClick={() => setDialogOpen(false)}>{tc('cancel')}</Button>
              <Button 
                className="flex-1 h-14 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl shadow-xl shadow-indigo-100" 
                onClick={() => void createWorkOrder()}
                disabled={isSubmitting}
              >
-               {isSubmitting ? t('Common.submitting') : t('btn_confirm_publish')}
+               {isSubmitting ? tc('submitting') : t('btn_confirm_publish')}
              </Button>
           </div>
         </DialogContent>

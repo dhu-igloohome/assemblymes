@@ -35,6 +35,7 @@ interface DashboardData {
 
 export default function GlobalDashboard() {
   const t = useTranslations('Dashboard');
+  const tc = useTranslations('Common');
   const tPie = useTranslations('Pie');
   const locale = useLocale();
   const [data, setData] = useState<DashboardData | null>(null);
@@ -52,7 +53,7 @@ export default function GlobalDashboard() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="p-8 text-slate-500">{tPie('loading')}</div>;
+  if (loading) return <div className="p-8 text-slate-500">{tc('loading')}</div>;
 
   return (
     <div key={locale} className="p-8 space-y-8 bg-slate-50/50 min-h-screen">
