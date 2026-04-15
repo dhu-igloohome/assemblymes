@@ -3,6 +3,8 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { toast } from 'sonner';
 import { 
   AlertTriangle, 
   Clock, 
@@ -12,7 +14,10 @@ import {
   Wrench,
   Package,
   ShieldAlert,
-  ArrowRight
+  ArrowRight,
+  Sparkles,
+  Zap,
+  Cpu
 } from 'lucide-react';
 
 interface IssueRecord {
@@ -34,6 +39,15 @@ export default function AndonBoardPage() {
   const [loading, setLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState(new Date());
+  
+  // AI State
+  const [isDiagnosing, setIsDiagnosing] = useState(false);
+  const [diagnosisData, setDiagnosisData] = useState<{
+    diagnosis: string;
+    recommendations: string[];
+    confidence: number;
+    issue: IssueRecord | null;
+  } | null>(null);
 
   const fetchIssues = useCallback(async () => {
     try {
@@ -64,6 +78,29 @@ export default function AndonBoardPage() {
       console.error('Failed to update issue:', err);
     } finally {
       setIsUpdating(null);
+    }
+  };
+
+  const handleAIDiagnosis = async (issue: IssueRecord) => {
+    setIsDiagnosing(true);
+    try {
+      const res = await fetch('/api/ai/diagnose', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          issueType: issue.issueType,
+          description: issue.description,
+          workCenterCode: issue.workCenterCode
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setDiagnosisData({ ...data, issue });
+      }
+    } catch (err) {
+      toast.error('AI Link Failed. Manual intervention required.');
+    } finally {
+      setIsDiagnosing(false);
     }
   };
 
@@ -177,6 +214,16 @@ export default function AndonBoardPage() {
 
                   <div className="text-right space-y-2">
                     <div className="flex flex-col gap-2 min-w-[120px]">
+                      <Button 
+                        variant="outline"
+                        className="border-indigo-500/30 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20 font-black uppercase text-[10px] tracking-widest h-10 group"
+                        disabled={isDiagnosing}
+                        onClick={() => void handleAIDiagnosis(issue)}
+                      >
+                        <Sparkles className="size-3 mr-2 group-hover:animate-pulse" />
+                        AI Insight
+                      </Button>
+
                       {issue.status === 'OPEN' && (
                         <Button 
                           className="bg-red-600 hover:bg-red-700 text-white font-black uppercase text-[10px] tracking-widest h-10 shadow-lg shadow-red-900/20"
@@ -262,6 +309,82 @@ export default function AndonBoardPage() {
           </div>
         </div>
       </div>
+
+      {/* AI Diagnosis Dialog */}
+      <Dialog open={!!diagnosisData} onOpenChange={(open) => !open && setDiagnosisData(null)}>
+        <DialogContent className="sm:max-w-2xl bg-slate-900 border-indigo-500/20 text-slate-100 rounded-[32px] p-8 shadow-2xl overflow-hidden relative">
+          {/* Background Decoration */}
+          <div className="absolute -top-24 -right-24 size-64 bg-indigo-500/10 blur-[100px] rounded-full" />
+          
+          <DialogHeader className="relative z-10">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="p-4 bg-indigo-500/20 text-indigo-400 rounded-2xl border border-indigo-500/30">
+                <Cpu className="size-8" />
+              </div>
+              <div>
+                <DialogTitle className="text-3xl font-black uppercase tracking-tight text-white flex items-center gap-3">
+                  AI Troubleshooting Report
+                  <div className="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 text-[10px] font-black rounded border border-emerald-500/20 uppercase">
+                    Confidence: {(diagnosisData?.confidence || 0 * 100).toFixed(0)}%
+                  </div>
+                </DialogTitle>
+                <DialogDescription className="text-slate-400 font-medium">
+                  Autonomous diagnosis for {diagnosisData?.issue?.issueType} at Station {diagnosisData?.issue?.workCenterCode}.
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <div className="mt-6 space-y-8 relative z-10">
+            <div className="p-6 bg-slate-950/80 rounded-[24px] border border-slate-800 shadow-inner">
+               <h4 className="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <Zap className="size-3" /> Root Cause Analysis
+               </h4>
+               <p className="text-lg font-bold text-slate-200 leading-snug">
+                  {diagnosisData?.diagnosis}
+               </p>
+            </div>
+
+            <div className="space-y-4">
+               <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                  <CheckCircle2 className="size-3" /> Recommended Actions
+               </h4>
+               <div className="grid gap-3">
+                  {diagnosisData?.recommendations.map((rec, i) => (
+                    <div key={i} className="flex gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 items-start group hover:bg-white/10 transition-colors">
+                       <div className="size-6 bg-indigo-500/20 rounded-full flex items-center justify-center text-indigo-400 text-[10px] font-black mt-0.5 border border-indigo-500/20 group-hover:scale-110 transition-transform">
+                          {i + 1}
+                       </div>
+                       <p className="text-sm font-bold text-slate-300">{rec}</p>
+                    </div>
+                  ))}
+               </div>
+            </div>
+
+            <div className="pt-6 flex justify-end gap-4">
+               <Button 
+                 variant="ghost" 
+                 className="text-slate-400 font-black uppercase text-xs tracking-widest hover:bg-white/5"
+                 onClick={() => setDiagnosisData(null)}
+               >
+                 Dismiss
+               </Button>
+               <Button 
+                 className="bg-indigo-600 hover:bg-indigo-700 text-white font-black uppercase text-xs tracking-widest px-10 h-12 rounded-xl shadow-lg shadow-indigo-500/20"
+                 onClick={() => {
+                   if (diagnosisData?.issue) {
+                     void updateIssueStatus(diagnosisData.issue.id, 'IN_PROGRESS');
+                     setDiagnosisData(null);
+                     toast.info('Response initiated based on AI recommendations.');
+                   }
+                 }}
+               >
+                 Execute AI Strategy
+               </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
