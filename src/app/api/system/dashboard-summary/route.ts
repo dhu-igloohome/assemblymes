@@ -134,49 +134,60 @@ export async function GET() {
       };
     });
 
-    // 7. 流量统计 (Public Traffic Analytics)
-    const [totalPV, uniqueIPs, countryGroups] = await Promise.all([
-      prisma.visitorLog.count(),
-      prisma.visitorLog.groupBy({
-        by: ['ip'],
-        _count: true
-      }),
-      prisma.visitorLog.groupBy({
-        by: ['country'],
-        _count: {
-          id: true
-        },
-        orderBy: {
+    // 7. 流量统计 (Public Traffic Analytics) - Wrapped in try-catch for robustness
+    let trafficStats = {
+      pv: 0,
+      uv: 0,
+      regions: [] as any[]
+    };
+
+    try {
+      const [totalPV, uniqueIPs, countryGroups] = await Promise.all([
+        prisma.visitorLog.count(),
+        prisma.visitorLog.groupBy({
+          by: ['ip'],
+          _count: true
+        }),
+        prisma.visitorLog.groupBy({
+          by: ['country'],
           _count: {
-            id: 'desc'
+            id: true
+          },
+          orderBy: {
+            _count: {
+              id: 'desc'
+            }
           }
-        }
-      })
-    ]);
+        })
+      ]);
 
-    const countryNames: Record<string, string> = {
-      'CN': 'China',
-      'US': 'United States',
-      'HK': 'Hong Kong',
-      'TW': 'Taiwan',
-      'JP': 'Japan',
-      'SG': 'Singapore',
-      'IE': 'Ireland',
-      'GB': 'United Kingdom',
-      'DE': 'Germany',
-      'FR': 'France',
-      'unknown': 'Global/Unknown'
-    };
+      const countryNames: Record<string, string> = {
+        'CN': 'China',
+        'US': 'United States',
+        'HK': 'Hong Kong',
+        'TW': 'Taiwan',
+        'JP': 'Japan',
+        'SG': 'Singapore',
+        'IE': 'Ireland',
+        'GB': 'United Kingdom',
+        'DE': 'Germany',
+        'FR': 'France',
+        'unknown': 'Global/Unknown'
+      };
 
-    const trafficStats = {
-      pv: totalPV,
-      uv: uniqueIPs.length,
-      regions: countryGroups.map(group => ({
-        region: countryNames[group.country || 'unknown'] || group.country || 'Global',
-        count: group._count.id,
-        pct: totalPV > 0 ? Math.round((group._count.id / totalPV) * 100) : 0
-      }))
-    };
+      trafficStats = {
+        pv: totalPV,
+        uv: uniqueIPs.length,
+        regions: countryGroups.map(group => ({
+          region: countryNames[group.country || 'unknown'] || group.country || 'Global',
+          count: group._count.id,
+          pct: totalPV > 0 ? Math.round((group._count.id / totalPV) * 100) : 0
+        }))
+      };
+    } catch (dbErr) {
+      console.error('Traffic analytics DB failure (likely schema sync pending):', dbErr);
+      // Fallback to empty stats instead of crashing the whole dashboard
+    }
 
     return NextResponse.json({
       activeIssuesCount: activeIssues.length,
