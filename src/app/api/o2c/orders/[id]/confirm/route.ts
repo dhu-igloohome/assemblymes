@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { runAutoPlanForSalesOrder } from '@/lib/services/sales-order-automation';
 import { AUTH_COOKIE_NAME, parseSessionCookieValue } from '@/lib/auth';
@@ -8,9 +9,9 @@ export async function POST(
   context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const cookie = request.headers.get('cookie');
-    const sessionCookie = cookie?.split('; ').find((c) => c.startsWith(`${AUTH_COOKIE_NAME}=`));
-    const session = await parseSessionCookieValue(sessionCookie?.split('=')[1]);
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get(AUTH_COOKIE_NAME);
+    const session = await parseSessionCookieValue(sessionCookie?.value);
 
     if (!session) {
       return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });

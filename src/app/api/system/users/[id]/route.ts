@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 import { parseSessionCookieValue, AUTH_COOKIE_NAME, SUPER_ADMIN_ROLE } from '@/lib/auth';
@@ -10,9 +11,9 @@ export async function PUT(
   try {
     const { id } = await context.params;
     
-    const cookie = request.headers.get('cookie');
-    const sessionCookie = cookie?.split('; ').find((c) => c.startsWith(`${AUTH_COOKIE_NAME}=`));
-    const session = await parseSessionCookieValue(sessionCookie?.split('=')[1]);
+    const cookieStore = await cookies();
+    const sessionCookie = cookieStore.get(AUTH_COOKIE_NAME);
+    const session = await parseSessionCookieValue(sessionCookie?.value);
 
     if (!session || session.role !== SUPER_ADMIN_ROLE) {
       return NextResponse.json({ error: 'UNAUTHORIZED' }, { status: 401 });
