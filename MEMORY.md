@@ -21,7 +21,8 @@
 - **Framework**: Next.js (App Router) + Prisma + PostgreSQL.
 - **UI Logic**: Linear-inspired, dark-themed, high-contrast.
 - **Interaction Constraints**: 
-    - **No "Fake" Interactivity**: Any element with `cursor-pointer` MUST have an `onClick` or `Link`.
+    - **No "Fake" Interactivity**: Any element with `cursor-pointer` or `Button` component MUST have an `onClick` or `Link`.
+    - **Pre-Commit Audit**: I am FORBIDDEN from finishing a task until I have verified 100% of new UI interaction points.
     - **Full-Staged Feedback**: Buttons must show `isSubmitting` states and disabled props during async ops.
     - **Industrial Feedback**: Use specialized feedback (Toasts/Modals) for all data-driven actions.
 - **Real-time Logic**: Polling mechanism (5s) chosen for stability.
