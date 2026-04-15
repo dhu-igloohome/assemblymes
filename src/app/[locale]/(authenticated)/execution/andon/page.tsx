@@ -51,7 +51,7 @@ export default function AndonBoardPage() {
     const timer = setInterval(() => {
       void fetchIssues();
       setCurrentTime(new Date());
-    }, 10000); // Refresh data every 10s
+    }, 5000); // Refresh data every 5s (Critical for Andon)
     return () => clearInterval(timer);
   }, [fetchIssues]);
 

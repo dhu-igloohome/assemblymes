@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/routing';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -51,6 +52,15 @@ interface SalesOrderRow {
   billedAmount: number;
   receivedAmount: number;
   arAmount: number;
+  productionProgress: number;
+  workOrders: {
+    id: string;
+    workOrderNo: string;
+    status: string;
+    plannedQty: number;
+    batchNo: string;
+    createdAt: string;
+  }[];
 }
 
 interface InvoiceRow {
@@ -382,7 +392,15 @@ export default function O2CPage() {
                            <TrendingUp className="size-3" /> {t('qty_label')}: {row.orderedQty}
                          </p>
                       </div>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase">{t('due_date_label')}: {row.dueDate ? new Date(row.dueDate).toLocaleDateString() : '-'}</p>
+                      <div className="text-right">
+                         <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">{t('production_label')}</p>
+                         <div className="w-16 h-1 bg-slate-100 rounded-full overflow-hidden">
+                            <div 
+                              className={`h-full transition-all ${row.productionProgress === 100 ? 'bg-emerald-500' : 'bg-indigo-500'}`} 
+                              style={{ width: `${row.productionProgress}%` }} 
+                            />
+                         </div>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -445,6 +463,9 @@ export default function O2CPage() {
                   </TabsTrigger>
                   <TabsTrigger value="execution" className="rounded-xl px-8 font-black text-xs uppercase tracking-widest">
                     <Truck className="size-4 mr-2" /> {t('tab_execution')}
+                  </TabsTrigger>
+                  <TabsTrigger value="production" className="rounded-xl px-8 font-black text-xs uppercase tracking-widest">
+                    <TrendingUp className="size-4 mr-2" /> {t('tab_production')}
                   </TabsTrigger>
                   <TabsTrigger value="finance" className="rounded-xl px-8 font-black text-xs uppercase tracking-widest">
                     <Wallet className="size-4 mr-2" /> {t('tab_finance')}
@@ -513,84 +534,152 @@ export default function O2CPage() {
                 {/* {t('tab_execution')} */}
                 <TabsContent value="execution" className="space-y-6">
                   <div className="grid gap-6 lg:grid-cols-3">
-                     <Card className="lg:col-span-1 border-none shadow-sm rounded-3xl p-6 bg-white">
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6">{t('card_execution_ship')}</h3>
-                        <div className="space-y-4">
-                           <div className="space-y-2">
-                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_ship_qty')}</label>
-                              <Input 
-                                type="number"
-                                value={shipQty} 
-                                onChange={(e) => setShipQty(e.target.value)}
-                                className="h-10 bg-slate-50 border-none font-bold"
-                              />
-                           </div>
-                           <div className="space-y-2">
-                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_ship_location')}</label>
-                              <select 
-                                aria-label={t('field_ship_location')}
-                                className="w-full h-10 rounded-xl bg-slate-50 border-none px-3 text-xs font-bold focus:ring-2 focus:ring-indigo-600 outline-none" 
-                                value={shipLocationId} 
-                                onChange={(e) => setShipLocationId(e.target.value)}
-                              >
-                                <option value="">{t('select_location')}</option>
-                                {warehouses.flatMap((w) => w.locations.map((loc) => (
-                                  <option key={loc.id} value={loc.id}>{w.warehouseCode}/{loc.locationCode}</option>
-                                )))}
-                              </select>
-                           </div>
-                           <div className="space-y-2">
-                              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_logistics_no')}</label>
-                              <Input 
-                                value={shipLogisticsNo} 
-                                onChange={(e) => setShipLogisticsNo(e.target.value)}
-                                className="h-10 bg-slate-50 border-none font-bold text-xs"
-                                placeholder={t('field_logistics_placeholder')}
-                              />
-                           </div>
-                           <Button 
-                             className="w-full h-12 bg-slate-900 hover:bg-indigo-600 text-white font-black rounded-2xl shadow-xl shadow-slate-100"
-                             disabled={actionSubmitting || !selectedOrderId}
-                             onClick={() =>
-                               void doAction(
-                                 `/api/o2c/orders/${selectedOrderId}/shipments`,
-                                 { shippedQty: Number.parseInt(shipQty, 10), locationId: shipLocationId, logisticsNo: shipLogisticsNo, operator: shipOperator },
-                                 t('ship_success')
-                               )
-                             }
-                           >
-                             {t('btn_confirm_ship')}
-                           </Button>
+                    <Card className="lg:col-span-1 border-none shadow-sm rounded-3xl p-6 bg-white">
+                      <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6">{t('card_execution_ship')}</h3>
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_ship_qty')}</label>
+                          <Input 
+                            type="number"
+                            value={shipQty} 
+                            onChange={(e) => setShipQty(e.target.value)}
+                            className="h-10 bg-slate-50 border-none font-bold"
+                          />
                         </div>
-                     </Card>
-                     <Card className="lg:col-span-2 border-none shadow-sm rounded-3xl p-6 bg-white overflow-hidden">
-                        <div className="flex justify-between items-center mb-6">
-                           <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">{t('card_ship_history')}</h3>
-                           <History className="size-4 text-slate-300" />
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_ship_location')}</label>
+                          <select 
+                            aria-label={t('field_ship_location')}
+                            className="w-full h-10 rounded-xl bg-slate-50 border-none px-3 text-xs font-bold focus:ring-2 focus:ring-indigo-600 outline-none" 
+                            value={shipLocationId} 
+                            onChange={(e) => setShipLocationId(e.target.value)}
+                          >
+                            <option value="">{t('select_location')}</option>
+                            {warehouses.flatMap((w) => w.locations.map((loc) => (
+                              <option key={loc.id} value={loc.id}>{w.warehouseCode}/{loc.locationCode}</option>
+                            )))}
+                          </select>
                         </div>
-                        <div className="overflow-x-auto -mx-6">
-                           <Table>
-                              <TableHeader>
-                                 <TableRow className="hover:bg-transparent border-none">
-                                    <TableHead className="pl-6 text-[10px] font-black uppercase text-slate-400">{t('col_ship_time')}</TableHead>
-                                    <TableHead className="text-[10px] font-black uppercase text-slate-400">{t('col_ship_qty')}</TableHead>
-                                    <TableHead className="text-[10px] font-black uppercase text-slate-400">{t('col_logistics_no')}</TableHead>
-                                    <TableHead className="text-[10px] font-black uppercase text-slate-400 pr-6">{t('col_operator')}</TableHead>
-                                 </TableRow>
-                              </TableHeader>
-                              <TableBody>
-                                 {/* Note: Shipping history is not directly exposed in current API, 
-                                     only reflected in shippedQty. Extended API might be needed for detailed list. */}
-                                 <TableRow className="border-b border-slate-50">
-                                    <TableCell colSpan={4} className="py-12 text-center text-slate-300 italic text-xs uppercase font-black tracking-widest">
-                                       {t('no_ship_records')}
-                                    </TableCell>
-                                 </TableRow>
-                              </TableBody>
-                           </Table>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{t('field_logistics_no')}</label>
+                          <Input 
+                            value={shipLogisticsNo} 
+                            onChange={(e) => setShipLogisticsNo(e.target.value)}
+                            className="h-10 bg-slate-50 border-none font-bold text-xs"
+                            placeholder={t('field_logistics_placeholder')}
+                          />
                         </div>
-                     </Card>
+                        <Button 
+                          className="w-full h-12 bg-slate-900 hover:bg-indigo-600 text-white font-black rounded-2xl shadow-xl shadow-slate-100"
+                          disabled={actionSubmitting || !selectedOrderId}
+                          onClick={() =>
+                            void doAction(
+                              `/api/o2c/orders/${selectedOrderId}/shipments`,
+                              { shippedQty: Number.parseInt(shipQty, 10), locationId: shipLocationId, logisticsNo: shipLogisticsNo, operator: shipOperator },
+                              t('ship_success')
+                            )
+                          }
+                        >
+                          {t('btn_confirm_ship')}
+                        </Button>
+                      </div>
+                    </Card>
+                    <Card className="lg:col-span-2 border-none shadow-sm rounded-3xl p-6 bg-white overflow-hidden">
+                      <div className="flex justify-between items-center mb-6">
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">{t('card_ship_history')}</h3>
+                        <History className="size-4 text-slate-300" />
+                      </div>
+                      <div className="overflow-x-auto -mx-6">
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="hover:bg-transparent border-none">
+                              <TableHead className="pl-6 text-[10px] font-black uppercase text-slate-400">{t('col_ship_time')}</TableHead>
+                              <TableHead className="text-[10px] font-black uppercase text-slate-400">{t('col_ship_qty')}</TableHead>
+                              <TableHead className="text-[10px] font-black uppercase text-slate-400">{t('col_logistics_no')}</TableHead>
+                              <TableHead className="text-[10px] font-black uppercase text-slate-400 pr-6">{t('col_operator')}</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            <TableRow className="border-b border-slate-50">
+                              <TableCell colSpan={4} className="py-12 text-center text-slate-300 italic text-xs uppercase font-black tracking-widest">
+                                {t('no_ship_records')}
+                              </TableCell>
+                            </TableRow>
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </Card>
                   </div>
+                </TabsContent>
+
+                {/* {t('tab_production')} */}
+                <TabsContent value="production" className="space-y-6">
+                   <div className="grid gap-6 lg:grid-cols-3">
+                      <Card className="lg:col-span-2 border-none shadow-sm rounded-3xl p-6 bg-white overflow-hidden">
+                         <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">{t('card_linked_wos')}</h3>
+                            <div className="flex items-center gap-2">
+                               <span className="text-[10px] font-black text-slate-400 uppercase">{t('overall_progress')}:</span>
+                               <span className="text-xs font-black text-indigo-600">{selectedOrder.productionProgress}%</span>
+                            </div>
+                         </div>
+                         <div className="overflow-x-auto -mx-6">
+                            <Table>
+                               <TableHeader>
+                                  <TableRow className="hover:bg-transparent border-none">
+                                     <TableHead className="pl-6 text-[10px] font-black uppercase text-slate-400">{t('col_wo_no')}</TableHead>
+                                     <TableHead className="text-[10px] font-black uppercase text-slate-400">{t('col_batch')}</TableHead>
+                                     <TableHead className="text-[10px] font-black uppercase text-slate-400">{tc('status')}</TableHead>
+                                     <TableHead className="text-right text-[10px] font-black uppercase text-slate-400 pr-6">{t('col_qty')}</TableHead>
+                                  </TableRow>
+                               </TableHeader>
+                               <TableBody>
+                                  {selectedOrder.workOrders.map((wo) => (
+                                     <TableRow key={wo.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                                        <TableCell className="pl-6 text-xs font-black text-slate-900">{wo.workOrderNo}</TableCell>
+                                        <TableCell className="text-xs font-bold text-slate-500">{wo.batchNo}</TableCell>
+                                        <TableCell>
+                                           <span className={`text-[10px] font-black px-2 py-0.5 rounded uppercase ${
+                                              wo.status === 'DONE' ? 'bg-emerald-50 text-emerald-600' : 
+                                              wo.status === 'IN_PROGRESS' ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-100 text-slate-400'
+                                           }`}>
+                                              {wo.status}
+                                           </span>
+                                        </TableCell>
+                                        <TableCell className="text-right pr-6 text-xs font-black text-slate-900">{wo.plannedQty} PCS</TableCell>
+                                     </TableRow>
+                                  ))}
+                                  {selectedOrder.workOrders.length === 0 && (
+                                     <TableRow>
+                                        <TableCell colSpan={4} className="py-12 text-center text-slate-300 italic text-xs uppercase font-black tracking-widest">
+                                           {t('no_wos_linked')}
+                                        </TableCell>
+                                     </TableRow>
+                                  )}
+                                </TableBody>
+                            </Table>
+                         </div>
+                      </Card>
+
+                      <Card className="lg:col-span-1 border-none shadow-sm rounded-3xl p-6 bg-white flex flex-col justify-center items-center text-center space-y-4">
+                         <div className="p-4 bg-indigo-50 rounded-full text-indigo-600">
+                            <TrendingUp className="size-8" />
+                         </div>
+                         <div>
+                            <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">{t('production_status')}</h3>
+                            <p className="text-xs text-slate-500 mt-1">{t('production_status_desc')}</p>
+                         </div>
+                         <Link href="/execution/work-orders" className="w-full">
+                           <Button 
+                             variant="outline" 
+                             className="w-full h-12 rounded-2xl font-black text-xs uppercase tracking-widest border-2"
+                             disabled={selectedOrder.status === 'DRAFT'}
+                           >
+                              {t('btn_go_to_production')}
+                           </Button>
+                         </Link>
+                      </Card>
+                   </div>
                 </TabsContent>
 
                 {/* {t('tab_finance')} */}

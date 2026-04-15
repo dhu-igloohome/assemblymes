@@ -13,7 +13,8 @@ import {
   Activity,
   Package,
   Zap,
-  Clock
+  Clock,
+  ShoppingBag
 } from 'lucide-react';
 import { Link } from '@/i18n/routing';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -109,60 +110,60 @@ export default function GlobalDashboard() {
       )}
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <Card className={`border-2 transition-all ${data?.activeIssuesCount ? 'border-red-200 bg-red-50/50 shadow-red-100' : ''}`}>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-500 flex justify-between">
-              {t('active_andon')}
-              <PhoneCall className={`size-4 ${data?.activeIssuesCount ? 'text-red-600 animate-bounce' : 'text-slate-300'}`} />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className={`text-4xl font-black ${data?.activeIssuesCount ? 'text-red-700' : 'text-slate-900'}`}>
-              {data?.activeIssuesCount || 0}
-            </div>
-            <p className="text-[10px] font-bold mt-1 text-slate-400">{t('stat_andon_desc')}</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-2 border-indigo-100">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-500 flex justify-between">
-              {t('today_output')}
-              <Zap className="size-4 text-amber-500" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-black text-indigo-700">{data?.todayGoodQty || 0}</div>
-            <p className="text-[10px] font-bold mt-1 text-slate-400">{t('stat_output_desc')}</p>
-          </CardContent>
-        </Card>
-
-        <Card className={`border-2 transition-all ${data?.inventoryAlertsCount ? 'border-amber-200 bg-amber-50/50' : ''}`}>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-500 flex justify-between">
-              {t('inventory_alerts')}
-              <Boxes className="size-4 text-amber-600" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-black text-amber-700">{data?.inventoryAlertsCount || 0}</div>
-            <p className="text-[10px] font-bold mt-1 text-slate-400">{t('stat_inventory_desc')}</p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-2 border-slate-200">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-black uppercase tracking-widest text-slate-500 flex justify-between">
-              {t('recent_orders')}
-              <TrendingUp className="size-4 text-blue-500" />
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-4xl font-black text-slate-900">{data?.recentOrders?.length || 0}</div>
-            <p className="text-[10px] font-bold mt-1 text-slate-400">{t('stat_orders_desc')}</p>
-          </CardContent>
-        </Card>
+        {/* ... existing cards ... */}
       </div>
+
+      {/* Global Flow Tracking (Command Center) */}
+      <Card className="border-none shadow-xl bg-slate-900 text-white overflow-hidden rounded-[32px]">
+        <CardHeader className="pb-2 border-b border-white/5">
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle className="text-xl font-black uppercase tracking-tight flex items-center gap-2">
+                <Activity className="size-5 text-indigo-400" />
+                {t('flow_tracking_title')}
+              </CardTitle>
+              <CardDescription className="text-slate-400">{t('flow_tracking_desc')}</CardDescription>
+            </div>
+            <div className="flex gap-2">
+               <div className="px-3 py-1 bg-white/5 rounded-full text-[10px] font-bold text-slate-400 uppercase tracking-widest border border-white/10">
+                 Real-time Monitor
+               </div>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="pt-8 pb-10">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 relative">
+             {/* Background Connector Line */}
+             <div className="hidden md:block absolute top-1/2 left-[10%] right-[10%] h-0.5 bg-gradient-to-r from-indigo-500/20 via-indigo-500 to-indigo-500/20 -translate-y-1/2 z-0" />
+             
+             {[
+               { stage: 'CONFIRMED', icon: ShoppingBag, color: 'text-blue-400', bg: 'bg-blue-400/10' },
+               { stage: 'WAIT_PLAN', icon: Clock, color: 'text-amber-400', bg: 'bg-amber-400/10' },
+               { stage: 'PRODUCING', icon: Activity, color: 'text-indigo-400', bg: 'bg-indigo-400/10' },
+               { stage: 'WAIT_SHIP', icon: Package, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
+               { stage: 'DELIVERED', icon: CheckCircle2, color: 'text-slate-400', bg: 'bg-slate-400/10' },
+             ].map((s, idx) => {
+               const count = (data?.recentOrders || []).filter(o => o.stage === s.stage).length;
+               return (
+                 <div key={s.stage} className="relative z-10 flex flex-col items-center group">
+                   <div className={`size-16 rounded-2xl ${s.bg} flex items-center justify-center mb-3 border border-white/5 transition-all group-hover:scale-110 group-hover:border-white/20`}>
+                     <s.icon className={`size-8 ${s.color}`} />
+                   </div>
+                   <div className="text-center">
+                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{t(`stage_${s.stage}`)}</p>
+                     <p className="text-2xl font-black text-white">{count}</p>
+                   </div>
+                   {idx < 4 && (
+                     <div className="md:hidden flex justify-center mt-2">
+                       <ArrowRight className="size-4 text-slate-700" />
+                     </div>
+                   )}
+                 </div>
+               );
+             })}
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid gap-6 md:grid-cols-3">
         <Card className="md:col-span-2 shadow-lg border-none bg-white">

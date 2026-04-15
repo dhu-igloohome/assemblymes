@@ -31,6 +31,11 @@ export async function GET() {
     const rows = await prisma.salesOrder.findMany({
       include: {
         shipments: true,
+        workOrders: {
+          include: {
+            operations: true,
+          },
+        },
         invoices: {
           include: {
             payments: true,
@@ -47,6 +52,20 @@ export async function GET() {
         (sum, inv) => sum + inv.payments.reduce((pSum, p) => pSum + Number(p.amount), 0),
         0
       );
+      
+      // Calculate production progress
+      let productionProgress = 0;
+      if (row.workOrders.length > 0) {
+        const totalPlanned = row.workOrders.reduce((sum, wo) => sum + wo.plannedQty, 0);
+        const totalFinished = row.workOrders.reduce((sum, wo) => {
+          if (wo.status === 'DONE') return sum + wo.plannedQty;
+          // Use the last operation's completedQty as a proxy for WO completion if not DONE
+          const lastOp = wo.operations.sort((a, b) => b.sequence - a.sequence)[0];
+          return sum + (lastOp?.completedQty || 0);
+        }, 0);
+        productionProgress = Math.min(100, Math.round((totalFinished / totalPlanned) * 100));
+      }
+
       return {
         ...row,
         shippedQty,
@@ -54,6 +73,7 @@ export async function GET() {
         billedAmount: billed,
         receivedAmount: received,
         arAmount: billed - received,
+        productionProgress,
       };
     });
     return NextResponse.json(payload);
