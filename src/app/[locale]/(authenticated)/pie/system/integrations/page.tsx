@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/routing';
+import { toast } from 'sonner';
 import { 
   Network, 
   Database, 
@@ -27,25 +29,25 @@ export default function IntegrationsPage() {
 
   const handleSync = async (system: 'ERP' | 'FINANCE') => {
     setSyncing(system);
-    try {
-      const res = await fetch('/api/system/external-sync', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          system,
-          entityType: 'Global',
-          entityId: 'SYSTEM'
-        })
-      });
-      if (res.ok) {
+    const promise = fetch('/api/system/external-sync', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ system })
+    });
+
+    toast.promise(promise, {
+      loading: `Synchronizing with External ${system} System...`,
+      success: async (res) => {
+        if (!res.ok) throw new Error('SYNC_FAILED');
+        const data = await res.json();
         const now = new Date().toLocaleString();
         setLastSync(prev => ({ ...prev, [system]: now }));
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setSyncing(null);
-    }
+        return `${system} Data Linkage Successful: ${data.details.recordsSynced} records updated.`;
+      },
+      error: 'Integration Link Failure. Check gateway status.'
+    });
+
+    setSyncing(null);
   };
 
   return (
@@ -162,9 +164,11 @@ export default function IntegrationsPage() {
                  <p className="text-slate-400 text-sm font-medium">Detailed synchronization history is being recorded in the system audit logs.</p>
               </div>
            </div>
-           <Button variant="outline" className="border-white/10 bg-white/5 hover:bg-white/10 text-white font-black uppercase text-xs tracking-widest h-12 px-8 rounded-xl">
-              View All Logs
-           </Button>
+           <Link href="/pie/system/audit-logs">
+             <Button variant="outline" className="border-white/10 bg-white/5 hover:bg-white/10 text-white font-black uppercase text-xs tracking-widest h-12 px-8 rounded-xl">
+                View All Logs
+             </Button>
+           </Link>
         </CardContent>
       </Card>
     </div>

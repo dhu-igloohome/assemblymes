@@ -15,6 +15,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 interface AuditLog {
   id: string;
@@ -33,6 +34,7 @@ export default function AuditLogsPage() {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
+  const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
 
   const fetchLogs = useCallback(async () => {
     setLoading(true);
@@ -122,7 +124,12 @@ export default function AuditLogsPage() {
                     </div>
                   </TableCell>
                   <TableCell className="text-right pr-8">
-                    <Button variant="ghost" size="sm" className="font-black text-slate-400 group-hover:text-indigo-600">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="font-black text-slate-400 group-hover:text-indigo-600"
+                      onClick={() => setSelectedLog(log)}
+                    >
                        <FileJson className="size-4 mr-2" />
                        View JSON
                     </Button>
@@ -140,6 +147,58 @@ export default function AuditLogsPage() {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Audit Detail Dialog */}
+      <Dialog open={!!selectedLog} onOpenChange={(open) => !open && setSelectedLog(null)}>
+        <DialogContent className="sm:max-w-2xl rounded-[32px] border-none shadow-2xl p-8 bg-white">
+          <DialogHeader>
+            <div className="flex items-center gap-4 mb-4">
+              <div className="p-3 bg-indigo-50 text-indigo-600 rounded-2xl">
+                <ShieldAlert className="size-6" />
+              </div>
+              <div>
+                <DialogTitle className="text-2xl font-black text-slate-900 uppercase tracking-tight">
+                  Audit Transaction Detail
+                </DialogTitle>
+                <DialogDescription className="text-slate-500 font-medium">
+                  Complete technical trace for {selectedLog?.action} on {selectedLog?.entity}.
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+          
+          <div className="mt-6 space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Operator</p>
+                  <p className="text-sm font-bold text-slate-900">{selectedLog?.operator}</p>
+               </div>
+               <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Timestamp</p>
+                  <p className="text-sm font-bold text-slate-900">{selectedLog ? new Date(selectedLog.createdAt).toLocaleString() : ''}</p>
+               </div>
+            </div>
+
+            <div className="space-y-2">
+               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Raw Data Payload</p>
+               <pre className="p-6 bg-slate-900 text-indigo-300 rounded-[24px] text-xs font-mono overflow-auto max-h-64 scrollbar-hide border border-indigo-500/20">
+                  {selectedLog?.details 
+                    ? JSON.stringify(JSON.parse(selectedLog.details), null, 2) 
+                    : '// No additional details recorded.'}
+               </pre>
+            </div>
+            
+            <div className="pt-6 border-t border-slate-100 flex justify-end">
+              <Button 
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl px-10 h-12 shadow-lg shadow-indigo-100"
+                onClick={() => setSelectedLog(null)}
+              >
+                Close Trace
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

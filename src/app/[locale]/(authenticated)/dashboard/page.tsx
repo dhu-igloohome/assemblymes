@@ -313,15 +313,14 @@ export default function GlobalDashboard() {
                 </div>
                 <div className="size-2 rounded-full bg-slate-300" />
               </div>
-              <Button 
-                variant="ghost" 
-                className="w-full text-indigo-600 font-black text-[10px] uppercase tracking-widest hover:bg-indigo-100 transition-colors"
-                onClick={() => toast.info('Integration Hub: External systems (ERP/Finance) are currently in simulated sync mode.', {
-                  description: 'Real-time API endpoints will be activated upon professional system licensing.'
-                })}
-              >
-                Manage Integrations <ArrowRight className="ml-2 size-3" />
-              </Button>
+              <Link href="/pie/system/integrations" className="w-full">
+                <Button 
+                  variant="ghost" 
+                  className="w-full text-indigo-600 font-black text-[10px] uppercase tracking-widest hover:bg-indigo-100 transition-colors"
+                >
+                  Manage Integrations <ArrowRight className="ml-2 size-3" />
+                </Button>
+              </Link>
             </CardContent>
           </Card>
         </div>
