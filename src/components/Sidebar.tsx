@@ -20,6 +20,7 @@ import {
   LayoutDashboard,
   BarChart3,
   MessageSquare,
+  ShieldAlert,
 } from 'lucide-react';
 import { usePathname, Link } from '@/i18n/routing';
 import { Button } from '@/components/ui/button';
@@ -92,6 +93,7 @@ const navModules = [
     children: [
       { href: '/personnel/employees', translationKey: 'title', icon: Users, ns: 'Employees' },
       { href: '/pie/system/users', translationKey: 'system_users', icon: ShieldCheck, roles: ['SUPER_ADMIN'], ns: 'System' },
+      { href: '/pie/system/audit-logs', translationKey: 'audit_logs', icon: ShieldAlert, roles: ['SUPER_ADMIN'], ns: 'System' },
       { href: '/pie/system/feedback', translationKey: 'visitor_feedback', icon: MessageSquare, roles: ['SUPER_ADMIN'], ns: 'System' },
     ],
   },
