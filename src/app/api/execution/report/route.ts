@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { AUTH_COOKIE_NAME, parseSessionCookieValue } from '@/lib/auth';
 import { cookies } from 'next/headers';
+import { createAuditLog } from '@/lib/services/audit-service';
 
 function dec(v: number | string | Prisma.Decimal) {
   return new Prisma.Decimal(v);
@@ -172,6 +173,21 @@ export async function POST(request: Request) {
             await tx.workOrder.update({ where: { id: wo.id }, data: { status: 'IN_PROGRESS' } });
          }
       }
+      
+      // Create Audit Log
+      await createAuditLog({
+        action: 'REPORT_PRODUCTION',
+        entity: 'WorkOrder',
+        entityId: wo.id,
+        operator,
+        details: {
+          operationId: opId,
+          goodQty: qtyInfo.goodQty,
+          scrapQty: qtyInfo.scrapQty,
+          workOrderNo: wo.workOrderNo
+        }
+      });
+
       return report;
     };
 

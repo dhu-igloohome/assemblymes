@@ -797,6 +797,14 @@
     "btn_confirm_publish": "确认发布生产任务"
   },
   "Execution": {
+    "mobile_report_title": "移动报工",
+    "mobile_scan_hint": "扫描工单条码开始",
+    "mobile_select_station": "选择工位",
+    "mobile_quick_report": "快速报工",
+    "mobile_finish_qty": "合格品数",
+    "mobile_scrap_qty": "不良品",
+    "mobile_submit_success": "报工提交成功！",
+    "mobile_andon_call": "异常呼叫",
     "title": "生产报工",
     "report_output": "报工登记",
     "andon_call": "异常呼叫",

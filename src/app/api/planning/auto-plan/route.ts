@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { runAutoPlanForSalesOrder } from '@/lib/services/sales-order-automation';
 import { AUTH_COOKIE_NAME, parseSessionCookieValue } from '@/lib/auth';
 import { cookies } from 'next/headers';
+import { createAuditLog } from '@/lib/services/audit-service';
 
 export async function POST(request: Request) {
   try {
@@ -24,6 +25,16 @@ export async function POST(request: Request) {
     for (const id of orderIds) {
       try {
         const res = await runAutoPlanForSalesOrder(id, session.username);
+        
+        // Audit log for each order converted
+        await createAuditLog({
+          action: 'AUTO_PLAN_ORDER',
+          entity: 'SalesOrder',
+          entityId: id,
+          operator: session.username,
+          details: { ...res }
+        });
+
         results.push({ orderId: id, success: true, ...res });
       } catch (err: any) {
         results.push({ orderId: id, success: false, error: err.message });

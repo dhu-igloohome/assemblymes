@@ -797,3 +797,18 @@ model VisitorFeedback {
   @@index([createdAt])
   @@map("visitor_feedback")
 }
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  action    String   @db.VarChar(64) // e.g., "REPORT_PRODUCTION", "ADJUST_INVENTORY", "CONFIRM_ORDER"
+  entity    String   @db.VarChar(64) // e.g., "WorkOrder", "Inventory", "SalesOrder"
+  entityId  String   @map("entity_id") @db.VarChar(64)
+  operator  String   @db.VarChar(64)
+  details   String?  @db.Text // JSON string of changes
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([entity, entityId])
+  @@index([operator])
+  @@index([createdAt])
+  @@map("audit_logs")
+}

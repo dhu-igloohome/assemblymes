@@ -797,6 +797,14 @@
     "btn_confirm_publish": "Confirm & Publish Task"
   },
   "Execution": {
+    "mobile_report_title": "Mobile Production",
+    "mobile_scan_hint": "Scan WO barcode to start",
+    "mobile_select_station": "Select Workstation",
+    "mobile_quick_report": "Quick Report",
+    "mobile_finish_qty": "Good Qty",
+    "mobile_scrap_qty": "Scrap",
+    "mobile_submit_success": "Reported successfully!",
+    "mobile_andon_call": "Emergency Call",
     "title": "Reporting",
     "report_output": "Reporting",
     "andon_call": "Andon Call",
