@@ -16,7 +16,7 @@
 - [x] **P1: Industrial UX** (Scanner, Poka-yoke, Auto-scheduling, Mobile UI)
 - [x] **P2: Security & Integration** (RBAC, Audit Logs, Integration Hub)
 - [x] **P3: AI & Efficiency** (Andon AI, Operations Cockpit)
-- [ ] **P4: Business Intelligence** (AI Report Insight, Advanced Traceability)
+- [ ] **P4: Business Intelligence** (AI Report Insight, Advanced Traceability, Executive Dashboard)
 
 ## 🧠 Core Architecture & Constraints
 - **Framework**: Next.js (App Router) + Prisma + PostgreSQL.

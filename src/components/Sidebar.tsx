@@ -23,6 +23,7 @@ import {
   ShieldAlert,
   Network,
   Fingerprint,
+  Sparkles,
 } from 'lucide-react';
 import { usePathname, Link } from '@/i18n/routing';
 import { Button } from '@/components/ui/button';
@@ -34,6 +35,16 @@ const navModules = [
     icon: LayoutDashboard,
     children: [
       { href: '/dashboard', translationKey: 'control_center', icon: BarChart3 },
+    ],
+  },
+  {
+    id: 'ai_intelligence',
+    titleKey: 'Business Intelligence',
+    icon: Sparkles,
+    roles: ['SUPER_ADMIN'],
+    children: [
+      { href: '/pie/intelligence/report', translationKey: 'Strategic Report', icon: FileText },
+      { href: '/execution/traceability', translationKey: 'traceability_tab', icon: Fingerprint, ns: 'Execution' },
     ],
   },
   {
@@ -76,7 +87,6 @@ const navModules = [
     children: [
       { href: '/execution/work-orders', translationKey: 'work_orders', icon: FileText, ns: 'WorkOrders' },
       { href: '/execution/report', translationKey: 'execution', icon: Cpu, roles: ['SUPER_ADMIN', 'OPERATOR'], ns: 'Execution' },
-      { href: '/execution/traceability', translationKey: 'traceability_tab', icon: Fingerprint, ns: 'Execution' },
       { href: '/quality', translationKey: 'quality_overview', icon: ShieldCheck, roles: ['SUPER_ADMIN', 'QUALITY'], ns: 'Quality' },
       { href: '/execution/andon', translationKey: 'andon_board', icon: BarChart3, ns: 'Execution' },
     ],
