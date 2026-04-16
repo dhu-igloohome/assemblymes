@@ -24,6 +24,7 @@ import {
   Network,
   Fingerprint,
   Sparkles,
+  ClipboardCheck,
 } from 'lucide-react';
 import { usePathname, Link } from '@/i18n/routing';
 import { Button } from '@/components/ui/button';
@@ -87,6 +88,7 @@ const navModules = [
     children: [
       { href: '/execution/work-orders', translationKey: 'work_orders', icon: FileText, ns: 'WorkOrders' },
       { href: '/execution/report', translationKey: 'execution', icon: Cpu, roles: ['SUPER_ADMIN', 'OPERATOR'], ns: 'Execution' },
+      { href: '/execution/mobile-audit', translationKey: 'Gemba Audit', icon: ClipboardCheck },
       { href: '/quality', translationKey: 'quality_overview', icon: ShieldCheck, roles: ['SUPER_ADMIN', 'QUALITY'], ns: 'Quality' },
       { href: '/execution/andon', translationKey: 'andon_board', icon: BarChart3, ns: 'Execution' },
     ],
