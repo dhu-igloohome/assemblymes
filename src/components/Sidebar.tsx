@@ -25,6 +25,7 @@ import {
   Fingerprint,
   Sparkles,
   ClipboardCheck,
+  Truck,
 } from 'lucide-react';
 import { usePathname, Link } from '@/i18n/routing';
 import { Button } from '@/components/ui/button';
@@ -45,6 +46,7 @@ const navModules = [
     roles: ['SUPER_ADMIN'],
     children: [
       { href: '/pie/intelligence/report', translationKey: 'Strategic Report', icon: FileText },
+      { href: '/pie/intelligence/supply-risks', translationKey: 'Supply Risks', icon: Truck },
       { href: '/execution/traceability', translationKey: 'traceability_tab', icon: Fingerprint, ns: 'Execution' },
     ],
   },
